@@ -1,6 +1,7 @@
 /** biome-ignore-all lint/nursery/useConsistentTypeDefinitions: <necessary for type inference> */
-import { Link } from '@tanstack/react-router';
-import { Plus } from 'lucide-react';
+
+import { Plus } from "lucide-react";
+import Link from "next/link";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -8,9 +9,9 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/breadcrumb";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export interface BreadcrumbItemType {
   label: string;
@@ -40,7 +41,7 @@ export function PageTitle({
   const ActionIcon = action?.icon || Plus;
 
   return (
-    <div className={cn('space-y-4 pb-6', className)}>
+    <div className={cn("space-y-4 pb-6", className)}>
       {breadcrumbs.length > 0 && (
         <Breadcrumb>
           <BreadcrumbList>
@@ -52,7 +53,7 @@ export function PageTitle({
                 <BreadcrumbItem>
                   {crumb.href ? (
                     <BreadcrumbLink asChild>
-                      <Link to={crumb.href}>{crumb.label}</Link>
+                      <Link href={crumb.href}>{crumb.label}</Link>
                     </BreadcrumbLink>
                   ) : (
                     <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
@@ -78,7 +79,7 @@ export function PageTitle({
         {action &&
           (action.href ? (
             <Button asChild className="shrink-0">
-              <Link to={action.href}>
+              <Link href={action.href}>
                 <ActionIcon className="mr-2 h-4 w-4" />
                 {action.label}
               </Link>

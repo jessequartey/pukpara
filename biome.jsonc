@@ -1,0 +1,42 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.2.2/schema.json",
+  "extends": ["ultracite"],
+  "files": {
+    "ignoreUnknown": false,
+    "includes": [
+      "**",
+      "!**/dist",
+      "!**/dev-dist",
+      "!**/.zed",
+      "!**/.vscode",
+      "!**/routeTree.gen.ts",
+      "!pukpara-frontend.jsonc",
+      "!**/.wrangler",
+      "!**/wrangler.jsonc",
+      "!**/.source",
+      "!**/worker-configuration.d.ts",
+      "!**/src/components/ui",
+      "!**/cloudflare-env.d.ts"
+    ]
+  },
+  "json": {
+    "parser": {
+      "allowComments": true
+    }
+  },
+  "css": {
+    "linter": {
+      "enabled": false
+    }
+  },
+  "linter": {
+    "rules": {
+      "performance": {
+        "noImgElement": "off"
+      },
+      "nursery": {
+        "useImageSize": "off"
+      }
+    }
+  }
+}

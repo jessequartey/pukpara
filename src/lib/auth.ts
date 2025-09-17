@@ -1,6 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { admin, organization, phoneNumber } from "better-auth/plugins";
+import { admin, openAPI, organization, phoneNumber } from "better-auth/plugins";
 import { db } from "@/server/db";
 import { AdminRoles, ac } from "./admin-permissions";
 import { OrgRoles, ac as orgAC } from "./org-permissions";
@@ -50,5 +50,6 @@ export const auth = betterAuth({
         ...OrgRoles,
       },
     }),
+    openAPI(),
   ],
 });

@@ -49,6 +49,17 @@ export const auth = betterAuth({
       roles: {
         ...OrgRoles,
       },
+      schema: {
+        organization: {
+          additionalFields: {
+            OrgType: {
+              type: "string",
+              input: true,
+              required: true,
+            },
+          },
+        },
+      },
     }),
     openAPI(),
   ],

@@ -1,10 +1,11 @@
+import { neon, neonConfig } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
+import ws from "ws";
 
-const dbURL = process.env.DATABASE_URL;
+neonConfig.webSocketConstructor = ws;
 
-if (!dbURL) {
-  // biome-ignore lint/suspicious/noConsole: <necessary>
-  console.error("No database URL");
-}
+// To work in edge environments (Cloudflare Workers, Vercel Edge, etc.), enable querying over fetch
+// neonConfig.poolQueryViaFetch = true
 
-export const db = drizzle(dbURL as string);
+const sql = neon(process.env.DATABASE_URL || "");
+export const db = drizzle(sql);

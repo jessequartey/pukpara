@@ -29,6 +29,7 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "superjson": "^2.2.2",
+    "ws": "^8.18.3",
     "zod": "^4.1.9",
     "zustand": "^5.0.8"
   },
@@ -38,6 +39,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/ws": "^8.18.1",
     "drizzle-kit": "^0.31.4",
     "husky": "^9.1.7",
     "tailwindcss": "^4",

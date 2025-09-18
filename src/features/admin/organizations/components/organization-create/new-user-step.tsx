@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-
+import { AsyncSelect } from "@/components/ui/async-select";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,7 +15,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { AsyncSelect } from "@/components/ui/async-select";
 import {
   Form,
   FormControl,
@@ -67,7 +66,9 @@ export const NewUserStep = ({ onBack, onNext }: NewUserStepProps) => {
   const setOrganizationData = useOrganizationCreateStore(
     (state) => state.setOrganizationData
   );
-  const organization = useOrganizationCreateStore((state) => state.organization);
+  const organization = useOrganizationCreateStore(
+    (state) => state.organization
+  );
 
   const {
     data: districtData,
@@ -77,10 +78,7 @@ export const NewUserStep = ({ onBack, onNext }: NewUserStepProps) => {
     staleTime: Number.POSITIVE_INFINITY,
   });
 
-  const regions = useMemo(
-    () => districtData?.regions ?? [],
-    [districtData]
-  );
+  const regions = useMemo(() => districtData?.regions ?? [], [districtData]);
 
   const districtIndex = useMemo(() => {
     const map = new Map<string, DistrictOption>();
@@ -301,8 +299,15 @@ export const NewUserStep = ({ onBack, onNext }: NewUserStepProps) => {
                   <FormLabel>District</FormLabel>
                   <FormControl>
                     <AsyncSelect<DistrictOption>
+                      disabled={
+                        districtsLoading || districtOptionsList.length === 0
+                      }
+                      fetcher={fetchDistrictOptions}
+                      getDisplayValue={(option) =>
+                        `${option.name} • ${option.regionName}`
+                      }
+                      getOptionValue={(option) => option.id}
                       label="District"
-                      value={field.value}
                       onChange={(nextValue) => {
                         field.onChange(nextValue);
                         setNewUserData({
@@ -331,10 +336,10 @@ export const NewUserStep = ({ onBack, onNext }: NewUserStepProps) => {
                           setOrganizationData(updates);
                         }
                       }}
-                      fetcher={fetchDistrictOptions}
-                      getOptionValue={(option) => option.id}
-                      getDisplayValue={(option) =>
-                        `${option.name} • ${option.regionName}`
+                      placeholder={
+                        districtsLoading
+                          ? "Loading districts…"
+                          : "Search district"
                       }
                       renderOption={(option) => (
                         <div className="flex flex-col">
@@ -344,15 +349,8 @@ export const NewUserStep = ({ onBack, onNext }: NewUserStepProps) => {
                           </span>
                         </div>
                       )}
-                      placeholder={
-                        districtsLoading
-                          ? "Loading districts…"
-                          : "Search district"
-                      }
-                      disabled={
-                        districtsLoading || districtOptionsList.length === 0
-                      }
                       triggerClassName="w-full justify-between"
+                      value={field.value}
                       width="var(--radix-popover-trigger-width)"
                     />
                   </FormControl>

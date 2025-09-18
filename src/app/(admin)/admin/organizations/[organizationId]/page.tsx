@@ -1,12 +1,13 @@
 import { OrganizationDetailsPage } from "@/features/admin/organizations/pages/organization-details-page";
 
 type OrganizationRouteParams = {
-  params: { organizationId: string };
+  params: Promise<{ organizationId: string }>;
 };
 
-export default function AdminOrganizationDetailPage({
+export default async function AdminOrganizationDetailPage({
   params,
 }: OrganizationRouteParams) {
-  const organizationId = decodeURIComponent(params.organizationId);
+  const { organizationId: rawId } = await params;
+  const organizationId = decodeURIComponent(rawId);
   return <OrganizationDetailsPage organizationId={organizationId} />;
 }

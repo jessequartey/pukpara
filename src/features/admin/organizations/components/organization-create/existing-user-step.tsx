@@ -43,7 +43,9 @@ export const ExistingUserStep = ({ onBack, onNext }: ExistingUserStepProps) => {
   const setOrganizationData = useOrganizationCreateStore(
     (state) => state.setOrganizationData
   );
-  const organization = useOrganizationCreateStore((state) => state.organization);
+  const organization = useOrganizationCreateStore(
+    (state) => state.organization
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 

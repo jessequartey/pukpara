@@ -76,8 +76,6 @@ const createApproveSingleHandler = (approveMutation: {
   };
 };
 
-
-
 type OrganizationListInput = Parameters<
   typeof api.organizations.list.useQuery
 >[0];
@@ -115,7 +113,6 @@ const filterOrganizations = (
     );
   });
 };
-
 
 type UseOrganizationListControllerReturn = {
   search: string;
@@ -170,7 +167,10 @@ export function useOrganizationListController(): UseOrganizationListControllerRe
 
   // Apply client-side filtering and pagination
   const allData = listQuery.data?.data ?? [];
-  const filteredData = useMemo(() => filterOrganizations(allData, search), [allData, search]);
+  const filteredData = useMemo(
+    () => filterOrganizations(allData, search),
+    [allData, search]
+  );
   const total = filteredData.length;
   const totalPages = total === 0 ? 1 : Math.ceil(total / pageSize);
 

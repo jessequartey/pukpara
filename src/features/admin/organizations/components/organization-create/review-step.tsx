@@ -64,9 +64,8 @@ export const ReviewStep = ({
   }
 
   const ownerContactEmail =
-    mode === "new-user" ? newUser.email : existingUser?.email ?? "";
-  const ownerContactPhone =
-    mode === "new-user" ? newUser.phoneNumber : "";
+    mode === "new-user" ? newUser.email : (existingUser?.email ?? "");
+  const ownerContactPhone = mode === "new-user" ? newUser.phoneNumber : "";
   const organizationContactEmail =
     organization.contactEmail || ownerContactEmail;
   const organizationContactPhone =
@@ -104,7 +103,10 @@ export const ReviewStep = ({
       value: formatLabel(organization.organizationType),
     },
     { label: "Contact email", value: organizationContactEmail },
-    { label: "Billing email", value: organization.billingEmail || organizationContactEmail },
+    {
+      label: "Billing email",
+      value: organization.billingEmail || organizationContactEmail,
+    },
     { label: "Contact phone", value: organizationContactPhone },
     { label: "Region", value: organizationRegionDisplay },
     { label: "District", value: organizationDistrictDisplay },

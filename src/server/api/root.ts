@@ -5,6 +5,7 @@ import {
   publicProcedure,
 } from "@/server/api/trpc";
 import { districtsRouter } from "./routers/districts";
+import { organizationsRouter } from "./routers/organizations";
 
 /**
  * This is the primary router for your server.
@@ -13,6 +14,7 @@ import { districtsRouter } from "./routers/districts";
  */
 export const appRouter = createTRPCRouter({
   districts: districtsRouter,
+  organizations: organizationsRouter,
   hello: publicProcedure
     .input(z.object({ text: z.string().optional() }))
     .query(({ input }) => {

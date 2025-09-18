@@ -8,19 +8,12 @@ import {
   ORGANIZATION_STATUS,
   ORGANIZATION_SUBSCRIPTION_TYPE,
   ORGANIZATION_TYPE,
-  PASSWORD_PROVIDER_ID,
   USER_KYC_STATUS,
   USER_STATUS,
 } from "../src/config/constants/auth";
 import { auth } from "../src/lib/auth";
 import { db } from "../src/server/db";
-import {
-  account,
-  district,
-  member,
-  organization,
-  user,
-} from "../src/server/db/schema";
+import { district, member, organization, user } from "../src/server/db/schema";
 
 const ADMIN_USER = {
   email: "admin@wamiagro.com",

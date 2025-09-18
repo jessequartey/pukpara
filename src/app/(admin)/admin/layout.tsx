@@ -60,10 +60,10 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
               description: "System health and KPIs",
             },
             {
-              title: "Tenants",
-              href: "/admin/tenants",
+              title: "Organizations",
+              href: "/admin/organizations",
               icon: "Building2",
-              description: "Manage tenant organizations",
+              description: "Manage organizations and approvals",
             },
             {
               title: "Users",

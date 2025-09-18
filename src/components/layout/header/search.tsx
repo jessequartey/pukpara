@@ -1,6 +1,5 @@
 "use client";
 
-import type { LucideIcon } from "lucide-react";
 import {
   BarChart3,
   Boxes,
@@ -14,6 +13,8 @@ import {
   UserPlus,
   Users,
 } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 
 // Icon mapping to avoid serialization issues
 const iconMap = {
@@ -30,8 +31,7 @@ const iconMap = {
 } as const;
 
 type IconName = keyof typeof iconMap;
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   CommandDialog,
@@ -116,8 +116,8 @@ const adminSearchGroups: SearchGroup[] = [
       { icon: "BarChart3", label: "Overview", href: "/admin", shortcut: "O" },
       {
         icon: "Building2",
-        label: "Tenants",
-        href: "/admin/tenants",
+        label: "Organizations",
+        href: "/admin/organizations",
         shortcut: "T",
       },
       { icon: "Users", label: "Users", href: "/admin/users", shortcut: "U" },
@@ -157,8 +157,8 @@ const adminSearchGroups: SearchGroup[] = [
     items: [
       {
         icon: "Building2",
-        label: "Create tenant",
-        href: "/admin/tenants?create=new",
+        label: "Create organization",
+        href: "/admin/organizations?create=new",
         shortcut: "Shift+T",
       },
       {

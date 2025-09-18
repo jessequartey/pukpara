@@ -1,6 +1,6 @@
 import { ArrowLeft } from "lucide-react";
 import { PageTitle } from "@/components/ui/page-title";
-import { PlaceholderSection } from "@/features/admin/components/placeholder-section";
+import { PlaceholderSection } from "@/features/admin/overview/components/placeholder-section";
 
 type AdminFarmerDetailPageProps = {
   params: { farmerId: string };
@@ -24,7 +24,7 @@ export default function AdminFarmerDetailPage({
           { label: "Farmers", href: "/admin/farmers" },
           { label: farmerId },
         ]}
-        description="Cross-tenant farmer profile with membership and risk posture."
+        description="Cross-organization farmer profile with membership and risk posture."
         title={`Farmer: ${farmerId}`}
       />
 

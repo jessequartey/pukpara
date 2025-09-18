@@ -1,6 +1,6 @@
 import { ArrowLeft } from "lucide-react";
 import { PageTitle } from "@/components/ui/page-title";
-import { PlaceholderSection } from "@/features/admin/components/placeholder-section";
+import { PlaceholderSection } from "@/features/admin/overview/components/placeholder-section";
 
 type AdminPurchaseOrderDetailPageProps = {
   params: { poId: string };

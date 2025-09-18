@@ -1,5 +1,5 @@
 import { PageTitle } from "@/components/ui/page-title";
-import { PlaceholderSection } from "@/features/admin/components/placeholder-section";
+import { PlaceholderSection } from "@/features/admin/overview/components/placeholder-section";
 
 export default function AdminMarketplaceListingsPage() {
   const basePath = "/admin/marketplace";
@@ -16,7 +16,7 @@ export default function AdminMarketplaceListingsPage() {
           { label: "Marketplace", href: `${basePath}/listings` },
           { label: "Listings" },
         ]}
-        description="Catalogue of marketplace listings across all tenants."
+        description="Catalogue of marketplace listings across all organizations."
         title="Listings"
       />
 

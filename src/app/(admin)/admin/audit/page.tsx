@@ -1,5 +1,5 @@
 import { PageTitle } from "@/components/ui/page-title";
-import { PlaceholderSection } from "@/features/admin/components/placeholder-section";
+import { PlaceholderSection } from "@/features/admin/overview/components/placeholder-section";
 
 export default function AdminAuditPage() {
   return (
@@ -7,7 +7,7 @@ export default function AdminAuditPage() {
       <PageTitle
         action={{ href: "/admin/audit?export=csv", label: "Export audit log" }}
         breadcrumbs={[{ label: "Admin", href: "/admin" }, { label: "Audit" }]}
-        description="Global audit log across tenants, users, and sensitive actions."
+        description="Global audit log across organizations, users, and sensitive actions."
         title="Audit log"
       />
 

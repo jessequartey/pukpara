@@ -1,5 +1,9 @@
 import { Resend } from "resend";
 
+import OrganizationApprovedEmail, {
+  buildOrganizationApprovedText,
+  type OrganizationApprovedEmailProps,
+} from "@/email/templates/organization-approved-email";
 import PasswordResetEmail, {
   buildPasswordResetText,
   type PasswordResetEmailProps,
@@ -25,5 +29,26 @@ export async function sendPasswordResetEmail(
     subject: "Reset your Pukpara password",
     react: PasswordResetEmail(templateProps),
     text: buildPasswordResetText(templateProps),
+  });
+}
+
+export async function sendOrganizationApprovedEmail(
+  props: OrganizationApprovedEmailProps & { email: string }
+) {
+  if (!resendClient) {
+    return;
+  }
+  if (!resendFromEmail) {
+    return;
+  }
+
+  const { email, ...templateProps } = props;
+
+  await resendClient.emails.send({
+    from: resendFromEmail,
+    to: email,
+    subject: `${templateProps.organizationName} is approved on Pukpara`,
+    react: OrganizationApprovedEmail(templateProps),
+    text: buildOrganizationApprovedText(templateProps),
   });
 }

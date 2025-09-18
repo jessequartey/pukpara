@@ -13,7 +13,7 @@ import {
 const statement = {
   ...defaultStatements,
 
-  tenant: ["create", "update", "delete", "view"],
+  organization: ["create", "update", "delete", "view"],
   users: ["invite", "suspend", "update", "delete", "view"],
   farmers: ["create", "update", "delete", "view"],
   farms: ["create", "update", "delete", "view"],
@@ -31,7 +31,7 @@ export const ac = createAccessControl(statement);
  */
 export const admin = ac.newRole({
   ...adminAc.statements, // keep the full admin baseline
-  tenant: ["create", "update", "delete", "view"],
+  organization: ["create", "update", "delete", "view"],
   users: ["invite", "suspend", "update", "delete", "view"],
   financial: ["savings.view", "loan.approve"],
   warehouse: ["inventory.manage", "update", "view"],

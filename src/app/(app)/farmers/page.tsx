@@ -5,9 +5,7 @@ type OrgFarmersPageProps = {
   params: Promise<{ orgId: string }>;
 };
 
-export default async function OrgFarmersPage({
-  params,
-}: OrgFarmersPageProps) {
+export default async function OrgFarmersPage({ params }: OrgFarmersPageProps) {
   const { orgId } = await params;
   const basePath = `/app/${orgId}`;
   const listPath = `${basePath}/farmers`;

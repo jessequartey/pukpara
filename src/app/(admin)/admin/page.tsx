@@ -1,12 +1,15 @@
 import { PageTitle } from "@/components/ui/page-title";
-import { AdminOverviewCards } from "@/features/admin/components/admin-overview-cards";
-import { PlaceholderSection } from "@/features/admin/components/placeholder-section";
+import { AdminOverviewCards } from "@/features/admin/overview/components/admin-overview-cards";
+import { PlaceholderSection } from "@/features/admin/overview/components/placeholder-section";
 
 export default function AdminOverviewPage() {
   return (
     <div className="space-y-8">
       <PageTitle
-        action={{ href: "/admin/tenants?create=new", label: "Create tenant" }}
+        action={{
+          href: "/admin/organizations?create=new",
+          label: "Create organization",
+        }}
         breadcrumbs={[{ label: "Admin overview" }]}
         description="Monitor platform-wide activity, growth, and operations."
         title="Admin dashboard"

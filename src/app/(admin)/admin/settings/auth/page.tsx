@@ -1,5 +1,5 @@
 import { PageTitle } from "@/components/ui/page-title";
-import { PlaceholderSection } from "@/features/admin/components/placeholder-section";
+import { PlaceholderSection } from "@/features/admin/overview/components/placeholder-section";
 
 export default function AdminSettingsAuthPage() {
   const basePath = "/admin/settings";

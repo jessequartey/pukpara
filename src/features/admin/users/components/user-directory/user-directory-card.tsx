@@ -109,7 +109,7 @@ export function UserDirectoryCard({ controller }: UserDirectoryCardProps) {
       user.phoneNumber?.toLowerCase().includes(searchLower) ||
       user.districtName?.toLowerCase().includes(searchLower) ||
       user.regionName?.toLowerCase().includes(searchLower) ||
-      user.organizationNames.some(org =>
+      user.organizationNames.some((org) =>
         org.toLowerCase().includes(searchLower)
       )
     );
@@ -189,7 +189,9 @@ export function UserDirectoryCard({ controller }: UserDirectoryCardProps) {
     try {
       setIsActionLoading(true);
       await unbanUser({ userId: row.id });
-      toast.success(`${row.name} has been unbanned and can access the platform again.`);
+      toast.success(
+        `${row.name} has been unbanned and can access the platform again.`
+      );
     } catch (error) {
       toast.error("Failed to unban user. Please try again.");
     } finally {
@@ -218,7 +220,9 @@ export function UserDirectoryCard({ controller }: UserDirectoryCardProps) {
     try {
       setIsActionLoading(true);
       await impersonateUser({ userId: row.id });
-      toast.success(`You are now impersonating ${row.name}. Click "Stop Impersonating" to return to your admin account.`);
+      toast.success(
+        `You are now impersonating ${row.name}. Click "Stop Impersonating" to return to your admin account.`
+      );
       // Refresh the page to show the impersonated session
       window.location.reload();
     } catch (error) {
@@ -234,12 +238,12 @@ export function UserDirectoryCard({ controller }: UserDirectoryCardProps) {
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">Users Directory</CardTitle>
           <div className="relative w-72">
-            <Search className="absolute left-2 top-2.5 size-4 text-muted-foreground" />
+            <Search className="absolute top-2.5 left-2 size-4 text-muted-foreground" />
             <Input
               className="pl-8"
+              onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by name, email, phone, location, or organization..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
             />
           </div>
         </div>
@@ -247,21 +251,21 @@ export function UserDirectoryCard({ controller }: UserDirectoryCardProps) {
       <CardContent>
         <UserTable
           data={filteredUsers}
-          sort={sort}
-          onSortChange={setSort}
-          selectedIds={selectedIds}
-          onSelectRow={handleSelectRow}
-          onSelectAll={handleSelectAll}
-          onApprove={handleApprove}
-          onReject={handleReject}
-          onSuspend={handleSuspend}
-          onBan={handleBan}
-          onUnban={handleUnban}
-          onDelete={handleDelete}
-          onView={handleView}
-          onImpersonate={handleImpersonate}
-          isLoading={isLoading || isActionLoading}
           isFetching={isFetching}
+          isLoading={isLoading || isActionLoading}
+          onApprove={handleApprove}
+          onBan={handleBan}
+          onDelete={handleDelete}
+          onImpersonate={handleImpersonate}
+          onReject={handleReject}
+          onSelectAll={handleSelectAll}
+          onSelectRow={handleSelectRow}
+          onSortChange={setSort}
+          onSuspend={handleSuspend}
+          onUnban={handleUnban}
+          onView={handleView}
+          selectedIds={selectedIds}
+          sort={sort}
         />
       </CardContent>
     </Card>

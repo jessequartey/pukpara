@@ -128,7 +128,7 @@ export const userColumns: UserColumn[] = [
         <div className="flex items-center gap-2">
           <span className="text-sm">{row.email}</span>
           {row.emailVerified && (
-            <Badge variant="outline" className="text-xs">
+            <Badge className="text-xs" variant="outline">
               Verified
             </Badge>
           )}
@@ -139,7 +139,7 @@ export const userColumns: UserColumn[] = [
               {row.phoneNumber}
             </span>
             {row.phoneNumberVerified && (
-              <Badge variant="outline" className="text-xs">
+              <Badge className="text-xs" variant="outline">
                 SMS
               </Badge>
             )}
@@ -215,7 +215,7 @@ export const userColumns: UserColumn[] = [
       <div className="flex flex-col gap-1 text-right">
         <span className="text-sm tabular-nums">{row.organizationCount}</span>
         {row.organizationNames.length > 0 && (
-          <span className="text-muted-foreground text-xs truncate max-w-32">
+          <span className="max-w-32 truncate text-muted-foreground text-xs">
             {row.organizationNames.slice(0, 2).join(", ")}
             {row.organizationNames.length > 2 &&
               ` +${row.organizationNames.length - 2}`}

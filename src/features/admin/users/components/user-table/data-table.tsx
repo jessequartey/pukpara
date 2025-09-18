@@ -482,9 +482,7 @@ export const DataTable = ({
               ))
             )}
           </TableBody>
-          <TableCaption>
-            {isFetching ? "Refreshing users…" : ""}
-          </TableCaption>
+          <TableCaption>{isFetching ? "Refreshing users…" : ""}</TableCaption>
         </Table>
       </div>
       {isLoading ? (

@@ -9,32 +9,6 @@ type OrganizationSectionConfig = {
 
 const BASE_SECTIONS: OrganizationSectionConfig[] = [
   { key: "overview", label: "Overview", path: "" },
-  { key: "members", label: "Members", path: "members" },
-  { key: "teams", label: "Teams", path: "teams" },
-  {
-    key: "farmers",
-    label: "Farmers",
-    path: "farmers",
-    allowedTypes: ["FARMER_ORG", "AGGREGATOR"],
-  },
-  {
-    key: "farms",
-    label: "Farms",
-    path: "farms",
-    allowedTypes: ["FARMER_ORG", "AGGREGATOR"],
-  },
-  {
-    key: "warehouses",
-    label: "Warehouses & Inventory",
-    path: "warehouses",
-    allowedTypes: ["SUPPLIER", "AGGREGATOR"],
-  },
-  { key: "finance", label: "Finance", path: "finance" },
-  { key: "marketplace", label: "Marketplace", path: "marketplace" },
-  { key: "billing", label: "Billing & License", path: "billing" },
-  { key: "notifications", label: "Notifications", path: "notifications" },
-  { key: "settings", label: "Settings", path: "settings" },
-  { key: "audit", label: "Audit", path: "audit" },
 ];
 
 export type OrganizationSectionNavItem = {

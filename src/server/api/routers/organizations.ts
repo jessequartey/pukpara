@@ -1,11 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import {
-  and,
-  count,
-  eq,
-  inArray,
-  sql,
-} from "drizzle-orm";
+import { and, count, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import {
@@ -61,7 +55,6 @@ const ensurePlatformAdmin = (sessionUser: unknown) => {
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 100;
 
-
 const buildOnboardingUrl = (orgId: string) => {
   const base =
     process.env.NEXT_PUBLIC_APP_URL ??
@@ -74,16 +67,15 @@ const buildOnboardingUrl = (orgId: string) => {
 export const organizationsRouter = createTRPCRouter({
   list: protectedProcedure
     .input(
-      z
-        .object({
-          page: z.number().int().min(1).default(1),
-          pageSize: z
-            .number()
-            .int()
-            .min(1)
-            .max(MAX_PAGE_SIZE)
-            .default(DEFAULT_PAGE_SIZE),
-        })
+      z.object({
+        page: z.number().int().min(1).default(1),
+        pageSize: z
+          .number()
+          .int()
+          .min(1)
+          .max(MAX_PAGE_SIZE)
+          .default(DEFAULT_PAGE_SIZE),
+      })
     )
     .query(async ({ ctx, input }) => {
       // TODO: Re-enable admin check after debugging
@@ -105,20 +97,22 @@ export const organizationsRouter = createTRPCRouter({
             regionName: region.name,
             districtName: district.name,
             memberCount: sql<number>`COUNT(DISTINCT ${member.id})`,
-            ownerId: sql<string | null>`MAX(CASE WHEN ${member.role} = 'owner' THEN ${user.id} END)`,
-            ownerName: sql<string | null>`MAX(CASE WHEN ${member.role} = 'owner' THEN ${user.name} END)`,
-            ownerEmail: sql<string | null>`MAX(CASE WHEN ${member.role} = 'owner' THEN ${user.email} END)`,
+            ownerId: sql<
+              string | null
+            >`MAX(CASE WHEN ${member.role} = 'owner' THEN ${user.id} END)`,
+            ownerName: sql<
+              string | null
+            >`MAX(CASE WHEN ${member.role} = 'owner' THEN ${user.name} END)`,
+            ownerEmail: sql<
+              string | null
+            >`MAX(CASE WHEN ${member.role} = 'owner' THEN ${user.email} END)`,
           })
           .from(organization)
           .leftJoin(region, eq(region.code, organization.regionId))
           .leftJoin(district, eq(district.id, organization.districtId))
           .leftJoin(member, eq(member.organizationId, organization.id))
           .leftJoin(user, eq(user.id, member.userId))
-          .groupBy(
-            organization.id,
-            region.name,
-            district.name
-          )
+          .groupBy(organization.id, region.name, district.name)
           .limit(input.pageSize)
           .offset((input.page - 1) * input.pageSize);
 
@@ -140,11 +134,14 @@ export const organizationsRouter = createTRPCRouter({
           memberCount: Number(row.memberCount ?? 0),
           regionName: row.regionName,
           districtName: row.districtName,
-          owner: row.ownerId && row.ownerName && row.ownerEmail ? {
-            id: row.ownerId,
-            name: row.ownerName,
-            email: row.ownerEmail,
-          } : null,
+          owner:
+            row.ownerId && row.ownerName && row.ownerEmail
+              ? {
+                  id: row.ownerId,
+                  name: row.ownerName,
+                  email: row.ownerEmail,
+                }
+              : null,
           logo: null,
           subType: null,
           maxUsers: null,

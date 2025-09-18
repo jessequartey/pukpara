@@ -1,0 +1,269 @@
+"use client";
+
+import { Search } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  banUser,
+  impersonateUser,
+  removeUser,
+  unbanUser,
+} from "@/lib/auth-admin-client";
+
+import { UserTable } from "../user-table";
+import type { UserTableRow } from "../user-table/columns";
+import type { UserTableSortState } from "../user-table/index";
+
+// Mock data for now - replace with actual API call
+const mockUsers: UserTableRow[] = [
+  {
+    id: "user_1",
+    name: "John Doe",
+    email: "john@example.com",
+    emailVerified: true,
+    image: null,
+    createdAt: "2024-01-15T10:30:00Z",
+    phoneNumber: "+233201234567",
+    phoneNumberVerified: true,
+    role: "user",
+    banned: false,
+    banReason: null,
+    banExpires: null,
+    address: "123 Main St, Accra",
+    kycStatus: "verified",
+    status: "active",
+    approvedAt: "2024-01-16T09:00:00Z",
+    lastLogin: "2024-01-20T14:30:00Z",
+    districtName: "Accra Metropolitan",
+    regionName: "Greater Accra",
+    organizationCount: 2,
+    organizationNames: ["Farmer Org 1", "Cooperative 2"],
+  },
+  {
+    id: "user_2",
+    name: "Jane Smith",
+    email: "jane@example.com",
+    emailVerified: true,
+    image: null,
+    createdAt: "2024-01-10T08:15:00Z",
+    phoneNumber: "+233207654321",
+    phoneNumberVerified: false,
+    role: "admin",
+    banned: false,
+    banReason: null,
+    banExpires: null,
+    address: "456 Oak Ave, Kumasi",
+    kycStatus: "pending",
+    status: "active",
+    approvedAt: "2024-01-11T10:00:00Z",
+    lastLogin: "2024-01-19T16:45:00Z",
+    districtName: "Kumasi Metropolitan",
+    regionName: "Ashanti",
+    organizationCount: 1,
+    organizationNames: ["Admin Corp"],
+  },
+];
+
+type UserDirectoryController = {
+  users: UserTableRow[];
+  search: string;
+  setSearch: (search: string) => void;
+  sort: UserTableSortState;
+  setSort: (sort: UserTableSortState) => void;
+  selectedIds: Set<string>;
+  setSelectedIds: (ids: Set<string>) => void;
+  isLoading: boolean;
+  isFetching: boolean;
+};
+
+type UserDirectoryCardProps = {
+  controller: UserDirectoryController;
+};
+
+export function UserDirectoryCard({ controller }: UserDirectoryCardProps) {
+  const [isActionLoading, setIsActionLoading] = useState(false);
+
+  const {
+    users,
+    search,
+    setSearch,
+    sort,
+    setSort,
+    selectedIds,
+    setSelectedIds,
+    isLoading,
+    isFetching,
+  } = controller;
+
+  // Filter users based on search
+  const filteredUsers = users.filter((user) => {
+    if (!search) return true;
+
+    const searchLower = search.toLowerCase();
+    return (
+      user.name.toLowerCase().includes(searchLower) ||
+      user.email.toLowerCase().includes(searchLower) ||
+      user.phoneNumber?.toLowerCase().includes(searchLower) ||
+      user.districtName?.toLowerCase().includes(searchLower) ||
+      user.regionName?.toLowerCase().includes(searchLower) ||
+      user.organizationNames.some(org =>
+        org.toLowerCase().includes(searchLower)
+      )
+    );
+  });
+
+  const handleSelectRow = (id: string, checked: boolean) => {
+    const newSelected = new Set(selectedIds);
+    if (checked) {
+      newSelected.add(id);
+    } else {
+      newSelected.delete(id);
+    }
+    setSelectedIds(newSelected);
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(new Set(filteredUsers.map((user) => user.id)));
+    } else {
+      setSelectedIds(new Set());
+    }
+  };
+
+  const handleApprove = async (row: UserTableRow) => {
+    try {
+      setIsActionLoading(true);
+      // TODO: Implement user approval API call
+      toast.success(`${row.name} has been approved successfully.`);
+    } catch (error) {
+      toast.error("Failed to approve user. Please try again.");
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const handleReject = async (row: UserTableRow) => {
+    try {
+      setIsActionLoading(true);
+      // TODO: Implement user rejection API call
+      toast.success(`${row.name} has been rejected.`);
+    } catch (error) {
+      toast.error("Failed to reject user. Please try again.");
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const handleSuspend = async (row: UserTableRow) => {
+    try {
+      setIsActionLoading(true);
+      // TODO: Implement user suspension API call
+      toast.success(`${row.name} has been suspended.`);
+    } catch (error) {
+      toast.error("Failed to suspend user. Please try again.");
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const handleBan = async (row: UserTableRow) => {
+    try {
+      setIsActionLoading(true);
+      await banUser({
+        userId: row.id,
+        reason: "Administrative action",
+        // expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+      });
+      toast.success(`${row.name} has been banned from the platform.`);
+    } catch (error) {
+      toast.error("Failed to ban user. Please try again.");
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const handleUnban = async (row: UserTableRow) => {
+    try {
+      setIsActionLoading(true);
+      await unbanUser({ userId: row.id });
+      toast.success(`${row.name} has been unbanned and can access the platform again.`);
+    } catch (error) {
+      toast.error("Failed to unban user. Please try again.");
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const handleDelete = async (row: UserTableRow) => {
+    try {
+      setIsActionLoading(true);
+      await removeUser({ userId: row.id });
+      toast.success(`${row.name} has been permanently deleted.`);
+    } catch (error) {
+      toast.error("Failed to delete user. Please try again.");
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const handleView = (row: UserTableRow) => {
+    // Navigate to user details page
+    window.open(`/admin/users/${row.id}`, "_blank");
+  };
+
+  const handleImpersonate = async (row: UserTableRow) => {
+    try {
+      setIsActionLoading(true);
+      await impersonateUser({ userId: row.id });
+      toast.success(`You are now impersonating ${row.name}. Click "Stop Impersonating" to return to your admin account.`);
+      // Refresh the page to show the impersonated session
+      window.location.reload();
+    } catch (error) {
+      toast.error("Failed to impersonate user. Please try again.");
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg">Users Directory</CardTitle>
+          <div className="relative w-72">
+            <Search className="absolute left-2 top-2.5 size-4 text-muted-foreground" />
+            <Input
+              className="pl-8"
+              placeholder="Search by name, email, phone, location, or organization..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <UserTable
+          data={filteredUsers}
+          sort={sort}
+          onSortChange={setSort}
+          selectedIds={selectedIds}
+          onSelectRow={handleSelectRow}
+          onSelectAll={handleSelectAll}
+          onApprove={handleApprove}
+          onReject={handleReject}
+          onSuspend={handleSuspend}
+          onBan={handleBan}
+          onUnban={handleUnban}
+          onDelete={handleDelete}
+          onView={handleView}
+          onImpersonate={handleImpersonate}
+          isLoading={isLoading || isActionLoading}
+          isFetching={isFetching}
+        />
+      </CardContent>
+    </Card>
+  );
+}

@@ -19,32 +19,24 @@ export const UserButton = () => {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          className="flex items-center gap-3 rounded-full border px-2 py-1.5 pr-3 text-left transition hover:border-primary/60 focus-visible:ring-2 focus-visible:ring-offset-2"
-          size="sm"
-          variant="ghost"
-        >
-          <Avatar className="h-9 w-9 border">
-            <AvatarImage
-              alt={`${getDisplayName(user)} avatar`}
-              src={user?.image || undefined}
-            />
-            <AvatarFallback className="flex h-full w-full items-center justify-center font-medium text-sm">
-              {getUserInitials(user)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="hidden min-w-0 flex-1 flex-col text-start sm:flex">
-            <span className="truncate font-medium text-sm">
-              {getDisplayName(user)}
+      <DropdownMenuTrigger className="flex items-center gap-2 hover:bg-accent">
+        <Avatar className="h-9 w-9 border">
+          <AvatarImage
+            alt={`${getDisplayName(user)} avatar`}
+            src={user?.image || undefined}
+          />
+          <AvatarFallback>{getUserInitials(user)}</AvatarFallback>
+        </Avatar>
+        <div className="hidden min-w-0 flex-1 flex-col text-start sm:flex">
+          <span className="truncate font-medium text-sm">
+            {getDisplayName(user)}
+          </span>
+          {user?.email && (
+            <span className="truncate text-muted-foreground text-xs">
+              {user.email}
             </span>
-            {user?.email && (
-              <span className="truncate text-muted-foreground text-xs">
-                {user.email}
-              </span>
-            )}
-          </div>
-        </Button>
+          )}
+        </div>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="w-64 p-2">

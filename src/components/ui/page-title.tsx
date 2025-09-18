@@ -1,5 +1,6 @@
 /** biome-ignore-all lint/nursery/useConsistentTypeDefinitions: <necessary for type inference> */
 
+import type { ReactNode } from "react";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import {
@@ -20,7 +21,8 @@ export interface BreadcrumbItemType {
 
 export interface PageTitleProps {
   title: string;
-  description?: string;
+  titleContent?: ReactNode;
+  description?: ReactNode;
   breadcrumbs?: BreadcrumbItemType[];
   action?: {
     label: string;
@@ -33,12 +35,25 @@ export interface PageTitleProps {
 
 export function PageTitle({
   title,
+  titleContent,
   description,
   breadcrumbs = [],
   action,
   className,
 }: PageTitleProps) {
   const ActionIcon = action?.icon || Plus;
+  const hasCustomTitle = Boolean(titleContent);
+  const renderDescription = () => {
+    if (description === null || description === undefined) {
+      return null;
+    }
+
+    if (typeof description === "string") {
+      return <p className="text-muted-foreground">{description}</p>;
+    }
+
+    return <div>{description}</div>;
+  };
 
   return (
     <div className={cn("space-y-4 pb-6", className)}>
@@ -68,12 +83,17 @@ export function PageTitle({
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-2">
-          <h2 className="font-bold text-2xl text-foreground tracking-tight">
-            {title}
-          </h2>
-          {description && (
-            <p className="text-muted-foreground">{description}</p>
+          {hasCustomTitle ? (
+            <>
+              <h2 className="sr-only">{title}</h2>
+              {titleContent}
+            </>
+          ) : (
+            <h2 className="font-bold text-2xl text-foreground tracking-tight">
+              {title}
+            </h2>
           )}
+          {renderDescription()}
         </div>
 
         {action &&

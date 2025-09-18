@@ -184,17 +184,17 @@ export const organizationColumns: OrganizationColumn[] = [
       </div>
     ),
   },
-  // {
-  //   key: "users",
-  //   header: "Users",
-  //   align: "right",
-  //   render: (row) => (
-  //     <span className="text-sm tabular-nums">
-  //       {row.memberCount}
-  //       {row.maxUsers ? ` / ${row.maxUsers}` : ""}
-  //     </span>
-  //   ),
-  // },
+  {
+    key: "users",
+    header: "Users",
+    align: "right",
+    render: (row) => (
+      <span className="text-sm tabular-nums">
+        {row.memberCount}
+        {row.maxUsers ? ` / ${row.maxUsers}` : ""}
+      </span>
+    ),
+  },
   // {
   //   key: "license",
   //   header: "License",

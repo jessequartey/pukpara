@@ -22,7 +22,7 @@ import {
 } from "@/config/constants/auth";
 import { db } from "@/server/db";
 import * as schema from "@/server/db/schema";
-import { sendPasswordResetEmail } from "@/server/email/resend";
+import { sendPasswordResetEmail, sendOrganizationInviteEmail } from "@/server/email/resend";
 import { AdminRoles, ac as adminAC } from "./admin-permissions";
 import { OrgRoles, ac as orgAC } from "./org-permissions";
 
@@ -92,6 +92,9 @@ export const auth = betterAuth({
       notificationPrefs: { type: "json", input: false },
       legacyUserId: { type: "string", input: false },
       legacyTenantId: { type: "string", input: false }, // if old system stored user->tenant directly
+
+      // Organization metadata for admin-created users
+      organizationMetadata: { type: "json", input: false },
     },
   },
 
@@ -126,21 +129,78 @@ export const auth = betterAuth({
             typeof newUser.name === "string" && newUser.name.trim().length > 0
               ? newUser.name.trim()
               : "New";
-          const organizationName =
-            `${displayName} ${DEFAULT_ORGANIZATION_SUFFIX}`.trim();
-          const baseSlug = createSlug(displayName);
-          const suffixSource =
-            typeof userId === "string" && userId.length > 0
-              ? userId.slice(-SLUG_SUFFIX_LENGTH)
-              : randomUUID().slice(0, SLUG_SUFFIX_LENGTH);
-          const sanitizedSuffix = suffixSource
-            .toLowerCase()
-            .replace(/[^a-z0-9]/g, "");
-          const suffix =
-            sanitizedSuffix.length > 0
-              ? sanitizedSuffix
-              : randomUUID().replace(/-/g, "").slice(0, SLUG_SUFFIX_LENGTH);
-          const slug = `${baseSlug}-${suffix}`;
+
+          // Check if this is an admin-created user with organization metadata
+          const orgMetadata = newUser.organizationMetadata as {
+            organizationName?: string;
+            organizationSlug?: string;
+            organizationType?: string;
+            organizationSubType?: string;
+            subscriptionType?: string;
+            licenseStatus?: string;
+            maxUsers?: number;
+            contactEmail?: string;
+            contactPhone?: string;
+            billingEmail?: string;
+            address?: string;
+            districtId?: string;
+            regionId?: string;
+            source?: "admin" | "signup";
+          } | null;
+
+          let organizationName: string;
+          let slug: string;
+          let organizationType: string;
+          let organizationData: Record<string, unknown>;
+
+          if (orgMetadata?.source === "admin" && orgMetadata.organizationName) {
+            // Admin-created user with specific organization details
+            organizationName = orgMetadata.organizationName;
+            slug = orgMetadata.organizationSlug || createSlug(organizationName);
+            organizationType = orgMetadata.organizationType || ORGANIZATION_TYPE.FARMER_ORG;
+
+            organizationData = {
+              name: organizationName,
+              slug,
+              organizationType,
+              createdAt: now,
+              ...(orgMetadata.organizationSubType && { organizationSubType: orgMetadata.organizationSubType }),
+              ...(orgMetadata.subscriptionType && { subscriptionType: orgMetadata.subscriptionType }),
+              ...(orgMetadata.licenseStatus && { licenseStatus: orgMetadata.licenseStatus }),
+              ...(orgMetadata.maxUsers && { maxUsers: orgMetadata.maxUsers }),
+              ...(orgMetadata.contactEmail && { contactEmail: orgMetadata.contactEmail }),
+              ...(orgMetadata.contactPhone && { contactPhone: orgMetadata.contactPhone }),
+              ...(orgMetadata.billingEmail && { billingEmail: orgMetadata.billingEmail }),
+              ...(orgMetadata.address && { address: orgMetadata.address }),
+              ...(orgMetadata.districtId && { districtId: orgMetadata.districtId }),
+              ...(orgMetadata.regionId && { regionId: orgMetadata.regionId }),
+            };
+          } else {
+            // Regular sign-up user - create farmer organization by default
+            organizationName = `${displayName} ${DEFAULT_ORGANIZATION_SUFFIX}`.trim();
+            const baseSlug = createSlug(displayName);
+            const suffixSource =
+              typeof userId === "string" && userId.length > 0
+                ? userId.slice(-SLUG_SUFFIX_LENGTH)
+                : randomUUID().slice(0, SLUG_SUFFIX_LENGTH);
+            const sanitizedSuffix = suffixSource
+              .toLowerCase()
+              .replace(/[^a-z0-9]/g, "");
+            const suffix =
+              sanitizedSuffix.length > 0
+                ? sanitizedSuffix
+                : randomUUID().replace(/-/g, "").slice(0, SLUG_SUFFIX_LENGTH);
+            slug = `${baseSlug}-${suffix}`;
+            organizationType = ORGANIZATION_TYPE.FARMER_ORG;
+
+            organizationData = {
+              name: organizationName,
+              slug,
+              organizationType,
+              createdAt: now,
+            };
+          }
+
           const organizationId =
             authContext.generateId({ model: "organization" }) ||
             `org_${randomUUID().replace(/-/g, "")}`;
@@ -153,10 +213,7 @@ export const auth = betterAuth({
               model: "organization",
               data: {
                 id: organizationId,
-                name: organizationName,
-                slug,
-                organizationType: ORGANIZATION_TYPE.FARMER_ORG,
-                createdAt: now,
+                ...organizationData,
               },
             });
 

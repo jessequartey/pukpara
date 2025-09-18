@@ -1,10 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, Check, Loader2 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type z from "zod";
@@ -20,14 +20,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
+import { AsyncSelect } from "@/components/ui/async-select";
 import {
   Form,
   FormControl,
@@ -38,13 +31,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { PhoneInput } from "@/components/ui/phone-input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { authClient } from "@/lib/auth-client";
-import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { signUpSchema } from "../../schema";
 import { useSignUpStore } from "../../store/sign-up-store";
@@ -129,7 +116,6 @@ const getSignUpErrorMessage = (rawError: unknown): string => {
 export default function SignUpStepTwoForm() {
   const router = useRouter();
   const [formError, setFormError] = useState<string | null>(null);
-  const [districtPopoverOpen, setDistrictPopoverOpen] = useState(false);
   const resetStore = useSignUpStore((state) => state.reset);
   const setData = useSignUpStore((state) => state.setData);
   const firstName = useSignUpStore((state) => state.firstName ?? "");
@@ -153,12 +139,12 @@ export default function SignUpStepTwoForm() {
     staleTime: Number.POSITIVE_INFINITY,
   });
 
-  const districtOptions = districtData?.regions ?? [];
+  const regions = useMemo(() => districtData?.regions ?? [], [districtData]);
 
   const districtIndex = useMemo(() => {
     const map = new Map<string, DistrictOption>();
 
-    for (const regionEntry of districtOptions) {
+    for (const regionEntry of regions) {
       for (const districtEntry of regionEntry.districts) {
         map.set(districtEntry.id, {
           id: districtEntry.id,
@@ -171,7 +157,30 @@ export default function SignUpStepTwoForm() {
     }
 
     return map;
-  }, [districtOptions]);
+  }, [regions]);
+
+  const districtOptionsList = useMemo(
+    () => Array.from(districtIndex.values()),
+    [districtIndex]
+  );
+
+  const fetchDistrictOptions = useCallback(
+    async (query?: string) => {
+      if (districtsLoading) {
+        return [] as DistrictOption[];
+      }
+
+      if (!query) {
+        return districtOptionsList;
+      }
+
+      const normalized = query.trim().toLowerCase();
+      return districtOptionsList.filter((option) =>
+        `${option.name} ${option.regionName}`.toLowerCase().includes(normalized)
+      );
+    },
+    [districtOptionsList, districtsLoading]
+  );
 
   const defaultValues = useMemo(
     () => ({
@@ -277,94 +286,45 @@ export default function SignUpStepTwoForm() {
             <FormField
               control={form.control}
               name="districtId"
-              render={({ field }) => {
-                const selectedDistrict = field.value
-                  ? districtIndex.get(field.value)
-                  : undefined;
-                const renderDistrictButtonLabel = () => {
-                  if (selectedDistrict) {
-                    return `${selectedDistrict.name} • ${selectedDistrict.regionName}`;
-                  }
-
-                  if (districtsLoading) {
-                    return (
-                      <span className="flex items-center gap-2">
-                        <Loader2 className="size-4 animate-spin" />
-                        Loading districts...
-                      </span>
-                    );
-                  }
-
-                  return "Select district";
-                };
-
-                return (
-                  <FormItem>
-                    <FormLabel>District</FormLabel>
-                    <FormControl>
-                      <Popover
-                        onOpenChange={setDistrictPopoverOpen}
-                        open={districtPopoverOpen}
-                      >
-                        <PopoverTrigger asChild>
-                          <Button
-                            aria-expanded={districtPopoverOpen}
-                            className="w-full justify-between"
-                            disabled={districtsLoading || !hasHydrated}
-                            role="combobox"
-                            size="lg"
-                            type="button"
-                            variant="outline"
-                          >
-                            {renderDistrictButtonLabel()}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                          <Command>
-                            <CommandInput placeholder="Search district..." />
-                            <CommandList>
-                              <CommandEmpty>No district found.</CommandEmpty>
-                              {districtOptions.map((regionOption) => (
-                                <CommandGroup
-                                  heading={regionOption.name}
-                                  key={regionOption.code}
-                                >
-                                  {regionOption.districts.map(
-                                    (districtOption) => (
-                                      <CommandItem
-                                        key={districtOption.id}
-                                        onSelect={() => {
-                                          field.onChange(districtOption.id);
-                                          setData({
-                                            districtId: districtOption.id,
-                                          });
-                                          setDistrictPopoverOpen(false);
-                                        }}
-                                        value={`${regionOption.name} ${districtOption.name}`}
-                                      >
-                                        <Check
-                                          className={cn(
-                                            "mr-2 h-4 w-4",
-                                            districtOption.id === field.value
-                                              ? "opacity-100"
-                                              : "opacity-0"
-                                          )}
-                                        />
-                                        {districtOption.name}
-                                      </CommandItem>
-                                    )
-                                  )}
-                                </CommandGroup>
-                              ))}
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>District</FormLabel>
+                  <FormControl>
+                    <AsyncSelect<DistrictOption>
+                      label="District"
+                      value={field.value}
+                      onChange={(nextValue) => {
+                        field.onChange(nextValue);
+                        setData({ districtId: nextValue ?? "" });
+                      }}
+                      fetcher={fetchDistrictOptions}
+                      getOptionValue={(option) => option.id}
+                      getDisplayValue={(option) =>
+                        `${option.name} • ${option.regionName}`
+                      }
+                      renderOption={(option) => (
+                        <div className="flex flex-col">
+                          <span className="font-medium">{option.name}</span>
+                          <span className="text-muted-foreground text-xs">
+                            {option.regionName}
+                          </span>
+                        </div>
+                      )}
+                      placeholder={
+                        districtsLoading
+                          ? "Loading districts…"
+                          : "Search district"
+                      }
+                      disabled={
+                        districtsLoading || !hasHydrated || districtOptionsList.length === 0
+                      }
+                      triggerClassName="w-full justify-between"
+                      width="var(--radix-popover-trigger-width)"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
 
             <FormField

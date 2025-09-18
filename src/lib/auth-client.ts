@@ -1,4 +1,5 @@
 import {
+  adminClient,
   inferAdditionalFields,
   organizationClient,
 } from "better-auth/client/plugins";
@@ -12,6 +13,9 @@ export const authClient = createAuthClient({
     organizationClient({
       $inferAuth: {} as AuthInstance,
       teams: { enabled: true },
+    }),
+    adminClient({
+      $inferAuth: {} as AuthInstance,
     }),
   ],
 });

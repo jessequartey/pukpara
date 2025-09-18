@@ -6,7 +6,7 @@ type AuthLayoutProps = {
   image?: string;
 };
 
-const AuthLayout = ({
+const AuthLayoutComponent = ({
   children,
   image = "/auth-image1.jpg",
 }: AuthLayoutProps) => (
@@ -80,4 +80,4 @@ const AuthLayout = ({
   </main>
 );
 
-export default AuthLayout;
+export default AuthLayoutComponent;

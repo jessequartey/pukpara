@@ -1,13 +1,21 @@
 // src/lib/auth.ts
+/** biome-ignore-all lint/performance/noNamespaceImport: <neccessary> */
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { admin, openAPI, organization, phoneNumber } from "better-auth/plugins";
+import {
+  admin,
+  apiKey,
+  openAPI,
+  organization,
+  phoneNumber,
+} from "better-auth/plugins";
 import { db } from "@/server/db";
+import * as schema from "@/server/db/schema";
 import { AdminRoles, ac as adminAC } from "./admin-permissions";
 import { OrgRoles, ac as orgAC } from "./org-permissions";
 
 export const auth = betterAuth({
-  database: drizzleAdapter(db, { provider: "pg" }),
+  database: drizzleAdapter(db, { provider: "pg", schema }),
   emailAndPassword: { enabled: true },
 
   // Optional: new signups wait for manual approval
@@ -172,7 +180,7 @@ export const auth = betterAuth({
         },
       },
     }),
-
+    apiKey(),
     openAPI(),
   ],
 });

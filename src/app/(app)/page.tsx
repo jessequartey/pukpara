@@ -2,11 +2,14 @@ import { PageTitle } from "@/components/ui/page-title";
 import { OrganizationOverviewCards } from "@/features/organizations/components/organization-overview-cards";
 
 type OrgOverviewPageProps = {
-  params: { orgId: string };
+  params: Promise<{ orgId: string }>;
 };
 
-export default function OrgOverviewPage({ params }: OrgOverviewPageProps) {
-  const basePath = `/app/${params.orgId}`;
+export default async function OrgOverviewPage({
+  params,
+}: OrgOverviewPageProps) {
+  const { orgId } = await params;
+  const basePath = `/app/${orgId}`;
 
   return (
     <div className="space-y-8">

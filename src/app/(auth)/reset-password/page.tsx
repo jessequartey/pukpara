@@ -11,25 +11,29 @@ import {
 } from "@/components/ui/card";
 
 type ResetPasswordLandingProps = {
-  searchParams: Record<string, string | string[] | undefined>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export default function ResetPasswordLanding({
+export default async function ResetPasswordLanding({
   searchParams,
 }: ResetPasswordLandingProps) {
-  const tokenParam = searchParams.token;
+  const resolvedSearchParams = (await searchParams) ?? {};
+  const tokenParam = resolvedSearchParams.token;
   let token = "";
   if (typeof tokenParam === "string") {
     token = tokenParam;
-  } else if (Array.isArray(tokenParam) && tokenParam.length > 0) {
-    token = tokenParam[0];
+  } else if (Array.isArray(tokenParam)) {
+    const firstValue = tokenParam.at(0);
+    if (typeof firstValue === "string") {
+      token = firstValue;
+    }
   }
 
   if (token.trim().length > 0) {
     redirect(`/reset-password/${token}`);
   }
 
-  const errorParam = searchParams.error;
+  const errorParam = resolvedSearchParams.error;
   const hasError = typeof errorParam === "string" && errorParam.length > 0;
   const message = hasError
     ? "This reset link is invalid or has expired. Please request a new one."

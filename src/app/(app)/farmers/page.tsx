@@ -2,11 +2,14 @@ import { PageTitle } from "@/components/ui/page-title";
 import { FarmersDirectoryPlaceholder } from "@/features/farmers/components/farmers-directory-placeholder";
 
 type OrgFarmersPageProps = {
-  params: { orgId: string };
+  params: Promise<{ orgId: string }>;
 };
 
-export default function OrgFarmersPage({ params }: OrgFarmersPageProps) {
-  const basePath = `/app/${params.orgId}`;
+export default async function OrgFarmersPage({
+  params,
+}: OrgFarmersPageProps) {
+  const { orgId } = await params;
+  const basePath = `/app/${orgId}`;
   const listPath = `${basePath}/farmers`;
 
   return (

@@ -1,11 +1,14 @@
 import { PageTitle } from "@/components/ui/page-title";
 
 type OrgSettingsPageProps = {
-  params: { orgId: string };
+  params: Promise<{ orgId: string }>;
 };
 
-export default function OrgSettingsPage({ params }: OrgSettingsPageProps) {
-  const basePath = `/app/${params.orgId}`;
+export default async function OrgSettingsPage({
+  params,
+}: OrgSettingsPageProps) {
+  const { orgId } = await params;
+  const basePath = `/app/${orgId}`;
 
   return (
     <div className="space-y-8">

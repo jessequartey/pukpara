@@ -2,21 +2,28 @@ import { redirect } from "next/navigation";
 import ResetPasswordForm from "@/features/auth/components/reset-password-form";
 
 type ResetPasswordTokenPageProps = {
-  params: {
+  params: Promise<{
     token?: string;
-  };
-  searchParams?: Record<string, string | string[] | undefined>;
+  }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export default function ResetPasswordTokenPage({
+export default async function ResetPasswordTokenPage({
   params,
   searchParams,
 }: ResetPasswordTokenPageProps) {
-  const tokenFromParams = params.token ? decodeURIComponent(params.token) : "";
-  const errorParam = searchParams?.error;
+  const resolvedParams = (await params) ?? {};
+  const tokenFromParams = resolvedParams.token
+    ? decodeURIComponent(resolvedParams.token)
+    : "";
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const errorParam = resolvedSearchParams?.error;
+  const firstErrorValue = Array.isArray(errorParam)
+    ? errorParam.at(0)
+    : errorParam;
 
-  if (typeof errorParam === "string" && errorParam.length > 0) {
-    redirect(`/reset-password?error=${encodeURIComponent(errorParam)}`);
+  if (typeof firstErrorValue === "string" && firstErrorValue.length > 0) {
+    redirect(`/reset-password?error=${encodeURIComponent(firstErrorValue)}`);
   }
 
   const token = tokenFromParams.trim();

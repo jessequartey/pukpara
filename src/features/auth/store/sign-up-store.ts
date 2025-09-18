@@ -32,7 +32,14 @@ export const useSignUpStore = create<SignUpState>()(
         state?.setHasHydrated(true);
       },
       partialize: (state) => {
-        const { hasHydrated, setHasHydrated, reset, setData, ...rest } = state;
+        const {
+          hasHydrated: _hydratedFlag,
+          setHasHydrated: _updateHydratedFlag,
+          reset: _resetStore,
+          setData: _setStoreData,
+          ...rest
+        } = state;
+
         return rest;
       },
     }

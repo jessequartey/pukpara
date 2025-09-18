@@ -13,6 +13,31 @@ import {
   timestamp,
   unique,
 } from "drizzle-orm/pg-core";
+import {
+  ORGANIZATION_KYC_STATUS,
+  ORGANIZATION_LICENSE_STATUS,
+  ORGANIZATION_MEMBER_ROLE,
+  ORGANIZATION_STATUS,
+  ORGANIZATION_SUBSCRIPTION_TYPE,
+  USER_KYC_STATUS,
+  USER_STATUS,
+} from "@/config/constants/auth";
+
+/* ----------------------------- Reference Data ----------------------------- */
+
+export const region = pgTable("region", {
+  code: text("code").primaryKey(),
+  name: text("name").notNull(),
+});
+
+export const district = pgTable("district", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  code: text("code"),
+  regionCode: text("region_code")
+    .notNull()
+    .references(() => region.code, { onDelete: "cascade" }),
+});
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -31,10 +56,12 @@ export const user = pgTable("user", {
   banned: boolean("banned").default(false),
   banReason: text("ban_reason"),
   banExpires: timestamp("ban_expires"),
-  districtId: text("district_id").notNull(),
+  districtId: text("district_id")
+    .notNull()
+    .references(() => district.id, { onDelete: "restrict" }),
   address: text("address").notNull(),
-  kycStatus: text("kyc_status").default("pending"),
-  status: text("status").default("pending"),
+  kycStatus: text("kyc_status").default(USER_KYC_STATUS.PENDING),
+  status: text("status").default(USER_STATUS.PENDING),
   approvedAt: timestamp("approved_at"),
   lastLogin: timestamp("last_login"),
   consentTermsAt: timestamp("consent_terms_at"),
@@ -136,11 +163,19 @@ export const organization = pgTable("organization", {
   contactEmail: text("contact_email"),
   contactPhone: text("contact_phone"),
   address: text("address"),
-  districtId: text("district_id"),
-  regionId: text("region_id"),
-  status: text("status").default("pending"),
-  subscriptionType: text("subscription_type").default("freemium"),
-  licenseStatus: text("license_status").default("issued"),
+  districtId: text("district_id").references(() => district.id, {
+    onDelete: "set null",
+  }),
+  regionId: text("region_id").references(() => region.code, {
+    onDelete: "set null",
+  }),
+  status: text("status").default(ORGANIZATION_STATUS.PENDING),
+  subscriptionType: text("subscription_type").default(
+    ORGANIZATION_SUBSCRIPTION_TYPE.FREEMIUM
+  ),
+  licenseStatus: text("license_status").default(
+    ORGANIZATION_LICENSE_STATUS.ISSUED
+  ),
   planRenewsAt: timestamp("plan_renews_at"),
   maxUsers: integer("max_users").default(100),
   billingEmail: text("billing_email"),
@@ -149,7 +184,7 @@ export const organization = pgTable("organization", {
   timezone: text("timezone").default("Africa/Accra"),
   ussdShortCode: text("ussd_short_code"),
   smsSenderId: text("sms_sender_id"),
-  kycStatus: text("kyc_status").default("pending"),
+  kycStatus: text("kyc_status").default(ORGANIZATION_KYC_STATUS.PENDING),
   limits: jsonb("limits"),
 });
 
@@ -163,7 +198,7 @@ export const member = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
-    role: text("role").default("member").notNull(),
+    role: text("role").default(ORGANIZATION_MEMBER_ROLE.MEMBER).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").$onUpdate(() => new Date()),
   },
@@ -213,26 +248,6 @@ export const apikey = pgTable("apikey", {
   updatedAt: timestamp("updated_at").notNull(),
   permissions: text("permissions"),
   metadata: text("metadata"),
-});
-
-/* ----------------------------- Reference Data ----------------------------- */
-
-export const region = pgTable("region", {
-  id: text("id").primaryKey(), // optional: ISO/code
-  name: text("name").notNull(),
-  country: text("country").default("Ghana"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").$onUpdate(() => new Date()),
-});
-
-export const district = pgTable("district", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  regionId: text("region_id").references(() => region.id, {
-    onDelete: "set null",
-  }),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").$onUpdate(() => new Date()),
 });
 
 /* ----------------------------- Farmer Domain ------------------------------ */
@@ -952,8 +967,8 @@ export const regionRelations = relations(region, ({ many }) => ({
 
 export const districtRelations = relations(district, ({ one, many }) => ({
   region: one(region, {
-    fields: [district.regionId],
-    references: [region.id],
+    fields: [district.regionCode],
+    references: [region.code],
   }),
   farmers: many(farmer),
   warehouses: many(warehouse),

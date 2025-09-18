@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import type z from "zod";
 import { Badge } from "@/components/ui/badge";
@@ -45,19 +46,32 @@ type SignUpStepOneSchema = z.infer<typeof signUpStepOneSchema>;
 export default function SignUpStepOneForm() {
   const router = useRouter();
   const setData = useSignUpStore((state) => state.setData);
-  const storedValues = useSignUpStore((state) => ({
-    confirmPassword: state.confirmPassword ?? "",
-    email: state.email ?? "",
-    firstName: state.firstName ?? "",
-    lastName: state.lastName ?? "",
-    password: state.password ?? "",
-  }));
+  const firstName = useSignUpStore((state) => state.firstName ?? "");
+  const lastName = useSignUpStore((state) => state.lastName ?? "");
+  const email = useSignUpStore((state) => state.email ?? "");
+  const password = useSignUpStore((state) => state.password ?? "");
+  const confirmPassword = useSignUpStore(
+    (state) => state.confirmPassword ?? ""
+  );
+  const hasHydrated = useSignUpStore((state) => state.hasHydrated);
+
+  const defaultValues = useMemo(
+    () => ({ firstName, lastName, email, password, confirmPassword }),
+    [firstName, lastName, email, password, confirmPassword]
+  );
 
   const form = useForm<SignUpStepOneSchema>({
     resolver: zodResolver(signUpStepOneSchema),
-    defaultValues: storedValues,
+    defaultValues,
     mode: "onBlur",
   });
+
+  useEffect(() => {
+    if (!hasHydrated) {
+      return;
+    }
+    form.reset(defaultValues);
+  }, [defaultValues, form, hasHydrated]);
 
   const onSubmit = (data: SignUpStepOneSchema) => {
     setData(data);

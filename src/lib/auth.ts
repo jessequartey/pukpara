@@ -9,6 +9,14 @@ import {
   organization,
   phoneNumber,
 } from "better-auth/plugins";
+import {
+  ORGANIZATION_KYC_STATUS,
+  ORGANIZATION_LICENSE_STATUS,
+  ORGANIZATION_STATUS,
+  ORGANIZATION_SUBSCRIPTION_TYPE,
+  USER_KYC_STATUS,
+  USER_STATUS,
+} from "@/config/constants/auth";
 import { db } from "@/server/db";
 import * as schema from "@/server/db/schema";
 import { sendPasswordResetEmail } from "@/server/email/resend";
@@ -19,6 +27,7 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, { provider: "pg", schema }),
   emailAndPassword: {
     enabled: true,
+    minPasswordLength: 4,
     async sendResetPassword({ user, url }) {
       if (!url) {
         return;
@@ -48,14 +57,14 @@ export const auth = betterAuth({
       address: { type: "string", required: true },
       phoneNumber: { type: "string", required: true },
       kycStatus: {
-        type: "string", // "unverified" | "pending" | "verified" | "rejected"
-        defaultValue: "pending",
+        type: "string",
+        defaultValue: USER_KYC_STATUS.PENDING,
       },
 
       // Account lifecycle
       status: {
-        type: "string", // "pending" | "approved" | "rejected" | "suspended"
-        defaultValue: "pending",
+        type: "string",
+        defaultValue: USER_STATUS.PENDING,
       },
       approvedAt: { type: "date", input: false },
 
@@ -115,7 +124,7 @@ export const auth = betterAuth({
           additionalFields: {
             // Classification
             organizationType: {
-              type: "string", // "FARMER_ORG" | "SUPPLIER" | "FINANCIAL" | "BUYER"
+              type: "string",
               input: true,
               required: true,
             },
@@ -134,24 +143,24 @@ export const auth = betterAuth({
 
             // Lifecycle
             status: {
-              type: "string", // "pending" | "active" | "suspended"
+              type: "string",
               input: true,
               required: false,
-              defaultValue: "pending",
+              defaultValue: ORGANIZATION_STATUS.PENDING,
             },
 
             // Subscription & licensing
             subscriptionType: {
-              type: "string", // "freemium" | "paid" | "enterprise" | etc.
+              type: "string",
               input: true,
               required: false,
-              defaultValue: "freemium",
+              defaultValue: ORGANIZATION_SUBSCRIPTION_TYPE.FREEMIUM,
             },
             licenseStatus: {
-              type: "string", // "issued" | "expired" | "revoked"
+              type: "string",
               input: true,
               required: false,
-              defaultValue: "issued",
+              defaultValue: ORGANIZATION_LICENSE_STATUS.ISSUED,
             },
             planRenewsAt: { type: "date", input: true, required: false },
             maxUsers: {
@@ -183,10 +192,10 @@ export const auth = betterAuth({
 
             // Compliance
             kycStatus: {
-              type: "string", // "unverified" | "pending" | "verified" | "rejected"
+              type: "string",
               input: true,
               required: false,
-              defaultValue: "pending",
+              defaultValue: ORGANIZATION_KYC_STATUS.PENDING,
             },
 
             // Limits / feature flags / legacy

@@ -1,8 +1,8 @@
-import * as React from "react";
 import { Resend } from "resend";
+
 import PasswordResetEmail, {
-  PasswordResetEmailProps,
   buildPasswordResetText,
+  type PasswordResetEmailProps,
 } from "@/email/templates/password-reset-email";
 
 const resendApiKey = process.env.RESEND_API_KEY;
@@ -12,7 +12,10 @@ const resendClient = resendApiKey ? new Resend(resendApiKey) : null;
 export async function sendPasswordResetEmail(
   props: PasswordResetEmailProps & { email: string }
 ) {
-  if (!resendClient || !resendFromEmail) {
+  if (!resendClient) {
+    return;
+  }
+  if (!resendFromEmail) {
     return;
   }
 
@@ -22,7 +25,7 @@ export async function sendPasswordResetEmail(
     from: resendFromEmail,
     to: email,
     subject: "Reset your Pukpara password",
-    react: React.createElement(PasswordResetEmail, templateProps),
+    react: PasswordResetEmail(templateProps),
     text: buildPasswordResetText(templateProps),
   });
 }

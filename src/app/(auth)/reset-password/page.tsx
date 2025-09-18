@@ -25,7 +25,7 @@ export default function ResetPasswordLanding({
     token = tokenParam[0];
   }
 
-  if (token) {
+  if (token.trim().length > 0) {
     redirect(`/reset-password/${token}`);
   }
 

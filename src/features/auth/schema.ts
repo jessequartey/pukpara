@@ -22,12 +22,8 @@ export const signUpSchema = z.object({
     .min(PASSWORD_MIN_LENGTH, {
       message: "Confirm password must be at least 4 characters.",
     }),
-  phoneNumber: z
-    .string()
-    .min(1, { message: "Phone number is required." }),
-  districtId: z
-    .string()
-    .min(1, { message: "District ID is required." }),
+  phoneNumber: z.string().min(1, { message: "Phone number is required." }),
+  districtId: z.string().min(1, { message: "District ID is required." }),
   address: z.string().min(1, { message: "Address is required." }),
 });
 

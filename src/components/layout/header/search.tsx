@@ -14,6 +14,22 @@ import {
   UserPlus,
   Users,
 } from "lucide-react";
+
+// Icon mapping to avoid serialization issues
+const iconMap = {
+  BarChart3,
+  Boxes,
+  Building2,
+  CreditCard,
+  Layers3,
+  Settings,
+  Store,
+  Tractor,
+  UserPlus,
+  Users,
+} as const;
+
+type IconName = keyof typeof iconMap;
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -28,7 +44,7 @@ import {
 } from "@/components/ui/command";
 
 type SearchItem = {
-  icon: LucideIcon;
+  icon: IconName;
   label: string;
   href: string;
   shortcut: string;
@@ -52,21 +68,21 @@ const buildTenantSearchGroups = (orgId: string | undefined): SearchGroup[] => {
     {
       group: "Organization",
       items: [
-        { icon: BarChart3, label: "Overview", href: basePath, shortcut: "O" },
+        { icon: "BarChart3", label: "Overview", href: basePath, shortcut: "O" },
         {
-          icon: Layers3,
+          icon: "Layers3",
           label: "Groups",
           href: `${basePath}/groups`,
           shortcut: "G",
         },
         {
-          icon: Tractor,
+          icon: "Tractor",
           label: "Farmers",
           href: `${basePath}/farmers`,
           shortcut: "F",
         },
         {
-          icon: Settings,
+          icon: "Settings",
           label: "Settings",
           href: `${basePath}/settings`,
           shortcut: "S",
@@ -77,13 +93,13 @@ const buildTenantSearchGroups = (orgId: string | undefined): SearchGroup[] => {
       group: "Quick actions",
       items: [
         {
-          icon: UserPlus,
+          icon: "UserPlus",
           label: "Register farmer",
           href: `${basePath}/farmers/create`,
           shortcut: "Shift+F",
         },
         {
-          icon: Layers3,
+          icon: "Layers3",
           label: "Create group",
           href: `${basePath}/groups/create`,
           shortcut: "Shift+G",
@@ -97,16 +113,16 @@ const adminSearchGroups: SearchGroup[] = [
   {
     group: "Platform",
     items: [
-      { icon: BarChart3, label: "Overview", href: "/admin", shortcut: "O" },
+      { icon: "BarChart3", label: "Overview", href: "/admin", shortcut: "O" },
       {
-        icon: Building2,
+        icon: "Building2",
         label: "Tenants",
         href: "/admin/tenants",
         shortcut: "T",
       },
-      { icon: Users, label: "Users", href: "/admin/users", shortcut: "U" },
+      { icon: "Users", label: "Users", href: "/admin/users", shortcut: "U" },
       {
-        icon: Tractor,
+        icon: "Tractor",
         label: "Farmers",
         href: "/admin/farmers",
         shortcut: "F",
@@ -117,19 +133,19 @@ const adminSearchGroups: SearchGroup[] = [
     group: "Operations",
     items: [
       {
-        icon: CreditCard,
+        icon: "CreditCard",
         label: "Payments",
         href: "/admin/payments",
         shortcut: "P",
       },
       {
-        icon: Boxes,
+        icon: "Boxes",
         label: "Inventory",
         href: "/admin/inventory/commodities",
         shortcut: "I",
       },
       {
-        icon: Store,
+        icon: "Store",
         label: "Marketplace",
         href: "/admin/marketplace/listings",
         shortcut: "M",
@@ -140,19 +156,19 @@ const adminSearchGroups: SearchGroup[] = [
     group: "Quick actions",
     items: [
       {
-        icon: Building2,
+        icon: "Building2",
         label: "Create tenant",
         href: "/admin/tenants?create=new",
         shortcut: "Shift+T",
       },
       {
-        icon: Users,
+        icon: "Users",
         label: "Invite user",
         href: "/admin/users?invite=new",
         shortcut: "Shift+U",
       },
       {
-        icon: Boxes,
+        icon: "Boxes",
         label: "Add commodity",
         href: "/admin/inventory/commodities?create=new",
         shortcut: "Shift+C",
@@ -217,17 +233,20 @@ export const SearchButton = () => {
           <CommandEmpty>No results found.</CommandEmpty>
           {items.map((group) => (
             <CommandGroup heading={group.group} key={group.group}>
-              {group.items.map((item) => (
-                <CommandItem
-                  className="flex items-center gap-2"
-                  key={item.href}
-                  onSelect={() => handleSelect(item.href)}
-                >
-                  <item.icon className="h-4 w-4" />
-                  <span>{item.label}</span>
-                  <CommandShortcut>{item.shortcut}</CommandShortcut>
-                </CommandItem>
-              ))}
+              {group.items.map((item) => {
+                const IconComponent = iconMap[item.icon];
+                return (
+                  <CommandItem
+                    className="flex items-center gap-2"
+                    key={item.href}
+                    onSelect={() => handleSelect(item.href)}
+                  >
+                    <IconComponent className="h-4 w-4" />
+                    <span>{item.label}</span>
+                    <CommandShortcut>{item.shortcut}</CommandShortcut>
+                  </CommandItem>
+                );
+              })}
             </CommandGroup>
           ))}
         </CommandList>

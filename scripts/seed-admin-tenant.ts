@@ -61,7 +61,7 @@ async function ensureDistrictId() {
   return existing[0];
 }
 
-function upsertUserAccount({
+async function upsertUserAccount({
   email,
   password,
   name,
@@ -78,91 +78,68 @@ function upsertUserAccount({
   role: string;
   districtId: string;
 }) {
-  return db.transaction(async (tx) => {
-    const existingUser = await tx.query.user.findFirst({
+  // Use better-auth's signup API to create accounts properly
+  try {
+    const signupResult = await auth.api.signUpEmail({
+      body: {
+        email,
+        password,
+        name,
+        phoneNumber,
+        districtId,
+        address,
+      },
+    });
+
+    const userId = signupResult.user?.id;
+    if (!userId) {
+      throw new Error(`Failed to create user ${email}`);
+    }
+
+    // Update user with additional fields that signup might not handle
+    await db
+      .update(user)
+      .set({
+        role,
+        emailVerified: true,
+        phoneNumberVerified: true,
+        kycStatus: USER_KYC_STATUS.VERIFIED,
+        status: USER_STATUS.APPROVED,
+        approvedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(user.id, userId));
+
+    return { id: userId };
+  } catch (error) {
+    // If user already exists, try to update
+    const existingUser = await db.query.user.findFirst({
       where: eq(user.email, email),
     });
 
-    const passwordHash = await auth.password.hash(password);
+    if (existingUser) {
+      await db
+        .update(user)
+        .set({
+          name,
+          phoneNumber,
+          phoneNumberVerified: true,
+          role,
+          districtId,
+          address,
+          status: USER_STATUS.APPROVED,
+          approvedAt: existingUser.approvedAt ?? new Date(),
+          updatedAt: new Date(),
+          kycStatus: existingUser.kycStatus ?? USER_KYC_STATUS.VERIFIED,
+          emailVerified: true,
+        })
+        .where(eq(user.id, existingUser.id));
 
-    const now = new Date();
-
-    if (!existingUser) {
-      const userId = randomUUID();
-
-      await tx.insert(user).values({
-        id: userId,
-        name,
-        email,
-        emailVerified: true,
-        phoneNumber,
-        phoneNumberVerified: true,
-        role,
-        districtId,
-        address,
-        kycStatus: USER_KYC_STATUS.VERIFIED,
-        status: USER_STATUS.APPROVED,
-        approvedAt: now,
-        createdAt: now,
-        updatedAt: now,
-      });
-
-      await tx.insert(account).values({
-        id: randomUUID(),
-        accountId: email,
-        providerId: PASSWORD_PROVIDER_ID,
-        userId,
-        password: passwordHash,
-        createdAt: now,
-        updatedAt: now,
-      });
-
-      return { id: userId };
+      return { id: existingUser.id };
     }
 
-    await tx
-      .update(user)
-      .set({
-        name,
-        phoneNumber,
-        phoneNumberVerified: true,
-        role,
-        districtId,
-        address,
-        status: USER_STATUS.APPROVED,
-        approvedAt: existingUser.approvedAt ?? now,
-        updatedAt: now,
-        kycStatus: existingUser.kycStatus ?? USER_KYC_STATUS.VERIFIED,
-        emailVerified: true,
-      })
-      .where(eq(user.id, existingUser.id));
-
-    const existingAccount = await tx.query.account.findFirst({
-      where: and(
-        eq(account.userId, existingUser.id),
-        eq(account.providerId, PASSWORD_PROVIDER_ID)
-      ),
-    });
-
-    if (existingAccount) {
-      await tx
-        .update(account)
-        .set({ password: passwordHash, updatedAt: now })
-        .where(eq(account.id, existingAccount.id));
-    } else {
-      await tx.insert(account).values({
-        id: randomUUID(),
-        accountId: email,
-        providerId: PASSWORD_PROVIDER_ID,
-        userId: existingUser.id,
-        password: passwordHash,
-        createdAt: now,
-        updatedAt: now,
-      });
-    }
-
-    return { id: existingUser.id };
-  });
+    throw error;
+  }
 }
 
 async function upsertOrganization({

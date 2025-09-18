@@ -1,14 +1,3 @@
-import {
-  BarChart3,
-  Boxes,
-  Building2,
-  CreditCard,
-  FileText,
-  Settings,
-  Store,
-  Tractor,
-  Users,
-} from "lucide-react";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
@@ -67,25 +56,25 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
             {
               title: "Overview",
               href: "/admin",
-              icon: BarChart3,
+              icon: "BarChart3",
               description: "System health and KPIs",
             },
             {
               title: "Tenants",
               href: "/admin/tenants",
-              icon: Building2,
+              icon: "Building2",
               description: "Manage tenant organizations",
             },
             {
               title: "Users",
               href: "/admin/users",
-              icon: Users,
+              icon: "Users",
               description: "Platform user directory",
             },
             {
               title: "Farmers",
               href: "/admin/farmers",
-              icon: Tractor,
+              icon: "Tractor",
               description: "Global farmer explorer",
             },
           ],
@@ -96,19 +85,19 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
             {
               title: "Payments",
               href: "/admin/payments",
-              icon: CreditCard,
+              icon: "CreditCard",
               description: "Transactions and settlements",
             },
             {
               title: "Inventory",
               href: "/admin/inventory/commodities",
-              icon: Boxes,
+              icon: "Boxes",
               description: "Commodity catalog",
             },
             {
               title: "Marketplace",
               href: "/admin/marketplace/listings",
-              icon: Store,
+              icon: "Store",
               description: "Listings and purchase orders",
             },
           ],
@@ -119,13 +108,13 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
             {
               title: "Settings",
               href: "/admin/settings",
-              icon: Settings,
+              icon: "Settings",
               description: "Platform configuration",
             },
             {
               title: "Audit",
               href: "/admin/audit",
-              icon: FileText,
+              icon: "FileText",
               description: "System-wide audit log",
             },
           ],

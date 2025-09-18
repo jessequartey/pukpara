@@ -26,10 +26,10 @@ export function ThemeToggle() {
     setMounted(true);
   }, []);
 
-  const activeTheme = theme ?? "system";
+  const currentTheme = mounted && theme ? theme : "system";
 
   const ActiveIcon =
-    themeOptions.find((option) => option.id === activeTheme)?.icon || Sun;
+    themeOptions.find((option) => option.id === currentTheme)?.icon || Monitor;
 
   return (
     <DropdownMenu>
@@ -50,7 +50,7 @@ export function ThemeToggle() {
           <DropdownMenuItem
             className={cn(
               "flex items-center gap-2",
-              option.id === activeTheme && "text-primary"
+              option.id === currentTheme && "text-primary"
             )}
             key={option.id}
             onSelect={(event) => {

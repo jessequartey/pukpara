@@ -6,7 +6,7 @@ import PasswordResetEmail, {
 } from "@/email/templates/password-reset-email";
 
 const resendApiKey = process.env.RESEND_API_KEY;
-const resendFromEmail = process.env.RESEND_FROM_EMAIL;
+const resendFromEmail = "noreply@hellonaa.com";
 const resendClient = resendApiKey ? new Resend(resendApiKey) : null;
 
 export async function sendPasswordResetEmail(
@@ -18,9 +18,7 @@ export async function sendPasswordResetEmail(
   if (!resendFromEmail) {
     return;
   }
-
   const { email, ...templateProps } = props;
-
   await resendClient.emails.send({
     from: resendFromEmail,
     to: email,

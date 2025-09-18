@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import type z from "zod";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AsyncSelect } from "@/components/ui/async-select";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -20,7 +21,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { AsyncSelect } from "@/components/ui/async-select";
 import {
   Form,
   FormControl,
@@ -236,6 +236,9 @@ export default function SignUpStepTwoForm() {
       phoneNumber: data.phoneNumber,
       districtId: data.districtId,
       address: data.address,
+      organizationMetadata: {
+        source: "signup" as const,
+      },
     });
 
     if (error) {
@@ -291,16 +294,25 @@ export default function SignUpStepTwoForm() {
                   <FormLabel>District</FormLabel>
                   <FormControl>
                     <AsyncSelect<DistrictOption>
+                      disabled={
+                        districtsLoading ||
+                        !hasHydrated ||
+                        districtOptionsList.length === 0
+                      }
+                      fetcher={fetchDistrictOptions}
+                      getDisplayValue={(option) =>
+                        `${option.name} • ${option.regionName}`
+                      }
+                      getOptionValue={(option) => option.id}
                       label="District"
-                      value={field.value}
                       onChange={(nextValue) => {
                         field.onChange(nextValue);
                         setData({ districtId: nextValue ?? "" });
                       }}
-                      fetcher={fetchDistrictOptions}
-                      getOptionValue={(option) => option.id}
-                      getDisplayValue={(option) =>
-                        `${option.name} • ${option.regionName}`
+                      placeholder={
+                        districtsLoading
+                          ? "Loading districts…"
+                          : "Search district"
                       }
                       renderOption={(option) => (
                         <div className="flex flex-col">
@@ -310,15 +322,8 @@ export default function SignUpStepTwoForm() {
                           </span>
                         </div>
                       )}
-                      placeholder={
-                        districtsLoading
-                          ? "Loading districts…"
-                          : "Search district"
-                      }
-                      disabled={
-                        districtsLoading || !hasHydrated || districtOptionsList.length === 0
-                      }
                       triggerClassName="w-full justify-between"
+                      value={field.value}
                       width="var(--radix-popover-trigger-width)"
                     />
                   </FormControl>

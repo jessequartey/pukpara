@@ -187,7 +187,7 @@ const getPasswordResetRedirect = () => {
   return `${baseUrl.replace(TRAILING_SLASH_REGEX, "")}/reset-password`;
 };
 
-const requestPasswordSetup = async (email: string) => {
+const requestPasswordSetup = async (email: string, userName: string, organizationName: string) => {
   const response = await fetch("/api/auth/request-password-reset", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -331,6 +331,24 @@ export function OrganizationCreatePage() {
       .trim()
       .replace(/\s+/g, " ");
 
+    // Prepare organization metadata for the after hook
+    const orgMetadata = {
+      source: "admin" as const,
+      organizationName: organization.name,
+      organizationSlug: organization.slug,
+      organizationType: organization.organizationType ?? ORGANIZATION_TYPE.FARMER_ORG,
+      ...(organization.organizationSubType && { organizationSubType: organization.organizationSubType }),
+      ...(organization.subscriptionType && { subscriptionType: organization.subscriptionType }),
+      ...(organization.licenseStatus && { licenseStatus: organization.licenseStatus }),
+      ...(organization.maxUsers && { maxUsers: organization.maxUsers }),
+      ...(organization.contactEmail && { contactEmail: organization.contactEmail }),
+      ...(organization.contactPhone && { contactPhone: organization.contactPhone }),
+      ...(organization.billingEmail && { billingEmail: organization.billingEmail }),
+      ...(organization.address && { address: organization.address }),
+      ...(organization.districtId && { districtId: organization.districtId }),
+      ...(organization.regionId && { regionId: organization.regionId }),
+    };
+
     try {
       const response = await createUser({
         body: {
@@ -343,12 +361,13 @@ export function OrganizationCreatePage() {
             districtId: newUser.districtId,
             status: USER_STATUS.APPROVED,
             kycStatus: USER_KYC_STATUS.PENDING,
+            organizationMetadata: orgMetadata,
           },
         },
       });
 
       try {
-        await requestPasswordSetup(newUser.email);
+        await requestPasswordSetup(newUser.email, fullName, organization.name);
       } catch (inviteError) {
         const inviteMessage =
           extractErrorMessage(inviteError) ??
@@ -430,21 +449,37 @@ export function OrganizationCreatePage() {
     setIsSubmitting(true);
 
     try {
-      const owner = await resolveOwner();
+      if (mode === "new-user") {
+        // For new users, the organization will be created automatically by the after hook
+        const owner = await resolveOwner();
 
-      if (!owner?.id) {
-        throw new Error("Unable to determine organization owner");
+        if (!owner?.id) {
+          throw new Error("Unable to create user and organization");
+        }
+
+        // Success - the organization was created by the after hook
+        toast.success(`Organization "${organization.name}" and user created successfully`);
+        resetStore();
+        // Navigate to organizations list since we don't know the org ID created by the hook
+        router.push("/admin/organizations");
+      } else if (mode === "existing-user") {
+        // For existing users, create the organization manually
+        const owner = await resolveOwner();
+
+        if (!owner?.id) {
+          throw new Error("Unable to determine organization owner");
+        }
+
+        const payload = buildOrganizationPayload(owner);
+
+        const created = await authClient.organization.create({
+          body: payload,
+        });
+
+        toast.success(`Organization "${created.name}" created`);
+        resetStore();
+        router.push(`/admin/organizations/${encodeURIComponent(created.id)}`);
       }
-
-      const payload = buildOrganizationPayload(owner);
-
-      const created = await authClient.organization.create({
-        body: payload,
-      });
-
-      toast.success(`Organization “${created.name}” created`);
-      resetStore();
-      router.push(`/admin/organizations/${encodeURIComponent(created.id)}`);
     } catch (error) {
       const message =
         error instanceof Error && error.message

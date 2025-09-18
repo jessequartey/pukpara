@@ -52,3 +52,28 @@ export async function sendOrganizationApprovedEmail(
     text: buildOrganizationApprovedText(templateProps),
   });
 }
+
+export async function sendOrganizationInviteEmail(props: {
+  email: string;
+  userName: string;
+  organizationName: string;
+  resetUrl: string;
+}) {
+  if (!resendClient) {
+    return;
+  }
+  if (!resendFromEmail) {
+    return;
+  }
+
+  const { email, userName, organizationName, resetUrl } = props;
+
+  // Use the existing password reset email template but customize the subject
+  await resendClient.emails.send({
+    from: resendFromEmail,
+    to: email,
+    subject: `Welcome to ${organizationName} on Pukpara - Set your password`,
+    react: PasswordResetEmail({ userName, resetUrl }),
+    text: buildPasswordResetText({ userName, resetUrl }),
+  });
+}

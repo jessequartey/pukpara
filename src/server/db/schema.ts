@@ -1,4 +1,12 @@
-import { boolean, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+/** biome-ignore-all lint/style/noMagicNumbers: <neccessary> */
+import {
+  boolean,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+} from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -19,7 +27,15 @@ export const user = pgTable("user", {
   banExpires: timestamp("ban_expires"),
   districtId: text("district_id").notNull(),
   address: text("address").notNull(),
+  kycStatus: text("kyc_status").default("pending"),
+  status: text("status").default("pending"),
   approvedAt: timestamp("approved_at"),
+  lastLogin: timestamp("last_login"),
+  consentTermsAt: timestamp("consent_terms_at"),
+  consentPrivacyAt: timestamp("consent_privacy_at"),
+  notificationPrefs: jsonb("notification_prefs"),
+  legacyUserId: text("legacy_user_id"),
+  legacyTenantId: text("legacy_tenant_id"),
 });
 
 export const session = pgTable("session", {
@@ -37,6 +53,7 @@ export const session = pgTable("session", {
     .references(() => user.id, { onDelete: "cascade" }),
   impersonatedBy: text("impersonated_by"),
   activeOrganizationId: text("active_organization_id"),
+  activeTeamId: text("active_team_id"),
 });
 
 export const account = pgTable("account", {
@@ -71,6 +88,29 @@ export const verification = pgTable("verification", {
     .notNull(),
 });
 
+export const team = pgTable("team", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  organizationId: text("organization_id")
+    .notNull()
+    .references(() => organization.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").notNull(),
+  updatedAt: timestamp("updated_at").$onUpdate(
+    () => /* @__PURE__ */ new Date()
+  ),
+});
+
+export const teamMember = pgTable("team_member", {
+  id: text("id").primaryKey(),
+  teamId: text("team_id")
+    .notNull()
+    .references(() => team.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at"),
+});
+
 export const organization = pgTable("organization", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -78,7 +118,26 @@ export const organization = pgTable("organization", {
   logo: text("logo"),
   createdAt: timestamp("created_at").notNull(),
   metadata: text("metadata"),
-  OrgType: text("org_type").notNull(),
+  organizationType: text("organization_type").notNull(),
+  organizationSubType: text("organization_sub_type"),
+  contactEmail: text("contact_email"),
+  contactPhone: text("contact_phone"),
+  address: text("address"),
+  districtId: text("district_id"),
+  regionId: text("region_id"),
+  status: text("status").default("pending"),
+  subscriptionType: text("subscription_type").default("freemium"),
+  licenseStatus: text("license_status").default("issued"),
+  planRenewsAt: timestamp("plan_renews_at"),
+  maxUsers: integer("max_users").default(100),
+  billingEmail: text("billing_email"),
+  taxId: text("tax_id"),
+  defaultCurrency: text("default_currency").default("GHS"),
+  timezone: text("timezone").default("Africa/Accra"),
+  ussdShortCode: text("ussd_short_code"),
+  smsSenderId: text("sms_sender_id"),
+  kycStatus: text("kyc_status").default("pending"),
+  limits: jsonb("limits"),
 });
 
 export const member = pgTable("member", {
@@ -100,6 +159,7 @@ export const invitation = pgTable("invitation", {
     .references(() => organization.id, { onDelete: "cascade" }),
   email: text("email").notNull(),
   role: text("role"),
+  teamId: text("team_id"),
   status: text("status").default("pending").notNull(),
   expiresAt: timestamp("expires_at").notNull(),
   inviterId: text("inviter_id")

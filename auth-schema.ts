@@ -18,7 +18,7 @@ export const user = pgTable("user", {
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
-  phoneNumber: text("phone_number").unique(),
+  phoneNumber: text("phone_number").notNull(),
   phoneNumberVerified: boolean("phone_number_verified"),
   role: text("role"),
   banned: boolean("banned").default(false),

@@ -1,7 +1,13 @@
+"use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -21,29 +27,77 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { authClient } from "@/lib/auth-client";
 
 const PASSWORD_LENGTH = 4;
+
 const formSchema = z.object({
-  email: z.email("Please enter a valid email address."),
+  email: z.string().email("Please enter a valid email address."),
   password: z
     .string()
     .min(PASSWORD_LENGTH, { message: "Please enter your password." }),
   keepSignedIn: z.boolean().optional(),
 });
+
+type FormValues = z.infer<typeof formSchema>;
+
+const redirectFallback = "/" as const;
+
 export default function SignInForm() {
-  const form = useForm<z.infer<typeof formSchema>>({
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const nextParam = searchParams.get("next");
+  const redirectTo = nextParam?.startsWith("/") ? nextParam : redirectFallback;
+  const messageCode = searchParams.get("msg");
+  const getInfoMessage = () => {
+    if (messageCode === "pending") {
+      return "Your account is pending approval. We'll notify you once it's reviewed.";
+    }
+    if (messageCode === "reset") {
+      return "Password updated. You can sign in now.";
+    }
+    return null;
+  };
+
+  const infoMessage = getInfoMessage();
+
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
       password: "",
       keepSignedIn: false,
     },
+    mode: "onBlur",
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // biome-ignore lint/suspicious/noConsole: <for dev purposes>
-    console.log(values);
-  }
+  const handleSubmit = async (values: FormValues) => {
+    setFormError(null);
+
+    const { error, data } = await authClient.signIn.email({
+      email: values.email,
+      password: values.password,
+      rememberMe: values.keepSignedIn ?? false,
+      callbackURL: redirectTo !== redirectFallback ? redirectTo : undefined,
+    });
+
+    if (error) {
+      setFormError(error.message ?? "Unable to sign in. Please try again.");
+      return;
+    }
+
+    toast.success("Signed in successfully.");
+
+    if (data?.redirect && data.url) {
+      router.replace(data.url);
+      return;
+    }
+
+    router.replace(redirectTo);
+  };
+
   return (
     <Card className="border-0 bg-background shadow-none">
       <CardHeader className="text-center lg:text-left">
@@ -53,8 +107,16 @@ export default function SignInForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {infoMessage ? (
+          <Alert className="mb-4">
+            <AlertDescription>{infoMessage}</AlertDescription>
+          </Alert>
+        ) : null}
         <Form {...form}>
-          <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
+          <form
+            className="space-y-4"
+            onSubmit={form.handleSubmit(handleSubmit)}
+          >
             <FormField
               control={form.control}
               name="email"
@@ -62,7 +124,12 @@ export default function SignInForm() {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="example@email.com" {...field} />
+                    <Input
+                      autoComplete="email"
+                      inputMode="email"
+                      placeholder="example@email.com"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -75,13 +142,17 @@ export default function SignInForm() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input placeholder="********" {...field} type="password" />
+                    <Input
+                      autoComplete="current-password"
+                      placeholder="********"
+                      type="password"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            {/* Keep me signed in & Forgot password */}
             <div className="flex items-center justify-between">
               <FormField
                 control={form.control}
@@ -91,7 +162,9 @@ export default function SignInForm() {
                     <FormControl>
                       <Checkbox
                         checked={field.value}
-                        onCheckedChange={field.onChange}
+                        onCheckedChange={(checked) =>
+                          field.onChange(Boolean(checked))
+                        }
                       />
                     </FormControl>
                     <div className="leading-none">
@@ -109,9 +182,18 @@ export default function SignInForm() {
                 Forgot password?
               </Link>
             </div>
-
-            <Button className="w-full" size={"lg"} type="submit">
-              Sign In
+            {formError ? (
+              <Alert className="text-sm" variant="destructive">
+                <AlertDescription>{formError}</AlertDescription>
+              </Alert>
+            ) : null}
+            <Button
+              className="w-full"
+              disabled={form.formState.isSubmitting}
+              size="lg"
+              type="submit"
+            >
+              {form.formState.isSubmitting ? "Signing in..." : "Sign In"}
             </Button>
           </form>
         </Form>

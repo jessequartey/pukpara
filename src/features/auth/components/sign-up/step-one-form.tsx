@@ -1,3 +1,5 @@
+"use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -43,22 +45,25 @@ type SignUpStepOneSchema = z.infer<typeof signUpStepOneSchema>;
 export default function SignUpStepOneForm() {
   const router = useRouter();
   const setData = useSignUpStore((state) => state.setData);
+  const storedValues = useSignUpStore((state) => ({
+    confirmPassword: state.confirmPassword ?? "",
+    email: state.email ?? "",
+    firstName: state.firstName ?? "",
+    lastName: state.lastName ?? "",
+    password: state.password ?? "",
+  }));
 
   const form = useForm<SignUpStepOneSchema>({
     resolver: zodResolver(signUpStepOneSchema),
-    defaultValues: {
-      firstName: "",
-      lastName: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-    },
+    defaultValues: storedValues,
+    mode: "onBlur",
   });
 
   const onSubmit = (data: SignUpStepOneSchema) => {
     setData(data);
     router.push("/sign-up/submit");
   };
+
   return (
     <Card className="border-0 bg-background shadow-none">
       <CardHeader className="flex flex-col items-center justify-center lg:items-start">
@@ -71,7 +76,7 @@ export default function SignUpStepOneForm() {
       <CardContent>
         <Form {...form}>
           <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <FormField
                 control={form.control}
                 name="firstName"
@@ -79,7 +84,11 @@ export default function SignUpStepOneForm() {
                   <FormItem>
                     <FormLabel>First Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="John" {...field} />
+                      <Input
+                        autoComplete="given-name"
+                        placeholder="John"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -92,7 +101,11 @@ export default function SignUpStepOneForm() {
                   <FormItem>
                     <FormLabel>Last Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Doe" {...field} />
+                      <Input
+                        autoComplete="family-name"
+                        placeholder="Doe"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -106,7 +119,12 @@ export default function SignUpStepOneForm() {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="example@email.com" {...field} />
+                    <Input
+                      autoComplete="email"
+                      inputMode="email"
+                      placeholder="example@email.com"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -119,7 +137,12 @@ export default function SignUpStepOneForm() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input placeholder="********" {...field} type="password" />
+                    <Input
+                      autoComplete="new-password"
+                      placeholder="********"
+                      type="password"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -132,14 +155,24 @@ export default function SignUpStepOneForm() {
                 <FormItem>
                   <FormLabel>Confirm Password</FormLabel>
                   <FormControl>
-                    <Input placeholder="********" {...field} type="password" />
+                    <Input
+                      autoComplete="new-password"
+                      placeholder="********"
+                      type="password"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button className="w-full" size={"lg"} type="submit">
-              Continue
+            <Button
+              className="w-full"
+              disabled={form.formState.isSubmitting}
+              size="lg"
+              type="submit"
+            >
+              {form.formState.isSubmitting ? "Please wait..." : "Continue"}
             </Button>
           </form>
         </Form>

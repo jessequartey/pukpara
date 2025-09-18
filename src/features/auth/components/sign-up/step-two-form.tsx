@@ -1,10 +1,14 @@
+"use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import type z from "zod";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -25,12 +29,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { PhoneInput } from "@/components/ui/phone-input";
+import { authClient } from "@/lib/auth-client";
 import { signUpSchema } from "../../schema";
 import { useSignUpStore } from "../../store/sign-up-store";
 
 const signUpStepTwoSchema = signUpSchema.pick({
   phoneNumber: true,
-  district: true,
+  districtId: true,
   address: true,
 });
 
@@ -38,43 +43,71 @@ type SignUpStepTwoSchema = z.infer<typeof signUpStepTwoSchema>;
 
 export default function SignUpStepTwoForm() {
   const router = useRouter();
-  const firstName = useSignUpStore((state) => state.firstName);
-  const lastName = useSignUpStore((state) => state.lastName);
-  const email = useSignUpStore((state) => state.email);
-  const password = useSignUpStore((state) => state.password);
-  const confirmPassword = useSignUpStore((state) => state.confirmPassword);
+  const [formError, setFormError] = useState<string | null>(null);
+  const resetStore = useSignUpStore((state) => state.reset);
+  const setData = useSignUpStore((state) => state.setData);
+  const firstName = useSignUpStore((state) => state.firstName ?? "");
+  const lastName = useSignUpStore((state) => state.lastName ?? "");
+  const email = useSignUpStore((state) => state.email ?? "");
+  const password = useSignUpStore((state) => state.password ?? "");
+  const confirmPassword = useSignUpStore(
+    (state) => state.confirmPassword ?? ""
+  );
+  const storedPhoneNumber = useSignUpStore((state) => state.phoneNumber ?? "");
+  const storedDistrictId = useSignUpStore((state) => state.districtId ?? "");
+  const storedAddress = useSignUpStore((state) => state.address ?? "");
+
+  const defaultValues = useMemo(
+    () => ({
+      phoneNumber: storedPhoneNumber,
+      districtId: storedDistrictId,
+      address: storedAddress,
+    }),
+    [storedPhoneNumber, storedDistrictId, storedAddress]
+  );
 
   const form = useForm<SignUpStepTwoSchema>({
     resolver: zodResolver(signUpStepTwoSchema),
-    defaultValues: {
-      phoneNumber: "",
-      district: "",
-      address: "",
-    },
+    defaultValues,
+    mode: "onBlur",
   });
 
-  const onSubmit = (data: SignUpStepTwoSchema) => {
-    const completeData = {
-      ...data,
-      firstName,
-      lastName,
-      email,
-      password,
-      confirmPassword,
-    };
-
-    // biome-ignore lint/suspicious/noConsole: <develop>
-    console.log("Complete sign-up data:", completeData);
-
-    // TODO: Submit to API
-    router.push("/sign-in");
-  };
+  useEffect(() => {
+    form.reset(defaultValues);
+  }, [defaultValues, form]);
 
   useEffect(() => {
     if (!(firstName && lastName && email && password && confirmPassword)) {
-      router.push("/sign-up");
+      router.replace("/sign-up");
     }
-  }, [firstName, lastName, email, password, confirmPassword, router.push]);
+  }, [confirmPassword, email, firstName, lastName, password, router]);
+
+  const onSubmit = async (data: SignUpStepTwoSchema) => {
+    setFormError(null);
+    setData(data);
+
+    const fullName = `${firstName} ${lastName}`.trim().replace(/\s+/g, " ");
+
+    const { error } = await authClient.signUp.email({
+      name: fullName,
+      email,
+      password,
+      phoneNumber: data.phoneNumber,
+      districtId: data.districtId,
+      address: data.address,
+    });
+
+    if (error) {
+      setFormError(error.message ?? "Unable to create your account right now.");
+      return;
+    }
+
+    toast.success("Signup received. We'll review your account shortly.");
+    resetStore();
+    form.reset({ address: "", districtId: "", phoneNumber: "" });
+    router.replace("/sign-in?msg=pending");
+  };
+
   return (
     <Card className="border-0 bg-background shadow-none">
       <CardHeader className="flex flex-col items-center justify-center lg:items-start">
@@ -98,6 +131,7 @@ export default function SignUpStepTwoForm() {
                       defaultCountry="GH"
                       placeholder="012 345 6789"
                       {...field}
+                      onChange={(value) => field.onChange(value ?? "")}
                     />
                   </FormControl>
                   <FormMessage />
@@ -106,12 +140,12 @@ export default function SignUpStepTwoForm() {
             />
             <FormField
               control={form.control}
-              name="district"
+              name="districtId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>District</FormLabel>
                   <FormControl>
-                    <Input placeholder="Doe" {...field} />
+                    <Input placeholder="District ID" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -125,7 +159,11 @@ export default function SignUpStepTwoForm() {
                 <FormItem>
                   <FormLabel>Address</FormLabel>
                   <FormControl>
-                    <Input placeholder="123 Main St" {...field} />
+                    <Input
+                      autoComplete="street-address"
+                      placeholder="123 Main St"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -145,9 +183,21 @@ export default function SignUpStepTwoForm() {
                 of the platform.
               </p>
             </div>
+            {formError ? (
+              <Alert className="text-sm" variant="destructive">
+                <AlertDescription>{formError}</AlertDescription>
+              </Alert>
+            ) : null}
 
-            <Button className="w-full" size={"lg"} type="submit">
-              Create Account
+            <Button
+              className="w-full"
+              disabled={form.formState.isSubmitting}
+              size="lg"
+              type="submit"
+            >
+              {form.formState.isSubmitting
+                ? "Creating account..."
+                : "Create Account"}
             </Button>
           </form>
         </Form>

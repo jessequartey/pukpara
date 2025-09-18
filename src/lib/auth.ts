@@ -11,12 +11,26 @@ import {
 } from "better-auth/plugins";
 import { db } from "@/server/db";
 import * as schema from "@/server/db/schema";
+import { sendPasswordResetEmail } from "@/server/email/resend";
 import { AdminRoles, ac as adminAC } from "./admin-permissions";
 import { OrgRoles, ac as orgAC } from "./org-permissions";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, { provider: "pg", schema }),
-  emailAndPassword: { enabled: true },
+  emailAndPassword: {
+    enabled: true,
+    async sendResetPassword({ user, url }) {
+      if (!url) {
+        return;
+      }
+
+      await sendPasswordResetEmail({
+        email: user.email,
+        resetUrl: url,
+        userName: user.name,
+      });
+    },
+  },
 
   // Optional: new signups wait for manual approval
   signup: {
@@ -32,6 +46,7 @@ export const auth = betterAuth({
       // Onboarding / KYC
       districtId: { type: "string", required: true },
       address: { type: "string", required: true },
+      phoneNumber: { type: "string", required: true },
       kycStatus: {
         type: "string", // "unverified" | "pending" | "verified" | "rejected"
         defaultValue: "pending",

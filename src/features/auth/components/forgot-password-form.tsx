@@ -1,7 +1,11 @@
+"use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -20,22 +24,42 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { authClient } from "@/lib/auth-client";
 
 const formSchema = z.object({
-  email: z.email("Please enter a valid email address."),
+  email: z.string().email("Please enter a valid email address."),
 });
+
+type FormValues = z.infer<typeof formSchema>;
+
 export default function ForgotPasswordForm() {
-  const form = useForm<z.infer<typeof formSchema>>({
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
     },
+    mode: "onBlur",
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // biome-ignore lint/suspicious/noConsole: <for dev purposes>
-    console.log(values);
-  }
+  const handleSubmit = async (values: FormValues) => {
+    setStatusMessage(null);
+
+    const redirectTo =
+      typeof window !== "undefined"
+        ? `${window.location.origin}/reset-password`
+        : "/reset-password";
+
+    await authClient.requestPasswordReset({
+      email: values.email,
+      redirectTo,
+    });
+
+    setStatusMessage("If an account exists, we’ve sent a reset link.");
+    form.reset({ email: values.email });
+  };
+
   return (
     <Card className="border-0 bg-background shadow-none">
       <CardHeader className="text-center lg:text-left">
@@ -46,7 +70,10 @@ export default function ForgotPasswordForm() {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
+          <form
+            className="space-y-4"
+            onSubmit={form.handleSubmit(handleSubmit)}
+          >
             <FormField
               control={form.control}
               name="email"
@@ -54,15 +81,29 @@ export default function ForgotPasswordForm() {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="example@email.com" {...field} />
+                    <Input
+                      autoComplete="email"
+                      inputMode="email"
+                      placeholder="example@email.com"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
-            <Button className="w-full" size={"lg"} type="submit">
-              Continue
+            {statusMessage ? (
+              <Alert className="text-sm">
+                <AlertDescription>{statusMessage}</AlertDescription>
+              </Alert>
+            ) : null}
+            <Button
+              className="w-full"
+              disabled={form.formState.isSubmitting}
+              size="lg"
+              type="submit"
+            >
+              {form.formState.isSubmitting ? "Sending..." : "Continue"}
             </Button>
           </form>
         </Form>

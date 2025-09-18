@@ -1,7 +1,13 @@
+"use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -20,6 +26,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { authClient } from "@/lib/auth-client";
 
 const PASSWORD_LENGTH = 4;
 
@@ -41,19 +48,48 @@ const formSchema = z
     message: "Passwords don't match",
     path: ["confirmPassword"],
   });
-export default function ResetPasswordForm() {
-  const form = useForm<z.infer<typeof formSchema>>({
+
+type FormValues = z.infer<typeof formSchema>;
+
+type ResetPasswordFormProps = {
+  token: string;
+};
+
+export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
+  const router = useRouter();
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       newPassword: "",
       confirmPassword: "",
     },
+    mode: "onBlur",
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // biome-ignore lint/suspicious/noConsole: <for dev purposes>
-    console.log(values);
-  }
+  const handleSubmit = async (values: FormValues) => {
+    if (!token) {
+      setFormError("Reset link is invalid or expired.");
+      return;
+    }
+
+    setFormError(null);
+
+    const { error } = await authClient.resetPassword({
+      newPassword: values.newPassword,
+      token,
+    });
+
+    if (error) {
+      setFormError(error.message ?? "Unable to reset your password.");
+      return;
+    }
+
+    toast.success("Password updated. Please sign in with your new password.");
+    router.replace("/sign-in?msg=reset");
+  };
+
   return (
     <Card className="border-0 bg-background shadow-none">
       <CardHeader className="text-center lg:text-left">
@@ -64,7 +100,10 @@ export default function ResetPasswordForm() {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
+          <form
+            className="space-y-4"
+            onSubmit={form.handleSubmit(handleSubmit)}
+          >
             <FormField
               control={form.control}
               name="newPassword"
@@ -72,7 +111,12 @@ export default function ResetPasswordForm() {
                 <FormItem>
                   <FormLabel>New Password</FormLabel>
                   <FormControl>
-                    <Input placeholder="********" {...field} />
+                    <Input
+                      autoComplete="new-password"
+                      placeholder="********"
+                      type="password"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -85,14 +129,31 @@ export default function ResetPasswordForm() {
                 <FormItem>
                   <FormLabel>Confirm Password</FormLabel>
                   <FormControl>
-                    <Input placeholder="********" {...field} />
+                    <Input
+                      autoComplete="new-password"
+                      placeholder="********"
+                      type="password"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button className="w-full" size={"lg"} type="submit">
-              Continue
+            {formError ? (
+              <Alert className="text-sm" variant="destructive">
+                <AlertDescription>{formError}</AlertDescription>
+              </Alert>
+            ) : null}
+            <Button
+              className="w-full"
+              disabled={form.formState.isSubmitting || !token}
+              size="lg"
+              type="submit"
+            >
+              {form.formState.isSubmitting
+                ? "Updating password..."
+                : "Continue"}
             </Button>
           </form>
         </Form>

@@ -34,9 +34,8 @@ export default function RootLayout({
           attribute="class"
           defaultTheme="light"
           disableTransitionOnChange
-          enableSystem
         >
-          <TRPCReactProvider>{children}</TRPCReactProvider>
+          <TRPCReactProvider>{children}</TRPCReactProvider>/
         </ThemeProvider>
         <Toaster />
       </body>

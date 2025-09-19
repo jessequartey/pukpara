@@ -49,7 +49,7 @@ export type UserColumn = {
 
 const statusLabels: Record<string, string> = {
   [USER_STATUS.PENDING]: "Pending",
-  [USER_STATUS.ACTIVE]: "Active",
+  [USER_STATUS.APPROVED]: "Active",
   [USER_STATUS.SUSPENDED]: "Suspended",
   [USER_STATUS.REJECTED]: "Rejected",
 };
@@ -181,7 +181,7 @@ export const userColumns: UserColumn[] = [
       const status = row.status ?? "";
       const label = statusLabels[status] ?? toTitleCase(status);
       const variant =
-        status === USER_STATUS.ACTIVE
+        status === USER_STATUS.APPROVED
           ? "default"
           : status === USER_STATUS.REJECTED
             ? "destructive"

@@ -24,6 +24,13 @@ import { cn } from "@/lib/utils";
 const searchSchema = z.string().trim().min(2).or(z.literal(""));
 const SEARCH_DEBOUNCE_MS = 350;
 
+interface UserWithRole {
+  id: string;
+  email: string | null;
+  name: string | null;
+  role?: string;
+}
+
 type ExistingUserStepProps = {
   onBack: () => void;
   onNext: () => void;
@@ -74,7 +81,7 @@ export const ExistingUserStep = ({ onBack, onNext }: ExistingUserStepProps) => {
         },
       });
 
-      return result.users;
+      return (result as any).users || [];
     },
   });
 
@@ -154,7 +161,7 @@ export const ExistingUserStep = ({ onBack, onNext }: ExistingUserStepProps) => {
 
                 return (
                   <ul className="divide-y">
-                    {users.map((user) => {
+                    {users.map((user: UserWithRole) => {
                       const isSelected = user.id === selectedUser?.userId;
                       return (
                         <li key={user.id}>

@@ -236,9 +236,6 @@ export default function SignUpStepTwoForm() {
       phoneNumber: data.phoneNumber,
       districtId: data.districtId,
       address: data.address,
-      organizationMetadata: {
-        source: "signup" as const,
-      },
     });
 
     if (error) {

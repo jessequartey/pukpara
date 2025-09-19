@@ -8,7 +8,7 @@ import { ORGANIZATION_STATUS } from "@/config/constants/auth";
 import type {
   OrganizationTableRow,
   OrganizationTableSortState,
-} from "@/features/admin/organizations/components/organization-table";
+} from "@/features/admin/organizations/components/organization-table/index";
 import { api } from "@/trpc/react";
 
 const ROW_OPTION_SMALL = 10;

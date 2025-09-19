@@ -5,6 +5,8 @@ import { organizationColumns } from "./columns";
 import type { SortState } from "./data-table";
 import { DataTable } from "./data-table";
 
+export type { OrganizationTableRow };
+
 export type OrganizationTableProps = {
   data: OrganizationTableRow[];
   sort: SortState;

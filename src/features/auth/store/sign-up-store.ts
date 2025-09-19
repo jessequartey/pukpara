@@ -12,7 +12,7 @@ type SignUpState = Partial<SignUpSchema> & {
 const initialState: Partial<SignUpSchema> = {};
 
 export const useSignUpStore = create<SignUpState>()(
-  persist<SignUpState>(
+  persist(
     (set) => ({
       ...initialState,
       hasHydrated: false,
@@ -40,7 +40,7 @@ export const useSignUpStore = create<SignUpState>()(
           ...rest
         } = state;
 
-        return rest;
+        return rest as any;
       },
     }
   )

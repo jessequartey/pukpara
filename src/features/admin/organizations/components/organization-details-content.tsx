@@ -1,19 +1,8 @@
 "use client";
 
-import { Edit, MoreVertical, Shield, User } from "lucide-react";
-
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
 // import { ComplianceKycCard } from "./organization-details/compliance-kyc-card";
 import { ContactAddressCard } from "./organization-details/contact-address-card";
+import { DeleteOrganizationCard } from "./organization-details/delete-organization-card";
 // import { InventoryCard } from "./organization-details/inventory-card";
 // import { KpisFinanceCard } from "./organization-details/kpis-finance-card";
 // import { MarketplaceActivityCard } from "./organization-details/marketplace-activity-card";
@@ -40,78 +29,21 @@ export function OrganizationDetailsContent({
     licenseStatus: "issued" as const,
   };
 
+  const handleDelete = () => {
+    // TODO: Implement actual delete logic
+    // This would typically call an API to delete the organization
+  };
+
   return (
     <div className="space-y-6">
-      {/* Header with actions */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <h2 className="font-semibold text-xl">{organization.name}</h2>
-            <span className="text-muted-foreground text-sm">
-              ({organization.slug})
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Badge
-              variant={
-                organization.status === "active" ? "default" : "secondary"
-              }
-            >
-              {organization.status}
-            </Badge>
-            <Badge variant="outline">{organization.organizationType}</Badge>
-            <Badge variant="default">{organization.subscriptionType}</Badge>
-            <Badge
-              variant={
-                organization.licenseStatus === "issued"
-                  ? "default"
-                  : "destructive"
-              }
-            >
-              {organization.licenseStatus}
-            </Badge>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button size="sm">
-            <Shield className="mr-2 size-4" />
-            Approve
-          </Button>
-          <Button size="sm" variant="outline">
-            <User className="mr-2 size-4" />
-            Suspend
-          </Button>
-          <Button size="sm" variant="outline">
-            <Edit className="mr-2 size-4" />
-            Edit
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="sm" variant="outline">
-                <MoreVertical className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem>Send message</DropdownMenuItem>
-              <DropdownMenuItem>Export data</DropdownMenuItem>
-              <DropdownMenuItem>Open as active org</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive">
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-
-      {/* Full width layout */}
-      <div className="space-y-6">
-        <OrganizationOverviewCard />
-        <ContactAddressCard />
-        <SubscriptionLicenseCard />
-        <PrimaryContactCard />
-      </div>
+      <OrganizationOverviewCard />
+      <ContactAddressCard />
+      <SubscriptionLicenseCard />
+      <PrimaryContactCard />
+      <DeleteOrganizationCard
+        organizationName={organization.name}
+        onDelete={handleDelete}
+      />
 
       {/* Hidden right column cards for future use */}
       {/* <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">

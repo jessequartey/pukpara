@@ -157,7 +157,7 @@ const ActionsCell = ({
   pendingAction: PendingAction;
   setPendingAction: (action: PendingAction) => void;
 }) => {
-  const isActive = row.status === USER_STATUS.ACTIVE;
+  const isActive = row.status === USER_STATUS.APPROVED;
   const isPending = row.status === USER_STATUS.PENDING;
   const isSuspended = row.status === USER_STATUS.SUSPENDED;
   const isBanned = row.banned;

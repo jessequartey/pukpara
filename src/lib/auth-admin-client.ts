@@ -4,7 +4,6 @@ export const {
   admin: {
     listUsers,
     createUser,
-    setUserRole,
     banUser,
     unbanUser,
     impersonateUser,

@@ -43,28 +43,15 @@ const organizationDetailsSchema = z.object({
       message: "Use lowercase letters, numbers, and dashes only",
     }),
   organizationType: z.enum(organizationTypes),
-  organizationSubType: z
-    .string()
-    .trim()
-    .max(ORGANIZATION_SUBTYPE_MAX_LENGTH)
-    .optional()
-    .transform((value) => value ?? ""),
-  address: z
-    .string()
-    .trim()
-    .max(ADDRESS_MAX_LENGTH)
-    .optional()
-    .transform((value) => value ?? ""),
+  organizationSubType: z.string().trim().max(ORGANIZATION_SUBTYPE_MAX_LENGTH),
+  address: z.string().trim().max(ADDRESS_MAX_LENGTH),
   districtId: z.string().trim().min(1, "Select a district"),
-  notes: z
-    .string()
-    .trim()
-    .max(NOTES_MAX_LENGTH)
-    .optional()
-    .transform((value) => value ?? ""),
+  notes: z.string().trim().max(NOTES_MAX_LENGTH),
 });
 
 type OrganizationDetailsSchema = z.infer<typeof organizationDetailsSchema>;
+
+interface OrganizationDetailsFormValues extends OrganizationDetailsSchema {}
 
 type OrganizationDetailsStepProps = {
   onBack: () => void;
@@ -186,13 +173,13 @@ export const OrganizationDetailsStep = ({
       name: data.name,
       slug: data.slug,
       organizationType: data.organizationType,
-      organizationSubType: data.organizationSubType,
-      address: data.address,
+      organizationSubType: data.organizationSubType || "",
+      address: data.address || "",
       districtId: data.districtId,
       districtName: selectedDistrict?.name ?? organizationData.districtName,
       regionId: selectedDistrict?.regionCode ?? organizationData.regionId,
       regionName: selectedDistrict?.regionName ?? organizationData.regionName,
-      notes: data.notes,
+      notes: data.notes || "",
     });
     onNext();
   };
@@ -207,13 +194,13 @@ export const OrganizationDetailsStep = ({
       name: values.name,
       slug: values.slug,
       organizationType: values.organizationType,
-      organizationSubType: values.organizationSubType,
-      address: values.address,
+      organizationSubType: values.organizationSubType || "",
+      address: values.address || "",
       districtId: values.districtId,
       districtName: selectedDistrict?.name ?? organizationData.districtName,
       regionId: selectedDistrict?.regionCode ?? organizationData.regionId,
       regionName: selectedDistrict?.regionName ?? organizationData.regionName,
-      notes: values.notes,
+      notes: values.notes || "",
     });
     onBack();
   };

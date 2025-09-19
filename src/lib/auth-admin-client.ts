@@ -10,8 +10,5 @@ export const {
     stopImpersonating,
     removeUser,
     setUserPassword,
-    listSessions,
-    revokeSession,
-    revokeUserSessions,
   },
 } = authClient;

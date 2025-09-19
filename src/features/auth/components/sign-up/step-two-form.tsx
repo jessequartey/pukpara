@@ -32,6 +32,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { authClient } from "@/lib/auth-client";
+import type { OrganizationMetadata } from "@/lib/auth-organization-utils";
 import { api } from "@/trpc/react";
 import { signUpSchema } from "../../schema";
 import { useSignUpStore } from "../../store/sign-up-store";

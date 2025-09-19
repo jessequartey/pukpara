@@ -85,7 +85,7 @@ export const auth = betterAuth({
       legacyTenantId: { type: "string", input: false }, // if old system stored user->tenant directly
 
       // Organization metadata for admin-created users
-      organizationMetadata: { type: "json", input: false },
+      // organizationMetadata: { type: "json", input: true },
     },
   },
 

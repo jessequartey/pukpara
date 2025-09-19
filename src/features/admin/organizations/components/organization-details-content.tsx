@@ -41,8 +41,8 @@ export function OrganizationDetailsContent({
       <SubscriptionLicenseCard />
       <PrimaryContactCard />
       <DeleteOrganizationCard
-        organizationName={organization.name}
         onDelete={handleDelete}
+        organizationName={organization.name}
       />
 
       {/* Hidden right column cards for future use */}

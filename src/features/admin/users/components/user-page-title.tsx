@@ -5,7 +5,8 @@ import { PageTitle } from "@/components/ui/page-title";
 
 type UserPageTitleProps = {
   title: string;
-  description?: string;
+  titleContent?: ReactNode;
+  description?: ReactNode;
   action?: {
     label: string;
     href?: string;
@@ -23,6 +24,7 @@ const baseBreadcrumbs: BreadcrumbItemType[] = [
 
 export function UserPageTitle({
   title,
+  titleContent,
   description,
   action,
   breadcrumbs,
@@ -35,6 +37,7 @@ export function UserPageTitle({
         breadcrumbs={[...baseBreadcrumbs, ...(breadcrumbs ?? [])]}
         description={description}
         title={title}
+        titleContent={titleContent}
       />
       {children}
     </div>

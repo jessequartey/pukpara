@@ -45,7 +45,8 @@ export function DeleteOrganizationCard({
           <div>
             <h4 className="font-medium text-sm">Delete Organization</h4>
             <p className="text-muted-foreground text-sm">
-              Permanently delete this organization and all associated data. This action cannot be undone.
+              Permanently delete this organization and all associated data. This
+              action cannot be undone.
             </p>
           </div>
 
@@ -55,9 +56,11 @@ export function DeleteOrganizationCard({
               <div className="text-sm">
                 <p className="font-medium text-destructive">Warning</p>
                 <p className="text-destructive/80">
-                  This will permanently delete <strong>{organizationName}</strong> and all related data including:
+                  This will permanently delete{" "}
+                  <strong>{organizationName}</strong> and all related data
+                  including:
                 </p>
-                <ul className="mt-2 list-disc list-inside space-y-1 text-destructive/80">
+                <ul className="mt-2 list-inside list-disc space-y-1 text-destructive/80">
                   <li>All user accounts and members</li>
                   <li>Financial records and transactions</li>
                   <li>Inventory and warehouse data</li>
@@ -79,14 +82,18 @@ export function DeleteOrganizationCard({
         </CardContent>
       </Card>
 
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <AlertDialog
+        onOpenChange={setIsDeleteDialogOpen}
+        open={isDeleteDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete {organizationName}?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the organization
-              "{organizationName}" and all associated data including user accounts, financial records,
-              inventory, and compliance data.
+              This action cannot be undone. This will permanently delete the
+              organization "{organizationName}" and all associated data
+              including user accounts, financial records, inventory, and
+              compliance data.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

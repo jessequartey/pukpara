@@ -1,10 +1,16 @@
 "use client";
 
-import { Search } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { toast } from "sonner";
 
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
   banUser,
@@ -14,7 +20,8 @@ import {
 } from "@/lib/auth-admin-client";
 
 import { UserTable } from "../user-table";
-import type { UserTableRow } from "../user-table/columns";
+import type { UserTableRow, UserColumnKey } from "../user-table/columns";
+import { userColumns } from "../user-table/columns";
 import type { UserTableSortState } from "../user-table/index";
 
 // Mock data for now - replace with actual API call
@@ -86,6 +93,21 @@ type UserDirectoryCardProps = {
 export function UserDirectoryCard({ controller }: UserDirectoryCardProps) {
   const [isActionLoading, setIsActionLoading] = useState(false);
 
+  const allColumnKeys = useMemo(
+    () => userColumns.map((column) => column.key as UserColumnKey),
+    []
+  );
+
+  const [visibleColumnKeys, setVisibleColumnKeys] = useState<Set<UserColumnKey>>(
+    () => new Set(allColumnKeys)
+  );
+
+  useEffect(() => {
+    if (visibleColumnKeys.size === 0 && allColumnKeys.length > 0) {
+      setVisibleColumnKeys(new Set(allColumnKeys));
+    }
+  }, [allColumnKeys, visibleColumnKeys]);
+
   const {
     users,
     search,
@@ -97,6 +119,24 @@ export function UserDirectoryCard({ controller }: UserDirectoryCardProps) {
     isLoading,
     isFetching,
   } = controller;
+
+  const visibleCount = visibleColumnKeys.size;
+
+  const toggleColumn = (key: UserColumnKey) => {
+    setVisibleColumnKeys((previous) => {
+      if (previous.has(key)) {
+        if (previous.size === 1) {
+          return previous;
+        }
+        const next = new Set(previous);
+        next.delete(key);
+        return next;
+      }
+      const next = new Set(previous);
+      next.add(key);
+      return next;
+    });
+  };
 
   // Filter users based on search
   const filteredUsers = users.filter((user) => {
@@ -235,22 +275,43 @@ export function UserDirectoryCard({ controller }: UserDirectoryCardProps) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">Users Directory</CardTitle>
-          <div className="relative w-72">
-            <Search className="absolute top-2.5 left-2 size-4 text-muted-foreground" />
-            <Input
-              className="pl-8"
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name, email, phone, location, or organization..."
-              value={search}
-            />
-          </div>
+    <Card className="shadow-sm">
+      <CardHeader className="gap-4 border-b pb-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <Input
+            aria-label="Search users"
+            className="w-full sm:max-w-lg"
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search by name, email, phone, location, or organization..."
+            type="search"
+            value={search}
+          />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button type="button" variant="outline">
+                Columns
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-[14rem]">
+              {userColumns.map((column) => {
+                const isChecked = visibleColumnKeys.has(column.key);
+                const disableToggle = isChecked && visibleCount === 1;
+                return (
+                  <DropdownMenuCheckboxItem
+                    checked={isChecked}
+                    disabled={disableToggle}
+                    key={column.key}
+                    onCheckedChange={() => toggleColumn(column.key)}
+                  >
+                    {column.header}
+                  </DropdownMenuCheckboxItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4 pt-6">
         <UserTable
           data={filteredUsers}
           isFetching={isFetching}
@@ -268,6 +329,7 @@ export function UserDirectoryCard({ controller }: UserDirectoryCardProps) {
           onView={handleView}
           selectedIds={selectedIds}
           sort={sort}
+          visibleColumnKeys={visibleColumnKeys}
         />
       </CardContent>
     </Card>

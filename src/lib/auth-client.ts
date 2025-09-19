@@ -14,9 +14,7 @@ export const authClient = createAuthClient({
       $inferAuth: {} as AuthInstance,
       teams: { enabled: true },
     }),
-    adminClient({
-      $inferAuth: {} as AuthInstance,
-    }),
+    adminClient(),
   ],
 });
 

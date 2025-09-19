@@ -33,9 +33,9 @@ export type UserColumnKey =
   | "contact"
   | "location"
   | "status"
-  | "kycStatus"
+  // | "kycStatus"
   | "organizations"
-  | "lastLogin"
+  // | "lastLogin"
   | "createdAt";
 
 export type UserColumn = {
@@ -113,9 +113,6 @@ export const userColumns: UserColumn[] = [
           <span className="truncate font-medium text-foreground">
             {row.name}
           </span>
-          <span className="truncate text-muted-foreground text-xs">
-            {row.email}
-          </span>
         </div>
       </div>
     ),
@@ -125,25 +122,11 @@ export const userColumns: UserColumn[] = [
     header: "Contact",
     render: (row) => (
       <div className="flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <span className="text-sm">{row.email}</span>
-          {row.emailVerified && (
-            <Badge className="text-xs" variant="outline">
-              Verified
-            </Badge>
-          )}
-        </div>
+        <span className="text-sm">{row.email}</span>
         {row.phoneNumber && (
-          <div className="flex items-center gap-2">
-            <span className="text-muted-foreground text-xs">
-              {row.phoneNumber}
-            </span>
-            {row.phoneNumberVerified && (
-              <Badge className="text-xs" variant="outline">
-                SMS
-              </Badge>
-            )}
-          </div>
+          <span className="text-muted-foreground text-xs">
+            {row.phoneNumber}
+          </span>
         )}
       </div>
     ),
@@ -190,23 +173,23 @@ export const userColumns: UserColumn[] = [
       return <Badge variant={variant}>{label}</Badge>;
     },
   },
-  {
-    key: "kycStatus",
-    header: "KYC",
-    sortable: true,
-    render: (row) => {
-      const kycStatus = row.kycStatus ?? "";
-      const label = kycLabels[kycStatus] ?? toTitleCase(kycStatus);
-      const variant =
-        kycStatus === USER_KYC_STATUS.VERIFIED
-          ? "default"
-          : kycStatus === USER_KYC_STATUS.REJECTED
-            ? "destructive"
-            : "outline";
+  // {
+  //   key: "kycStatus",
+  //   header: "KYC",
+  //   sortable: true,
+  //   render: (row) => {
+  //     const kycStatus = row.kycStatus ?? "";
+  //     const label = kycLabels[kycStatus] ?? toTitleCase(kycStatus);
+  //     const variant =
+  //       kycStatus === USER_KYC_STATUS.VERIFIED
+  //         ? "default"
+  //         : kycStatus === USER_KYC_STATUS.REJECTED
+  //           ? "destructive"
+  //           : "outline";
 
-      return <Badge variant={variant}>{label}</Badge>;
-    },
-  },
+  //     return <Badge variant={variant}>{label}</Badge>;
+  //   },
+  // },
   {
     key: "organizations",
     header: "Organizations",
@@ -222,16 +205,6 @@ export const userColumns: UserColumn[] = [
           </span>
         )}
       </div>
-    ),
-  },
-  {
-    key: "lastLogin",
-    header: "Last Login",
-    sortable: true,
-    render: (row) => (
-      <span className="text-muted-foreground text-xs">
-        {formatMaybeDate(row.lastLogin) || "Never"}
-      </span>
     ),
   },
   {

@@ -1,20 +1,19 @@
-import { PageTitle } from "@/components/ui/page-title";
-import { PlaceholderSection } from "@/features/admin/overview/components/placeholder-section";
+"use client";
+
+import { FarmerDirectoryCard } from "@/features/admin/farmers/components/farmer-directory/farmer-directory-card";
+import { FarmerPageTitle } from "@/features/admin/farmers/components/farmer-page-title";
+import { useFarmerListController } from "@/features/admin/farmers/hooks/use-farmer-list-controller";
 
 export default function AdminFarmersPage() {
-  return (
-    <div className="space-y-8">
-      <PageTitle
-        action={{ href: "/admin/farmers?create=new", label: "Add farmer" }}
-        breadcrumbs={[{ label: "Admin", href: "/admin" }, { label: "Farmers" }]}
-        description="Cross-organization farmer explorer with rich filters and analytics."
-        title="Farmers"
-      />
+  const controller = useFarmerListController();
 
-      <PlaceholderSection
-        description="Search across farmers, view associated organizations, and inspect activity."
-        title="Global farmers"
-      />
-    </div>
+  return (
+    <FarmerPageTitle
+      action={{ label: "Add farmer", href: "/admin/farmers/new" }}
+      description="Cross-organization farmer explorer with rich filters and analytics."
+      title="Farmers"
+    >
+      <FarmerDirectoryCard controller={controller} />
+    </FarmerPageTitle>
   );
 }

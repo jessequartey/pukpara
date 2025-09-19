@@ -37,12 +37,18 @@ export function OrganizationDetailsPage({
 
   const badgeDescription = (
     <div className="flex flex-wrap items-center gap-2">
-      <Badge variant={organization.status === "active" ? "default" : "secondary"}>
+      <Badge
+        variant={organization.status === "active" ? "default" : "secondary"}
+      >
         {organization.status}
       </Badge>
       <Badge variant="outline">{organization.organizationType}</Badge>
       <Badge variant="default">{organization.subscriptionType}</Badge>
-      <Badge variant={organization.licenseStatus === "issued" ? "default" : "destructive"}>
+      <Badge
+        variant={
+          organization.licenseStatus === "issued" ? "default" : "destructive"
+        }
+      >
         {organization.licenseStatus}
       </Badge>
     </div>

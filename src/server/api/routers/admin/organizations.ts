@@ -133,10 +133,10 @@ export const adminOrganizationsRouter = createTRPCRouter({
             : null,
       }));
     } catch (error) {
-      console.error("Failed to fetch organizations:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to fetch organizations",
+        cause: error,
       });
     }
   }),
@@ -214,7 +214,6 @@ export const adminOrganizationsRouter = createTRPCRouter({
         leadership,
       };
     }),
-
 
   // Update organization
   update: protectedProcedure
@@ -417,7 +416,9 @@ export const adminOrganizationsRouter = createTRPCRouter({
         .update(organization)
         .set({
           status: ORGANIZATION_STATUS.SUSPENDED,
-          metadata: input.reason ? JSON.stringify({ suspensionReason: input.reason }) : null,
+          metadata: input.reason
+            ? JSON.stringify({ suspensionReason: input.reason })
+            : null,
         })
         .where(inArray(organization.id, uniqueIds));
 

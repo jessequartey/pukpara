@@ -142,6 +142,7 @@ export function AsyncSelect<T>({
     }
   }, [mounted, fetcher, value]);
   undefined;
+  // Effect for fetching data when not preloading or when not mounted
   useEffect(() => {
     const fetchOptions = async () => {
       try {
@@ -159,11 +160,14 @@ export function AsyncSelect<T>({
       }
     };
     undefined;
-    if (!mounted) {
+    if (!mounted || !preload) {
       fetchOptions();
-    } else if (!preload) {
-      fetchOptions();
-    } else if (preload) {
+    }
+  }, [fetcher, debouncedSearchTerm, mounted, preload]);
+  undefined;
+  // Separate effect for filtering when preloading
+  useEffect(() => {
+    if (mounted && preload && originalOptions.length > 0) {
       if (debouncedSearchTerm) {
         setOptions(
           originalOptions.filter((option) =>
@@ -174,14 +178,7 @@ export function AsyncSelect<T>({
         setOptions(originalOptions);
       }
     }
-  }, [
-    fetcher,
-    debouncedSearchTerm,
-    mounted,
-    preload,
-    filterFn,
-    originalOptions,
-  ]);
+  }, [debouncedSearchTerm, preload, originalOptions, filterFn, mounted]);
   undefined;
   const handleSelect = useCallback(
     (currentValue: string) => {

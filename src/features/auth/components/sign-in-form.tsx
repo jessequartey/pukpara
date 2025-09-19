@@ -81,7 +81,7 @@ export default function SignInForm() {
       email: values.email,
       password: values.password,
       rememberMe: values.keepSignedIn ?? false,
-      callbackURL: redirectTo !== redirectFallback ? redirectTo : undefined,
+      // callbackURL: redirectTo !== redirectFallback ? redirectTo : undefined,
     });
 
     if (error) {
@@ -91,18 +91,15 @@ export default function SignInForm() {
 
     toast.success("Signed in successfully.");
 
-    if (data?.redirect && data.url) {
-      router.replace(data.url);
-      return;
-    }
+    if (!isUserAdmin(data.user)) {
+      if (data?.redirect && data.url) {
+        router.replace(data.url);
+        return;
+      }
 
-    // Check if user is admin and redirect accordingly
-    if (data?.user && isUserAdmin(data.user)) {
-      router.replace("/admin");
-      return;
+      router.replace(redirectTo);
     }
-
-    router.replace(redirectTo);
+    router.replace("/admin");
   };
 
   return (

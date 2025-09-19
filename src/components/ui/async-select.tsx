@@ -137,7 +137,7 @@ export function AsyncSelect<T>({
       }
     };
     undefined;
-    if (!mounted) {
+    if (mounted) {
       initializeOptions();
     }
   }, [mounted, fetcher, value]);
@@ -160,7 +160,7 @@ export function AsyncSelect<T>({
       }
     };
     undefined;
-    if (!mounted || !preload) {
+    if (mounted && !preload) {
       fetchOptions();
     }
   }, [fetcher, debouncedSearchTerm, mounted, preload]);

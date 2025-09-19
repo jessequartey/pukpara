@@ -52,7 +52,7 @@ type UserCreateStoreState = {
   reset: () => void;
 };
 
-const TOTAL_STEPS = 3;
+const TOTAL_STEPS = 4;
 
 const initialUserState: UserFormData = {
   firstName: "",

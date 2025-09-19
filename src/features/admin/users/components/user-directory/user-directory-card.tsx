@@ -24,55 +24,6 @@ import type { UserColumnKey, UserTableRow } from "../user-table/columns";
 import { userColumns } from "../user-table/columns";
 import type { UserTableSortState } from "../user-table/index";
 
-// Mock data for now - replace with actual API call
-const _mockUsers: UserTableRow[] = [
-  {
-    id: "user_1",
-    name: "John Doe",
-    email: "john@example.com",
-    emailVerified: true,
-    image: null,
-    createdAt: "2024-01-15T10:30:00Z",
-    phoneNumber: "+233201234567",
-    phoneNumberVerified: true,
-    role: "user",
-    banned: false,
-    banReason: null,
-    banExpires: null,
-    address: "123 Main St, Accra",
-    kycStatus: "verified",
-    status: "active",
-    approvedAt: "2024-01-16T09:00:00Z",
-    lastLogin: "2024-01-20T14:30:00Z",
-    districtName: "Accra Metropolitan",
-    regionName: "Greater Accra",
-    organizationCount: 2,
-    organizationNames: ["Farmer Org 1", "Cooperative 2"],
-  },
-  {
-    id: "user_2",
-    name: "Jane Smith",
-    email: "jane@example.com",
-    emailVerified: true,
-    image: null,
-    createdAt: "2024-01-10T08:15:00Z",
-    phoneNumber: "+233207654321",
-    phoneNumberVerified: false,
-    role: "admin",
-    banned: false,
-    banReason: null,
-    banExpires: null,
-    address: "456 Oak Ave, Kumasi",
-    kycStatus: "pending",
-    status: "active",
-    approvedAt: "2024-01-11T10:00:00Z",
-    lastLogin: "2024-01-19T16:45:00Z",
-    districtName: "Kumasi Metropolitan",
-    regionName: "Ashanti",
-    organizationCount: 1,
-    organizationNames: ["Admin Corp"],
-  },
-];
 
 type UserDirectoryController = {
   users: UserTableRow[];

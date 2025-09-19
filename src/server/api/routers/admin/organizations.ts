@@ -8,6 +8,7 @@ import {
   ORGANIZATION_SUBSCRIPTION_TYPE,
   USER_STATUS,
 } from "@/config/constants/auth";
+import { auth } from "@/lib/auth";
 import {
   district,
   member,
@@ -510,4 +511,251 @@ export const adminOrganizationsRouter = createTRPCRouter({
       })),
     };
   }),
+
+  // Create new user workspace (user + organization)
+  createNewUserWorkspace: protectedProcedure
+    .input(
+      z.object({
+        firstName: z.string().min(1),
+        lastName: z.string().min(1),
+        email: z.string().email(),
+        phoneNumber: z.string().min(1),
+        districtId: z.string().min(1),
+        address: z.string().min(1),
+        organizationName: z.string().min(1),
+        organizationType: z.string().min(1),
+        organizationSubType: z.string().optional(),
+        contactEmail: z.string().email().optional(),
+        contactPhone: z.string().optional(),
+        regionId: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      ensurePlatformAdmin(ctx.session.user);
+
+      try {
+        const fullName = `${input.firstName} ${input.lastName}`
+          .trim()
+          .replace(/\s+/g, " ");
+
+        // Create user using better-auth with generic password
+        const userResult = await auth.api.signUpEmail({
+          body: {
+            name: fullName,
+            email: input.email,
+            password: "secretpass",
+            phoneNumber: input.phoneNumber,
+            districtId: input.districtId,
+            address: input.address,
+          },
+        });
+
+        if (!userResult.user) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Failed to create user",
+          });
+        }
+
+        const districtData = await ctx.db.query.district.findFirst({
+          where: eq(district.id, input.districtId),
+        });
+
+        // Create organization for the user using better-auth organization plugin
+        try {
+          const organizationResult = await auth.api.createOrganization({
+            body: {
+              organizationType: input.organizationType,
+              status: ORGANIZATION_STATUS.PENDING,
+              name: input.organizationName,
+              slug: `${input.organizationName.toLowerCase().split(" ").join("-")}-${userResult.user.id}`,
+              userId: userResult.user.id,
+              districtId: input.districtId,
+              regionId: input.regionId || districtData?.regionCode,
+              address: input.address,
+              contactEmail: input.contactEmail || input.email,
+              contactPhone: input.contactPhone || input.phoneNumber,
+              organizationSubType: input.organizationSubType,
+            },
+          });
+
+          return {
+            success: true,
+            user: userResult.user,
+            organization: organizationResult,
+          };
+        } catch (orgError) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "User created but failed to create organization",
+            cause: orgError,
+          });
+        }
+      } catch (error) {
+        // Handle database constraint errors
+        if (error && typeof error === "object" && "cause" in error) {
+          const dbError = error.cause as {
+            code?: string;
+            constraint?: string;
+            detail?: string;
+          };
+          if (
+            dbError?.code === "23505" &&
+            dbError?.constraint?.includes("phone_number")
+          ) {
+            throw new TRPCError({
+              code: "CONFLICT",
+              message:
+                "An account with this phone number already exists. Try signing in or use a different number.",
+              cause: error,
+            });
+          }
+        }
+
+        // Re-throw TRPCError as-is
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+
+        // Handle other errors
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Unable to create user workspace right now.",
+          cause: error,
+        });
+      }
+    }),
+
+  // List users for async select (search functionality)
+  listUsers: protectedProcedure
+    .input(
+      z.object({
+        query: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      ensurePlatformAdmin(ctx.session.user);
+
+      try {
+        // Get all users from database
+        const users = await ctx.db
+          .select({
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            phoneNumber: user.phoneNumber,
+            status: user.status,
+            districtId: user.districtId,
+            address: user.address,
+          })
+          .from(user)
+          .orderBy(user.name);
+
+        // Filter users locally based on query if provided
+        if (input.query?.trim()) {
+          const query = input.query.toLowerCase().trim();
+          return users.filter(
+            (userItem) =>
+              userItem.name?.toLowerCase().includes(query) ||
+              userItem.email?.toLowerCase().includes(query) ||
+              userItem.phoneNumber?.toLowerCase().includes(query)
+          );
+        }
+
+        return users;
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch users",
+          cause: error,
+        });
+      }
+    }),
+
+  // Add organization to existing user
+  addOrganizationToUser: protectedProcedure
+    .input(
+      z.object({
+        userId: z.string().min(1),
+        organizationName: z.string().min(1),
+        organizationType: z.string().min(1),
+        organizationSubType: z.string().optional(),
+        contactEmail: z.string().email().optional(),
+        contactPhone: z.string().optional(),
+        address: z.string().optional(),
+        districtId: z.string().optional(),
+        regionId: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      ensurePlatformAdmin(ctx.session.user);
+
+      try {
+        // Get user details
+        const userData = await ctx.db.query.user.findFirst({
+          where: eq(user.id, input.userId),
+          columns: {
+            id: true,
+            name: true,
+            email: true,
+            address: true,
+            districtId: true,
+          },
+        });
+
+        if (!userData) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "User not found",
+          });
+        }
+
+        // Get district data if not provided
+        let regionId = input.regionId;
+        if (!regionId && (input.districtId || userData.districtId)) {
+          const districtData = await ctx.db.query.district.findFirst({
+            where: eq(district.id, input.districtId || userData.districtId),
+            columns: {
+              regionCode: true,
+            },
+          });
+          regionId = districtData?.regionCode;
+        }
+
+        // Create organization using better-auth organization plugin
+        const organizationResult = await auth.api.createOrganization({
+          body: {
+            organizationType: input.organizationType,
+            status: ORGANIZATION_STATUS.PENDING,
+            name: input.organizationName,
+            slug: `${input.organizationName.toLowerCase().split(" ").join("-")}-${userData.id}`,
+            userId: userData.id,
+            districtId: input.districtId || userData.districtId,
+            regionId,
+            address: input.address || userData.address,
+            contactEmail: input.contactEmail || userData.email,
+            contactPhone: input.contactPhone,
+            organizationSubType: input.organizationSubType,
+          },
+        });
+
+        return {
+          success: true,
+          organization: organizationResult,
+          user: userData,
+        };
+      } catch (error) {
+        // Re-throw TRPCError as-is
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+
+        // Handle other errors
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Unable to create organization for user right now.",
+          cause: error,
+        });
+      }
+    }),
 });

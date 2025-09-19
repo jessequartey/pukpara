@@ -14,7 +14,9 @@ import {
   USER_STATUS,
 } from "@/config/constants/auth";
 import { ExistingOrganizationStep } from "@/features/admin/users/components/user-create/existing-organization-step";
+import { NewOrganizationStep } from "@/features/admin/users/components/user-create/new-organization-step";
 import { OrganizationModeStep } from "@/features/admin/users/components/user-create/organization-mode-step";
+import { ReviewStep } from "@/features/admin/users/components/user-create/review-step";
 import { UserDetailsStep } from "@/features/admin/users/components/user-create/user-details-step";
 import { UserPageTitle } from "@/features/admin/users/components/user-page-title";
 import { useUserCreateStore } from "@/features/admin/users/store/user-create-store";
@@ -26,11 +28,13 @@ const stepTitles = [
   "Organization setup",
   "Organization selection",
   "User details",
+  "Review & create",
 ] as const;
 
 const STEP_MODE = 1;
 const STEP_ORGANIZATION = 2;
 const STEP_USER = 3;
+const STEP_REVIEW = 4;
 const TEMP_PASSWORD_LENGTH = 20;
 const RANDOM_SLICE_START = 2;
 const RANDOM_RADIX = 36;
@@ -214,14 +218,14 @@ export function UserCreatePage() {
   const prevStep = useUserCreateStore((state) => state.prevStep);
   const resetStore = useUserCreateStore((state) => state.reset);
 
-  const [_isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const currentLabels = useMemo(() => {
     if (mode === "existing-organization") {
-      return [stepTitles[0], stepTitles[1], stepTitles[2]];
+      return [stepTitles[0], stepTitles[1], stepTitles[2], stepTitles[3]];
     }
     if (mode === "new-organization") {
-      return [stepTitles[0], "User details", "Review"];
+      return [stepTitles[0], "Organization details", stepTitles[2], stepTitles[3]];
     }
     return [...stepTitles];
   }, [mode]);
@@ -245,16 +249,33 @@ export function UserCreatePage() {
     return { valid: true } as const;
   };
 
-  const validateOrganizationSelection = () => {
-    if (
-      mode === "existing-organization" &&
-      !existingOrganization?.organizationId
-    ) {
-      return {
-        valid: false,
-        message: "Select an organization before continuing.",
-      } as const;
+  const validateOrganizationData = () => {
+    if (mode === "existing-organization") {
+      return existingOrganization?.organizationId
+        ? ({ valid: true } as const)
+        : ({
+            valid: false,
+            message: "Select an organization before continuing.",
+          } as const);
     }
+
+    if (mode === "new-organization") {
+      const requiredFields = [
+        newOrganization.name,
+        newOrganization.slug,
+        newOrganization.organizationType,
+        newOrganization.contactEmail,
+        newOrganization.contactPhone,
+        newOrganization.address,
+      ];
+      return requiredFields.every(Boolean)
+        ? ({ valid: true } as const)
+        : ({
+            valid: false,
+            message: "Complete all organization details before continuing.",
+          } as const);
+    }
+
     return { valid: true } as const;
   };
 
@@ -265,7 +286,7 @@ export function UserCreatePage() {
       return;
     }
 
-    const orgValidation = validateOrganizationSelection();
+    const orgValidation = validateOrganizationData();
     if (!orgValidation.valid) {
       toast.error(orgValidation.message);
       return;
@@ -320,21 +341,22 @@ export function UserCreatePage() {
         resetStore();
         router.push("/admin/users");
       } else if (mode === "new-organization") {
-        // Create user with organization metadata for the after hook
+        // Use the same approach as organization create flow - create user with new organization
         const orgMetadata = {
           source: "admin" as const,
-          organizationName:
-            newOrganization.name || `${fullName}'s Organization`,
-          organizationSlug:
-            newOrganization.slug || `${user.firstName.toLowerCase()}-org`,
-          organizationType: ORGANIZATION_TYPE.FARMER_ORG,
-          subscriptionType: ORGANIZATION_SUBSCRIPTION_TYPE.FREEMIUM,
-          licenseStatus: ORGANIZATION_LICENSE_STATUS.ISSUED,
-          maxUsers: 100,
-          contactEmail: user.email,
-          contactPhone: user.phoneNumber,
-          address: user.address,
+          organizationName: newOrganization.name,
+          organizationSlug: newOrganization.slug,
+          organizationType: newOrganization.organizationType,
+          organizationSubType: newOrganization.organizationSubType,
+          subscriptionType: newOrganization.subscriptionType,
+          licenseStatus: newOrganization.licenseStatus,
+          maxUsers: newOrganization.maxUsers,
+          contactEmail: newOrganization.contactEmail,
+          contactPhone: newOrganization.contactPhone,
+          address: newOrganization.address,
           districtId: user.districtId,
+          billingEmail: newOrganization.billingEmail,
+          notes: newOrganization.notes,
         };
 
         const _response = await createUser({
@@ -361,7 +383,7 @@ export function UserCreatePage() {
         }
 
         toast.success(
-          `User "${fullName}" and organization created successfully`
+          `User "${fullName}" and organization "${newOrganization.name}" created successfully`
         );
         resetStore();
         router.push("/admin/users");
@@ -381,14 +403,20 @@ export function UserCreatePage() {
       case STEP_ORGANIZATION:
         return mode === "existing-organization" ? (
           <ExistingOrganizationStep onBack={prevStep} onNext={nextStep} />
+        ) : mode === "new-organization" ? (
+          <NewOrganizationStep onBack={prevStep} onNext={nextStep} />
         ) : (
-          <UserDetailsStep onBack={prevStep} onNext={handleCreateUser} />
+          <Card className="p-6">Please select an organization mode first.</Card>
         );
       case STEP_USER:
-        return mode === "existing-organization" ? (
-          <UserDetailsStep onBack={prevStep} onNext={handleCreateUser} />
-        ) : (
-          <Card className="p-6">Unexpected step.</Card>
+        return <UserDetailsStep onBack={prevStep} onNext={nextStep} />;
+      case STEP_REVIEW:
+        return (
+          <ReviewStep
+            isSubmitting={isSubmitting}
+            onBack={prevStep}
+            onSubmit={handleCreateUser}
+          />
         );
       default:
         return <Card className="p-6">Unexpected step.</Card>;

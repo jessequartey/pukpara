@@ -51,8 +51,6 @@ const organizationDetailsSchema = z.object({
 
 type OrganizationDetailsSchema = z.infer<typeof organizationDetailsSchema>;
 
-interface OrganizationDetailsFormValues extends OrganizationDetailsSchema {}
-
 type OrganizationDetailsStepProps = {
   onBack: () => void;
   onNext: () => void;
@@ -124,7 +122,7 @@ export const OrganizationDetailsStep = ({
       }
 
       if (!query) {
-        return districtOptionsList;
+        return await districtOptionsList;
       }
 
       const normalized = query.trim().toLowerCase();
@@ -311,60 +309,62 @@ export const OrganizationDetailsStep = ({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="districtId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>District</FormLabel>
-                  <FormControl>
-                    <AsyncSelect<DistrictIndexEntry>
-                      disabled={
-                        districtsLoading || districtOptionsList.length === 0
-                      }
-                      fetcher={fetchDistrictOptions}
-                      getDisplayValue={(option) =>
-                        `${option.name} • ${option.regionName}`
-                      }
-                      getOptionValue={(option) => option.id}
-                      label="District"
-                      onChange={(nextValue) => {
-                        field.onChange(nextValue);
-                        const option = nextValue
-                          ? districtIndex.get(nextValue)
-                          : undefined;
-                        setOrganizationData({
-                          districtId: nextValue,
-                          districtName:
-                            option?.name ?? organizationData.districtName,
-                          regionId:
-                            option?.regionCode ?? organizationData.regionId,
-                          regionName:
-                            option?.regionName ?? organizationData.regionName,
-                        });
-                      }}
-                      placeholder={
-                        districtsLoading
-                          ? "Loading districts…"
-                          : "Search district"
-                      }
-                      renderOption={(option) => (
-                        <div className="flex flex-col">
-                          <span className="font-medium">{option.name}</span>
-                          <span className="text-muted-foreground text-xs">
-                            {option.regionName}
-                          </span>
-                        </div>
-                      )}
-                      triggerClassName="w-full justify-between"
-                      value={field.value}
-                      width="var(--radix-popover-trigger-width)"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="flex justify-center">
+              <FormField
+                control={form.control}
+                name="districtId"
+                render={({ field }) => (
+                  <FormItem className="w-full max-w-md">
+                    <FormLabel>District</FormLabel>
+                    <FormControl>
+                      <AsyncSelect<DistrictIndexEntry>
+                        disabled={
+                          districtsLoading || districtOptionsList.length === 0
+                        }
+                        fetcher={fetchDistrictOptions}
+                        getDisplayValue={(option) =>
+                          `${option.name} • ${option.regionName}`
+                        }
+                        getOptionValue={(option) => option.id}
+                        label="District"
+                        onChange={(nextValue) => {
+                          field.onChange(nextValue);
+                          const option = nextValue
+                            ? districtIndex.get(nextValue)
+                            : undefined;
+                          setOrganizationData({
+                            districtId: nextValue,
+                            districtName:
+                              option?.name ?? organizationData.districtName,
+                            regionId:
+                              option?.regionCode ?? organizationData.regionId,
+                            regionName:
+                              option?.regionName ?? organizationData.regionName,
+                          });
+                        }}
+                        placeholder={
+                          districtsLoading
+                            ? "Loading districts…"
+                            : "Search district"
+                        }
+                        renderOption={(option) => (
+                          <div className="flex flex-col">
+                            <span className="font-medium">{option.name}</span>
+                            <span className="text-muted-foreground text-xs">
+                              {option.regionName}
+                            </span>
+                          </div>
+                        )}
+                        triggerClassName="w-full justify-between"
+                        value={field.value}
+                        width="100%"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <FormField
               control={form.control}

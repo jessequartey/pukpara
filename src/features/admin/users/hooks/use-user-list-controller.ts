@@ -1,105 +1,50 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+import { listUsers } from "@/lib/auth-admin-client";
 
 import type { UserTableRow } from "../components/user-table/columns";
 import type { UserTableSortState } from "../components/user-table/index";
 
-// Mock data - replace with actual API call
-const mockUsers: UserTableRow[] = [
-  {
-    id: "user_1",
-    name: "John Doe",
-    email: "john@example.com",
-    emailVerified: true,
-    image: null,
-    createdAt: "2024-01-15T10:30:00Z",
-    phoneNumber: "+233201234567",
-    phoneNumberVerified: true,
-    role: "user",
-    banned: false,
-    banReason: null,
-    banExpires: null,
-    address: "123 Main St, Accra",
-    kycStatus: "verified",
-    status: "active",
-    approvedAt: "2024-01-16T09:00:00Z",
-    lastLogin: "2024-01-20T14:30:00Z",
-    districtName: "Accra Metropolitan",
-    regionName: "Greater Accra",
-    organizationCount: 2,
-    organizationNames: ["Farmer Org 1", "Cooperative 2"],
-  },
-  {
-    id: "user_2",
-    name: "Jane Smith",
-    email: "jane@example.com",
-    emailVerified: true,
-    image: null,
-    createdAt: "2024-01-10T08:15:00Z",
-    phoneNumber: "+233207654321",
-    phoneNumberVerified: false,
-    role: "admin",
-    banned: false,
-    banReason: null,
-    banExpires: null,
-    address: "456 Oak Ave, Kumasi",
-    kycStatus: "pending",
-    status: "active",
-    approvedAt: "2024-01-11T10:00:00Z",
-    lastLogin: "2024-01-19T16:45:00Z",
-    districtName: "Kumasi Metropolitan",
-    regionName: "Ashanti",
-    organizationCount: 1,
-    organizationNames: ["Admin Corp"],
-  },
-  {
-    id: "user_3",
-    name: "Michael Johnson",
-    email: "michael@example.com",
-    emailVerified: false,
-    image: null,
-    createdAt: "2024-01-18T12:00:00Z",
-    phoneNumber: "+233203456789",
-    phoneNumberVerified: true,
-    role: "user",
-    banned: true,
-    banReason: "Violation of terms",
-    banExpires: "2024-02-18T12:00:00Z",
-    address: "789 Pine Rd, Tamale",
-    kycStatus: "rejected",
-    status: "suspended",
-    approvedAt: null,
-    lastLogin: "2024-01-17T11:20:00Z",
-    districtName: "Tamale Metropolitan",
-    regionName: "Northern",
-    organizationCount: 0,
-    organizationNames: [],
-  },
-  {
-    id: "user_4",
-    name: "Sarah Wilson",
-    email: "sarah@example.com",
-    emailVerified: true,
-    image: null,
-    createdAt: "2024-01-12T14:45:00Z",
-    phoneNumber: null,
-    phoneNumberVerified: null,
-    role: "user",
-    banned: false,
-    banReason: null,
-    banExpires: null,
-    address: "321 Elm St, Cape Coast",
-    kycStatus: "pending",
-    status: "pending",
-    approvedAt: null,
-    lastLogin: null,
-    districtName: "Cape Coast Metropolitan",
-    regionName: "Central",
-    organizationCount: 1,
-    organizationNames: ["Fishing Cooperative"],
-  },
-];
+const transformUserBaseFields = (u: Record<string, unknown>) => ({
+  id: String(u.id ?? ""),
+  name: String(u.name ?? ""),
+  email: String(u.email ?? ""),
+  emailVerified: Boolean(u.emailVerified),
+  image: u.image ? String(u.image) : null,
+  createdAt: u.createdAt ? (u.createdAt as Date | string) : null,
+  phoneNumber: u.phoneNumber ? String(u.phoneNumber) : null,
+  phoneNumberVerified: u.phoneNumberVerified
+    ? Boolean(u.phoneNumberVerified)
+    : null,
+  role: u.role ? String(u.role) : null,
+  banned: Boolean(u.banned),
+});
+
+const transformUserExtendedFields = (u: Record<string, unknown>) => ({
+  banReason: u.banReason ? String(u.banReason) : null,
+  banExpires: u.banExpires ? (u.banExpires as Date | string) : null,
+  address: String(u.address ?? ""),
+  kycStatus: u.kycStatus ? String(u.kycStatus) : null,
+  status: u.status ? String(u.status) : null,
+  approvedAt: u.approvedAt ? (u.approvedAt as Date | string) : null,
+  lastLogin: u.lastLogin ? (u.lastLogin as Date | string) : null,
+  districtName: u.districtName ? String(u.districtName) : null,
+  regionName: u.regionName ? String(u.regionName) : null,
+  organizationCount: Number(u.organizationCount ?? 0),
+  organizationNames: Array.isArray(u.organizationNames)
+    ? u.organizationNames.map(String)
+    : [],
+});
+
+const transformUser = (user: unknown): UserTableRow => {
+  const u = user as Record<string, unknown>;
+  return {
+    ...transformUserBaseFields(u),
+    ...transformUserExtendedFields(u),
+  } as UserTableRow;
+};
 
 export function useUserListController() {
   const [search, setSearch] = useState("");
@@ -108,19 +53,49 @@ export function useUserListController() {
     direction: "desc",
   });
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [users, setUsers] = useState<UserTableRow[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isFetching, setIsFetching] = useState(false);
 
-  // In a real implementation, you would use a query hook here
-  // const { data: users, isLoading, isFetching } = useUsersQuery({ search, sort });
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setIsFetching(true);
+        const { data: usersData, error } = await listUsers({
+          query: {
+            limit: 1000,
+          },
+        });
+
+        if (error) {
+          throw error;
+        }
+
+        // Transform the API response to match our UserTableRow interface
+        const usersList = usersData?.users || [];
+        const transformedUsers: UserTableRow[] = usersList.map(transformUser);
+
+        setUsers(transformedUsers);
+      } catch {
+        setUsers([]);
+      } finally {
+        setIsLoading(false);
+        setIsFetching(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   return {
-    users: mockUsers,
+    users,
     search,
     setSearch,
     sort,
     setSort,
     selectedIds,
     setSelectedIds,
-    isLoading: false,
-    isFetching: false,
+    isLoading,
+    isFetching,
   };
 }

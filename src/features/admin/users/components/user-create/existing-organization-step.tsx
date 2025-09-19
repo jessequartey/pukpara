@@ -64,7 +64,7 @@ export const ExistingOrganizationStep = ({
   } = api.organizations.list.useQuery(
     {
       page: 1,
-      pageSize: 1000, // Get all organizations for selection
+      pageSize: 100, // Maximum allowed by validation
     },
     {
       staleTime: 60_000, // Cache for 1 minute

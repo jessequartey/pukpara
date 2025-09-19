@@ -1,5 +1,11 @@
 const XLSX = require("xlsx");
-const path = require("path");
+const path = require("node:path");
+
+// Constants
+const FARMER_1_ROW_ID = 1;
+const FARMER_2_ROW_ID = 2;
+const FARMER_3_ROW_ID = 3;
+const VALIDATION_COLUMNS_COUNT = 4;
 
 // Farmer data structure based on the form fields
 const farmerHeaders = [
@@ -246,7 +252,9 @@ const farmersWS = XLSX.utils.aoa_to_sheet(farmersData);
 const farmersRange = XLSX.utils.decode_range(farmersWS["!ref"]);
 for (let col = farmersRange.s.c; col <= farmersRange.e.c; col++) {
   const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
-  if (!farmersWS[cellAddress]) continue;
+  if (!farmersWS[cellAddress]) {
+    continue;
+  }
   farmersWS[cellAddress].s = {
     font: { bold: true, sz: 12 },
     fill: { fgColor: { rgb: "E3F2FD" } },
@@ -288,15 +296,15 @@ const farmsData = [
     ),
   ],
   // Sample data rows - each corresponds to a farmer
-  [1, ...Object.values(sampleFarms[0])],
-  [1, ...Object.values(sampleFarms[1])],
-  [1, ...Object.values(sampleFarms[2])],
-  [2, ...Object.values(sampleFarms[3])],
-  [2, ...Object.values(sampleFarms[4])],
-  [2, ...Object.values(sampleFarms[5])],
-  [3, ...Object.values(sampleFarms[6])],
-  [3, ...Object.values(sampleFarms[7])],
-  [3, ...Object.values(sampleFarms[8])],
+  [FARMER_1_ROW_ID, ...Object.values(sampleFarms[0])],
+  [FARMER_1_ROW_ID, ...Object.values(sampleFarms[1])],
+  [FARMER_1_ROW_ID, ...Object.values(sampleFarms[2])],
+  [FARMER_2_ROW_ID, ...Object.values(sampleFarms[3])],
+  [FARMER_2_ROW_ID, ...Object.values(sampleFarms[4])],
+  [FARMER_2_ROW_ID, ...Object.values(sampleFarms[5])],
+  [FARMER_3_ROW_ID, ...Object.values(sampleFarms[6])],
+  [FARMER_3_ROW_ID, ...Object.values(sampleFarms[7])],
+  [FARMER_3_ROW_ID, ...Object.values(sampleFarms[8])],
 ];
 
 const farmsWS = XLSX.utils.aoa_to_sheet(farmsData);
@@ -305,7 +313,9 @@ const farmsWS = XLSX.utils.aoa_to_sheet(farmsData);
 const farmsRange = XLSX.utils.decode_range(farmsWS["!ref"]);
 for (let col = farmsRange.s.c; col <= farmsRange.e.c; col++) {
   const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
-  if (!farmsWS[cellAddress]) continue;
+  if (!farmsWS[cellAddress]) {
+    continue;
+  }
   farmsWS[cellAddress].s = {
     font: { bold: true, sz: 12 },
     fill: { fgColor: { rgb: "E8F5E8" } },
@@ -339,9 +349,11 @@ const validationData = [
 const validationWS = XLSX.utils.aoa_to_sheet(validationData);
 
 // Style validation headers
-for (let col = 0; col < 4; col++) {
+for (let col = 0; col < VALIDATION_COLUMNS_COUNT; col++) {
   const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
-  if (!validationWS[cellAddress]) continue;
+  if (!validationWS[cellAddress]) {
+    continue;
+  }
   validationWS[cellAddress].s = {
     font: { bold: true, sz: 12 },
     fill: { fgColor: { rgb: "FFF3E0" } },
@@ -355,7 +367,7 @@ XLSX.utils.book_append_sheet(wb, validationWS, "Validation Lists");
 
 // Create the output directory if it doesn't exist
 const outputDir = path.join(__dirname, "..", "public", "templates");
-const fs = require("fs");
+const fs = require("node:fs");
 if (!fs.existsSync(outputDir)) {
   fs.mkdirSync(outputDir, { recursive: true });
 }

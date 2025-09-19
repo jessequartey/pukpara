@@ -2,7 +2,7 @@
 
 import { ArrowLeft, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { toast } from "sonner";
 
 import { Card } from "@/components/ui/card";
@@ -30,48 +30,49 @@ const STEP_ORGANIZATION = 2;
 const STEP_DETAILS = 3;
 const STEP_FARMS = 4;
 
+// Helper functions for error extraction
+const tryExtractFromError = (error: Error): string | null => {
+  const trimmed = error.message?.trim();
+  return trimmed || null;
+};
+
+const tryExtractFromObject = (obj: Record<string, unknown>): string | null => {
+  // Try direct message property
+  if (typeof obj.message === "string" && obj.message.trim()) {
+    return obj.message.trim();
+  }
+
+  // Try nested error.message
+  if (obj.error && typeof obj.error === "object" && obj.error !== null) {
+    const nestedError = obj.error as Record<string, unknown>;
+    if (typeof nestedError.message === "string" && nestedError.message.trim()) {
+      return nestedError.message.trim();
+    }
+  }
+
+  // Try nested data.message
+  if (obj.data && typeof obj.data === "object" && obj.data !== null) {
+    const dataError = obj.data as Record<string, unknown>;
+    if (typeof dataError.message === "string" && dataError.message.trim()) {
+      return dataError.message.trim();
+    }
+  }
+
+  return null;
+};
+
 // Utility function to extract error messages
 const extractErrorMessage = (error: unknown): string | null => {
   if (!error) {
     return null;
   }
 
-  if (error instanceof Error && error.message?.trim()) {
-    return error.message.trim();
+  if (error instanceof Error) {
+    return tryExtractFromError(error);
   }
 
   if (typeof error === "object" && error !== null) {
-    const errorObj = error as Record<string, unknown>;
-
-    // Try different message paths
-    if (typeof errorObj.message === "string" && errorObj.message.trim()) {
-      return errorObj.message.trim();
-    }
-
-    if (
-      errorObj.error &&
-      typeof errorObj.error === "object" &&
-      errorObj.error !== null
-    ) {
-      const nestedError = errorObj.error as Record<string, unknown>;
-      if (
-        typeof nestedError.message === "string" &&
-        nestedError.message.trim()
-      ) {
-        return nestedError.message.trim();
-      }
-    }
-
-    if (
-      errorObj.data &&
-      typeof errorObj.data === "object" &&
-      errorObj.data !== null
-    ) {
-      const dataError = errorObj.data as Record<string, unknown>;
-      if (typeof dataError.message === "string" && dataError.message.trim()) {
-        return dataError.message.trim();
-      }
-    }
+    return tryExtractFromObject(error as Record<string, unknown>);
   }
 
   return null;
@@ -219,10 +220,9 @@ export function FarmerCreatePage() {
   const { data: districts = [] } = api.admin.farmers.getDistricts.useQuery();
 
   // Helper function to find organization ID by name
-  const findOrganizationId = (organizationName: string): string | undefined => {
-    console.log("🔍 Looking for organization:", organizationName);
-    console.log("📋 Available organizations:", organizations);
-
+  const _findOrganizationId = (
+    organizationName: string
+  ): string | undefined => {
     // First try exact match
     let org = organizations.find(
       (o) => o.name.toLowerCase() === organizationName.toLowerCase()
@@ -231,18 +231,12 @@ export function FarmerCreatePage() {
     // If no exact match and we have organizations, use the first one as fallback
     if (!org && organizations.length > 0) {
       org = organizations[0];
-      console.log("⚠️ Organization not found, using fallback:", org);
     }
-
-    console.log("✅ Found/Selected organization:", org);
     return org?.id;
   };
 
   // Helper function to find district ID by name
-  const findDistrictId = (districtName: string): string | undefined => {
-    console.log("🔍 Looking for district:", districtName);
-    console.log("📍 Available districts:", districts);
-
+  const _findDistrictId = (districtName: string): string | undefined => {
     // First try exact match
     let district = districts.find(
       (d) => d.name.toLowerCase() === districtName.toLowerCase()
@@ -251,11 +245,52 @@ export function FarmerCreatePage() {
     // If no exact match and we have districts, use the first one as fallback
     if (!district && districts.length > 0) {
       district = districts[0];
-      console.log("⚠️ District not found, using fallback:", district);
     }
-
-    console.log("✅ Found/Selected district:", district);
     return district?.id;
+  };
+
+  // Helper function to build farmer payload
+  const buildFarmerPayload = (
+    farmerItem: (typeof bulkUpload.parsedFarmers)[0],
+    organizationId: string
+  ) => {
+    return {
+      firstName: farmerItem.data.firstName,
+      lastName: farmerItem.data.lastName,
+      gender: farmerItem.data.gender,
+      dateOfBirth: farmerItem.data.dateOfBirth
+        ? new Date(farmerItem.data.dateOfBirth)
+        : undefined,
+      phone: farmerItem.data.phone || undefined,
+      isPhoneSmart: farmerItem.data.isPhoneSmart,
+      idNumber: farmerItem.data.idNumber || undefined,
+      idType: farmerItem.data.idType,
+      address: farmerItem.data.address || undefined,
+      districtId: undefined, // Skip district for now
+      community: farmerItem.data.community || undefined,
+      householdSize: farmerItem.data.householdSize || undefined,
+      isLeader: farmerItem.data.isLeader,
+      organizationId,
+      farms: farmerItem.farms
+        .filter((f) => f.isValid)
+        .map((farm) => ({
+          name: farm.name,
+          acreage: farm.acreage || undefined,
+          cropType: farm.cropType || undefined,
+          soilType: farm.soilType || undefined,
+          locationLat: farm.locationLat,
+          locationLng: farm.locationLng,
+        })),
+    };
+  };
+
+  // Helper function to process a single farmer
+  const processSingleFarmer = async (
+    farmerItem: (typeof bulkUpload.parsedFarmers)[0],
+    organizationId: string
+  ) => {
+    const farmerPayload = buildFarmerPayload(farmerItem, organizationId);
+    await createFarmerMutation.mutateAsync(farmerPayload);
   };
 
   // Helper functions for bulk upload - simplified for immediate testing
@@ -276,36 +311,7 @@ export function FarmerCreatePage() {
 
     for (const farmerItem of validFarmersForUpload) {
       try {
-        const farmerPayload = {
-          firstName: farmerItem.data.firstName,
-          lastName: farmerItem.data.lastName,
-          gender: farmerItem.data.gender,
-          dateOfBirth: farmerItem.data.dateOfBirth
-            ? new Date(farmerItem.data.dateOfBirth)
-            : undefined,
-          phone: farmerItem.data.phone || undefined,
-          isPhoneSmart: farmerItem.data.isPhoneSmart,
-          idNumber: farmerItem.data.idNumber || undefined,
-          idType: farmerItem.data.idType,
-          address: farmerItem.data.address || undefined,
-          districtId: undefined, // Skip district for now
-          community: farmerItem.data.community || undefined,
-          householdSize: farmerItem.data.householdSize || undefined,
-          isLeader: farmerItem.data.isLeader,
-          organizationId: selectedOrganization.id,
-          farms: farmerItem.farms
-            .filter((f) => f.isValid)
-            .map((farm) => ({
-              name: farm.name,
-              acreage: farm.acreage || undefined,
-              cropType: farm.cropType || undefined,
-              soilType: farm.soilType || undefined,
-              locationLat: farm.locationLat,
-              locationLng: farm.locationLng,
-            })),
-        };
-
-        await createFarmerMutation.mutateAsync(farmerPayload);
+        await processSingleFarmer(farmerItem, selectedOrganization.id);
         successful++;
       } catch (error) {
         failed++;
@@ -330,10 +336,6 @@ export function FarmerCreatePage() {
       (farmerData) => farmerData.isValid
     );
 
-    console.log("📋 Total parsed farmers:", bulkUpload.parsedFarmers.length);
-    console.log("✅ Valid farmers for upload:", validFarmersForUpload.length);
-    console.log("👩‍🌾 First farmer data:", validFarmersForUpload[0]);
-
     if (validFarmersForUpload.length === 0) {
       toast.error("No valid farmers to create");
       return;
@@ -343,8 +345,6 @@ export function FarmerCreatePage() {
       const { successful, failed, errors } = await processValidFarmers(
         validFarmersForUpload
       );
-
-      console.log("📈 Results:", { successful, failed, errors });
 
       setBulkUploadData({
         uploadResults: { successful, failed, errors },
@@ -363,8 +363,7 @@ export function FarmerCreatePage() {
 
       resetStore();
       router.push("/admin/farmers");
-    } catch (error) {
-      console.error("❌ Bulk upload error:", error);
+    } catch (_error) {
       toast.error("Failed to process bulk upload");
     }
   };

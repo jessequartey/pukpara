@@ -6,13 +6,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { Card } from "@/components/ui/card";
-import {
-  ORGANIZATION_LICENSE_STATUS,
-  ORGANIZATION_SUBSCRIPTION_TYPE,
-  ORGANIZATION_TYPE,
-  USER_KYC_STATUS,
-  USER_STATUS,
-} from "@/config/constants/auth";
+import { USER_KYC_STATUS, USER_STATUS } from "@/config/constants/auth";
 import { ExistingOrganizationStep } from "@/features/admin/users/components/user-create/existing-organization-step";
 import { NewOrganizationStep } from "@/features/admin/users/components/user-create/new-organization-step";
 import { OrganizationModeStep } from "@/features/admin/users/components/user-create/organization-mode-step";
@@ -21,7 +15,6 @@ import { UserDetailsStep } from "@/features/admin/users/components/user-create/u
 import { UserPageTitle } from "@/features/admin/users/components/user-page-title";
 import { useUserCreateStore } from "@/features/admin/users/store/user-create-store";
 import { createUser } from "@/lib/auth-admin-client";
-import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 
 const stepTitles = [
@@ -48,50 +41,76 @@ const _optionalString = (value: string | null | undefined) => {
   return trimmed.length > 0 ? trimmed : undefined;
 };
 
-const extractErrorMessage = (error: unknown) => {
+// Helper functions for error extraction
+const extractFromError = (error: Error): string | null => {
+  const trimmed = error.message.trim();
+  return trimmed.length > 0 ? trimmed : null;
+};
+
+const extractFromNestedProperty = (
+  obj: object,
+  ...properties: string[]
+): unknown => {
+  let current: unknown = obj;
+  for (const prop of properties) {
+    if (
+      current &&
+      typeof current === "object" &&
+      current !== null &&
+      prop in current
+    ) {
+      current = (current as Record<string, unknown>)[prop];
+    } else {
+      return null;
+    }
+  }
+  return current;
+};
+
+const extractCandidateMessages = (error: object): string[] => {
+  const candidates: unknown[] = [];
+
+  // Check direct message property
+  if ("message" in error) {
+    candidates.push((error as { message?: unknown }).message);
+  }
+
+  // Check nested error.message
+  const nestedError = extractFromNestedProperty(error, "error", "message");
+  if (nestedError) {
+    candidates.push(nestedError);
+  }
+
+  // Check nested data.message
+  const dataMessage = extractFromNestedProperty(error, "data", "message");
+  if (dataMessage) {
+    candidates.push(dataMessage);
+  }
+
+  // Check nested body.message
+  const bodyMessage = extractFromNestedProperty(error, "body", "message");
+  if (bodyMessage) {
+    candidates.push(bodyMessage);
+  }
+
+  return candidates
+    .filter((candidate): candidate is string => typeof candidate === "string")
+    .map((candidate) => candidate.trim())
+    .filter((trimmed) => trimmed.length > 0);
+};
+
+const extractErrorMessage = (error: unknown): string | null => {
   if (!error) {
     return null;
   }
 
-  if (error instanceof Error && typeof error.message === "string") {
-    const trimmed = error.message.trim();
-    if (trimmed.length > 0) {
-      return trimmed;
-    }
+  if (error instanceof Error) {
+    return extractFromError(error);
   }
 
   if (typeof error === "object" && error !== null) {
-    const candidateSources: unknown[] = [];
-    if ("message" in error) {
-      candidateSources.push((error as { message?: unknown }).message);
-    }
-    if ("error" in error) {
-      const nested = (error as { error?: { message?: unknown } }).error;
-      if (nested && "message" in nested) {
-        candidateSources.push(nested.message);
-      }
-    }
-    if ("data" in error) {
-      const nested = (error as { data?: { message?: unknown } }).data;
-      if (nested && "message" in nested) {
-        candidateSources.push(nested.message);
-      }
-    }
-    if ("body" in error) {
-      const nested = (error as { body?: { message?: unknown } }).body;
-      if (nested && "message" in nested) {
-        candidateSources.push(nested.message);
-      }
-    }
-
-    for (const candidate of candidateSources) {
-      if (typeof candidate === "string") {
-        const trimmed = candidate.trim();
-        if (trimmed.length > 0) {
-          return trimmed;
-        }
-      }
-    }
+    const candidateMessages = extractCandidateMessages(error);
+    return candidateMessages.length > 0 ? candidateMessages[0] : null;
   }
 
   return null;
@@ -225,7 +244,12 @@ export function UserCreatePage() {
       return [stepTitles[0], stepTitles[1], stepTitles[2], stepTitles[3]];
     }
     if (mode === "new-organization") {
-      return [stepTitles[0], "Organization details", stepTitles[2], stepTitles[3]];
+      return [
+        stepTitles[0],
+        "Organization details",
+        stepTitles[2],
+        stepTitles[3],
+      ];
     }
     return [...stepTitles];
   }, [mode]);
@@ -279,6 +303,99 @@ export function UserCreatePage() {
     return { valid: true } as const;
   };
 
+  // Helper functions for user creation
+  const handlePasswordSetup = async (email: string, _userName: string) => {
+    try {
+      await requestPasswordSetup(email);
+    } catch (inviteError) {
+      const inviteMessage =
+        extractErrorMessage(inviteError) ??
+        "Invite email could not be sent. The user can use the password reset page manually.";
+      toast.warning(inviteMessage);
+    }
+  };
+
+  const createUserWithExistingOrganization = async (
+    password: string,
+    fullName: string
+  ) => {
+    if (!existingOrganization) {
+      throw new Error("No existing organization selected");
+    }
+
+    const response = await createUser({
+      email: user.email,
+      password,
+      name: fullName,
+      data: {
+        phoneNumber: user.phoneNumber,
+        address: user.address,
+        districtId: user.districtId,
+        status: USER_STATUS.APPROVED,
+        kycStatus: USER_KYC_STATUS.PENDING,
+      },
+    });
+
+    if (!response.data?.user?.id) {
+      throw new Error("Failed to create user");
+    }
+
+    // TODO: Add user to organization
+    // await authClient.organization.addMember({
+    //   organizationId: existingOrganization.organizationId,
+    //   userId: response.data.user.id,
+    //   role: "member",
+    // });
+
+    await handlePasswordSetup(user.email, fullName);
+
+    toast.success(
+      `User "${fullName}" created and added to "${existingOrganization.name}"`
+    );
+  };
+
+  const createUserWithNewOrganization = async (
+    password: string,
+    fullName: string
+  ) => {
+    const orgMetadata = {
+      source: "admin" as const,
+      organizationName: newOrganization.name,
+      organizationSlug: newOrganization.slug,
+      organizationType: newOrganization.organizationType,
+      organizationSubType: newOrganization.organizationSubType,
+      subscriptionType: newOrganization.subscriptionType,
+      licenseStatus: newOrganization.licenseStatus,
+      maxUsers: newOrganization.maxUsers,
+      contactEmail: newOrganization.contactEmail,
+      contactPhone: newOrganization.contactPhone,
+      address: newOrganization.address,
+      districtId: user.districtId,
+      billingEmail: newOrganization.billingEmail,
+      notes: newOrganization.notes,
+    };
+
+    await createUser({
+      email: user.email,
+      password,
+      name: fullName,
+      data: {
+        phoneNumber: user.phoneNumber,
+        address: user.address,
+        districtId: user.districtId,
+        status: USER_STATUS.APPROVED,
+        kycStatus: USER_KYC_STATUS.PENDING,
+        organizationMetadata: orgMetadata,
+      },
+    });
+
+    await handlePasswordSetup(user.email, fullName);
+
+    toast.success(
+      `User "${fullName}" and organization "${newOrganization.name}" created successfully`
+    );
+  };
+
   const handleCreateUser = async () => {
     const userValidation = validateUserData();
     if (!userValidation.valid) {
@@ -300,94 +417,14 @@ export function UserCreatePage() {
         .trim()
         .replace(/\s+/g, " ");
 
-      if (mode === "existing-organization" && existingOrganization) {
-        // Create user and add to existing organization
-        const response = await createUser({
-          email: user.email,
-          password,
-          name: fullName,
-          data: {
-            phoneNumber: user.phoneNumber,
-            address: user.address,
-            districtId: user.districtId,
-            status: USER_STATUS.APPROVED,
-            kycStatus: USER_KYC_STATUS.PENDING,
-          },
-        });
-
-        if (!response.data?.user?.id) {
-          throw new Error("Failed to create user");
-        }
-
-        // TODO: Add user to organization
-        // await authClient.organization.addMember({
-        //   organizationId: existingOrganization.organizationId,
-        //   userId: response.data.user.id,
-        //   role: "member",
-        // });
-
-        try {
-          await requestPasswordSetup(user.email);
-        } catch (inviteError) {
-          const inviteMessage =
-            extractErrorMessage(inviteError) ??
-            "Invite email could not be sent. The user can use the password reset page manually.";
-          toast.warning(inviteMessage);
-        }
-
-        toast.success(
-          `User "${fullName}" created and added to "${existingOrganization.name}"`
-        );
-        resetStore();
-        router.push("/admin/users");
+      if (mode === "existing-organization") {
+        await createUserWithExistingOrganization(password, fullName);
       } else if (mode === "new-organization") {
-        // Use the same approach as organization create flow - create user with new organization
-        const orgMetadata = {
-          source: "admin" as const,
-          organizationName: newOrganization.name,
-          organizationSlug: newOrganization.slug,
-          organizationType: newOrganization.organizationType,
-          organizationSubType: newOrganization.organizationSubType,
-          subscriptionType: newOrganization.subscriptionType,
-          licenseStatus: newOrganization.licenseStatus,
-          maxUsers: newOrganization.maxUsers,
-          contactEmail: newOrganization.contactEmail,
-          contactPhone: newOrganization.contactPhone,
-          address: newOrganization.address,
-          districtId: user.districtId,
-          billingEmail: newOrganization.billingEmail,
-          notes: newOrganization.notes,
-        };
-
-        const _response = await createUser({
-          email: user.email,
-          password,
-          name: fullName,
-          data: {
-            phoneNumber: user.phoneNumber,
-            address: user.address,
-            districtId: user.districtId,
-            status: USER_STATUS.APPROVED,
-            kycStatus: USER_KYC_STATUS.PENDING,
-            organizationMetadata: orgMetadata,
-          },
-        });
-
-        try {
-          await requestPasswordSetup(user.email);
-        } catch (inviteError) {
-          const inviteMessage =
-            extractErrorMessage(inviteError) ??
-            "Invite email could not be sent. The user can use the password reset page manually.";
-          toast.warning(inviteMessage);
-        }
-
-        toast.success(
-          `User "${fullName}" and organization "${newOrganization.name}" created successfully`
-        );
-        resetStore();
-        router.push("/admin/users");
+        await createUserWithNewOrganization(password, fullName);
       }
+
+      resetStore();
+      router.push("/admin/users");
     } catch (error) {
       const message = interpretCreateUserError(error);
       toast.error(message);
@@ -401,11 +438,15 @@ export function UserCreatePage() {
       case STEP_MODE:
         return <OrganizationModeStep onNext={nextStep} />;
       case STEP_ORGANIZATION:
-        return mode === "existing-organization" ? (
-          <ExistingOrganizationStep onBack={prevStep} onNext={nextStep} />
-        ) : mode === "new-organization" ? (
-          <NewOrganizationStep onBack={prevStep} onNext={nextStep} />
-        ) : (
+        if (mode === "existing-organization") {
+          return (
+            <ExistingOrganizationStep onBack={prevStep} onNext={nextStep} />
+          );
+        }
+        if (mode === "new-organization") {
+          return <NewOrganizationStep onBack={prevStep} onNext={nextStep} />;
+        }
+        return (
           <Card className="p-6">Please select an organization mode first.</Card>
         );
       case STEP_USER:

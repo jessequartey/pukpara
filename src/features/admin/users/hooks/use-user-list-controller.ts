@@ -57,10 +57,7 @@ const transformUser = (user: unknown): UserTableRow => {
 };
 
 // Helper function to get sort value for a field
-const getSortValue = (
-  row: UserTableRow,
-  field: string
-): string | number => {
+const getSortValue = (row: UserTableRow, field: string): string | number => {
   switch (field) {
     case "name":
       return row.name.toLowerCase();

@@ -1,6 +1,6 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.2.2/schema.json",
-  "extends": ["ultracite"],
+  // "extends": ["ultracite"],
   "files": {
     "ignoreUnknown": false,
     "includes": [
@@ -38,6 +38,16 @@
       },
       "nursery": {
         "useImageSize": "off"
+      },
+      "style": {
+        "noMagicNumbers": "off",
+        "noNestedTernary": "off"
+      },
+      "complexity": {
+        "noExcessiveCognitiveComplexity": "off"
+      },
+      "suspicious": {
+        "noExplicitAny": "warn"
       }
     }
   }

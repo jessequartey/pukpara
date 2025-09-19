@@ -1,10 +1,11 @@
 /** biome-ignore-all lint/performance/noNamespaceImport: <necessary>*/
+/** biome-ignore-all lint/suspicious/noExplicitAny: <necessary> */
 "use client";
 
 import { CheckCircle2, Download, Upload, XCircle } from "lucide-react";
 import { nanoid } from "nanoid";
 import { useCallback, useState } from "react";
-import { useDropzone } from "react-dropzone";
+import { type FileRejection, useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -54,7 +55,7 @@ export const BulkUploadStep = ({ onBack, onNext }: BulkUploadStepProps) => {
   const [isDragActive, setIsDragActive] = useState(false);
 
   const onDrop = useCallback(
-    (acceptedFiles: File[], rejectedFiles: any[]) => {
+    (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
       setIsDragActive(false);
 
       if (rejectedFiles.length > 0) {
@@ -92,7 +93,7 @@ export const BulkUploadStep = ({ onBack, onNext }: BulkUploadStepProps) => {
     multiple: false,
   });
 
-  const parseExcelFile = async (file: File): Promise<UploadedFarmer[]> => {
+  const parseExcelFile = (file: File): Promise<UploadedFarmer[]> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
 
@@ -130,11 +131,13 @@ export const BulkUploadStep = ({ onBack, onNext }: BulkUploadStepProps) => {
 
           // Parse farmers (skip header row)
           const farmers: UploadedFarmer[] = [];
-          const farmerHeaders = farmersData[0] || [];
+          const _farmerHeaders = farmersData[0] || [];
 
           for (let i = 1; i < farmersData.length; i++) {
             const row = farmersData[i];
-            if (!row || row.every((cell) => !cell && cell !== 0)) continue; // Skip empty rows
+            if (!row || row.every((cell) => !cell && cell !== 0)) {
+              continue; // Skip empty rows
+            }
 
             const farmer: UploadedFarmer = {
               id: nanoid(),
@@ -154,17 +157,20 @@ export const BulkUploadStep = ({ onBack, onNext }: BulkUploadStepProps) => {
                 community: String(row[6] || "").trim(),
                 address: String(row[7] || "").trim(),
                 districtName: String(row[8] || "").trim(),
-                idType: String(row[9] || "ghana_card").toLowerCase() as
+                organizationName: String(row[9] || "").trim(),
+                idType: String(row[10] || "ghana_card").toLowerCase() as
                   | "ghana_card"
                   | "voters_id"
                   | "passport"
                   | "drivers_license",
-                idNumber: String(row[10] || "").trim(),
+                idNumber: String(row[11] || "").trim(),
                 householdSize:
-                  row[11] && !isNaN(Number(row[11])) ? Number(row[11]) : null,
-                isLeader: String(row[12] || "No").toLowerCase() === "yes",
-                isPhoneSmart: String(row[13] || "No").toLowerCase() === "yes",
-                legacyFarmerId: String(row[14] || "").trim(),
+                  row[12] && !Number.isNaN(Number(row[12]))
+                    ? Number(row[12])
+                    : null,
+                isLeader: String(row[13] || "No").toLowerCase() === "yes",
+                isPhoneSmart: String(row[14] || "No").toLowerCase() === "yes",
+                legacyFarmerId: String(row[15] || "").trim(),
               },
               farms: [],
             };
@@ -174,11 +180,13 @@ export const BulkUploadStep = ({ onBack, onNext }: BulkUploadStepProps) => {
 
           // Parse farms if sheet exists
           if (farmsData.length > 1) {
-            const farmHeaders = farmsData[0] || [];
+            const _farmHeaders = farmsData[0] || [];
 
             for (let i = 1; i < farmsData.length; i++) {
               const row = farmsData[i];
-              if (!row || row.every((cell) => !cell && cell !== 0)) continue; // Skip empty rows
+              if (!row || row.every((cell) => !cell && cell !== 0)) {
+                continue; // Skip empty rows
+              }
 
               const farmerRowNumber = Number(row[0]); // This is the Excel row number (2, 3, 4, etc.)
               // Find farmer by matching the Excel row number (farmer's rowNumber is i+1 where i is the data row index)
@@ -191,7 +199,9 @@ export const BulkUploadStep = ({ onBack, onNext }: BulkUploadStepProps) => {
                   id: nanoid(),
                   name: String(row[1] || "").trim(),
                   acreage:
-                    row[2] && !isNaN(Number(row[2])) ? Number(row[2]) : null,
+                    row[2] && !Number.isNaN(Number(row[2]))
+                      ? Number(row[2])
+                      : null,
                   cropType: String(row[3] || "").trim(),
                   soilType: String(row[4] || "").toLowerCase() as
                     | "sandy"
@@ -201,11 +211,11 @@ export const BulkUploadStep = ({ onBack, onNext }: BulkUploadStepProps) => {
                     | "rocky"
                     | "",
                   locationLat:
-                    row[5] && !isNaN(Number(row[5]))
+                    row[5] && !Number.isNaN(Number(row[5]))
                       ? Number(row[5])
                       : undefined,
                   locationLng:
-                    row[6] && !isNaN(Number(row[6]))
+                    row[6] && !Number.isNaN(Number(row[6]))
                       ? Number(row[6])
                       : undefined,
                   errors: [],
@@ -438,8 +448,8 @@ export const BulkUploadStep = ({ onBack, onNext }: BulkUploadStepProps) => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {bulkUpload.uploadResults.errors.map((error, index) => (
-                        <TableRow key={index}>
+                      {bulkUpload.uploadResults.errors.map((error) => (
+                        <TableRow key={`error-${error.row}-${error.message}`}>
                           <TableCell className="font-mono">
                             {error.row}
                           </TableCell>

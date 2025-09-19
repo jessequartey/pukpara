@@ -1,6 +1,78 @@
 const XlsxPopulate = require("xlsx-populate");
-const path = require("path");
-const fs = require("fs");
+const path = require("node:path");
+const fs = require("node:fs");
+
+// Constants
+const TITLE_FONT_SIZE = 16;
+const INSTRUCTIONS_COLUMN_WIDTH = 80;
+const HEADER_ROW = 1;
+const DATA_START_ROW = 2;
+const VALIDATION_COLUMN_WIDTH = 25;
+// Column widths
+const FARMER_COLUMN_WIDTHS = {
+  FIRST_NAME: 15,
+  LAST_NAME: 15,
+  PHONE: 20,
+  EMAIL: 25,
+  DATE_OF_BIRTH: 12,
+  GENDER: 10,
+  COMMUNITY: 15,
+  ADDRESS: 25,
+  DISTRICT: 30,
+  ID_TYPE: 30,
+  ID_NUMBER: 15,
+  HOUSEHOLD_SIZE: 18,
+  IS_LEADER: 12,
+  IS_PHONE_SMART: 10,
+  LEGACY_FARMER_ID: 12,
+  PADDING: 15,
+};
+const FARM_COLUMN_WIDTHS = {
+  FARMER_ROW: 12,
+  FARM_NAME: 25,
+  ACREAGE: 12,
+  CROP_TYPE: 25,
+  SOIL_TYPE: 12,
+  LOCATION_LAT: 12,
+  LOCATION_LNG: 12,
+};
+// Validation sheet column indices (1-based)
+const VALIDATION_COLUMNS = {
+  GENDER: 1,
+  ID_TYPE: 2,
+  SOIL_TYPE: 3,
+  YES_NO: 4,
+  DISTRICTS: 5,
+  ORGANIZATIONS: 6,
+};
+// Farmer sheet column indices (1-based)
+const FARMER_COLUMNS = {
+  FIRST_NAME: 1,
+  LAST_NAME: 2,
+  PHONE: 3,
+  EMAIL: 4,
+  DATE_OF_BIRTH: 5,
+  GENDER: 6,
+  COMMUNITY: 7,
+  ADDRESS: 8,
+  DISTRICT: 9,
+  ID_TYPE: 10,
+  ID_NUMBER: 11,
+  HOUSEHOLD_SIZE: 12,
+  IS_LEADER: 13,
+  IS_PHONE_SMART: 14,
+  LEGACY_FARMER_ID: 15,
+};
+// Farm sheet column indices (1-based)
+const FARM_COLUMNS = {
+  FARMER_ROW: 1,
+  FARM_NAME: 2,
+  ACREAGE: 3,
+  CROP_TYPE: 4,
+  SOIL_TYPE: 5,
+  LOCATION_LAT: 6,
+  LOCATION_LNG: 7,
+};
 
 async function createFarmerTemplate() {
   // Create a new workbook
@@ -255,7 +327,7 @@ async function createFarmerTemplate() {
   instructionsSheet
     .cell("A1")
     .style("bold", true)
-    .style("fontSize", 16)
+    .style("fontSize", TITLE_FONT_SIZE)
     .style("fill", "4A90E2");
   instructionsSheet.cell("A3").style("bold", true).style("fill", "E8F5E8");
   instructionsSheet.cell("A11").style("bold", true).style("fill", "E8F5E8");
@@ -266,7 +338,7 @@ async function createFarmerTemplate() {
   instructionsSheet.cell("A49").style("bold", true).style("fill", "FFEBEE");
 
   // Set column width for instructions
-  instructionsSheet.column("A").width(80);
+  instructionsSheet.column("A").width(INSTRUCTIONS_COLUMN_WIDTH);
 
   // =======================
   // 2. FARMERS SHEET
@@ -294,7 +366,7 @@ async function createFarmerTemplate() {
   // Set headers
   farmerHeaders.forEach((header, index) => {
     farmersSheet
-      .cell(1, index + 1)
+      .cell(HEADER_ROW, index + 1)
       .value(header)
       .style("bold", true)
       .style("fill", "E3F2FD")
@@ -303,27 +375,56 @@ async function createFarmerTemplate() {
 
   // Add sample data
   sampleFarmers.forEach((farmer, rowIndex) => {
-    const dataRow = rowIndex + 2;
-    farmersSheet.cell(dataRow, 1).value(farmer.firstName);
-    farmersSheet.cell(dataRow, 2).value(farmer.lastName);
-    farmersSheet.cell(dataRow, 3).value(farmer.phone);
-    farmersSheet.cell(dataRow, 4).value(farmer.email);
-    farmersSheet.cell(dataRow, 5).value(farmer.dateOfBirth);
-    farmersSheet.cell(dataRow, 6).value(farmer.gender);
-    farmersSheet.cell(dataRow, 7).value(farmer.community);
-    farmersSheet.cell(dataRow, 8).value(farmer.address);
-    farmersSheet.cell(dataRow, 9).value(farmer.districtName);
-    farmersSheet.cell(dataRow, 10).value(farmer.idType);
-    farmersSheet.cell(dataRow, 11).value(farmer.idNumber);
-    farmersSheet.cell(dataRow, 12).value(farmer.householdSize);
-    farmersSheet.cell(dataRow, 13).value(farmer.isLeader);
-    farmersSheet.cell(dataRow, 14).value(farmer.isPhoneSmart);
-    farmersSheet.cell(dataRow, 15).value(farmer.legacyFarmerId);
+    const dataRow = rowIndex + DATA_START_ROW;
+    farmersSheet
+      .cell(dataRow, FARMER_COLUMNS.FIRST_NAME)
+      .value(farmer.firstName);
+    farmersSheet.cell(dataRow, FARMER_COLUMNS.LAST_NAME).value(farmer.lastName);
+    farmersSheet.cell(dataRow, FARMER_COLUMNS.PHONE).value(farmer.phone);
+    farmersSheet.cell(dataRow, FARMER_COLUMNS.EMAIL).value(farmer.email);
+    farmersSheet
+      .cell(dataRow, FARMER_COLUMNS.DATE_OF_BIRTH)
+      .value(farmer.dateOfBirth);
+    farmersSheet.cell(dataRow, FARMER_COLUMNS.GENDER).value(farmer.gender);
+    farmersSheet
+      .cell(dataRow, FARMER_COLUMNS.COMMUNITY)
+      .value(farmer.community);
+    farmersSheet.cell(dataRow, FARMER_COLUMNS.ADDRESS).value(farmer.address);
+    farmersSheet
+      .cell(dataRow, FARMER_COLUMNS.DISTRICT)
+      .value(farmer.districtName);
+    farmersSheet.cell(dataRow, FARMER_COLUMNS.ID_TYPE).value(farmer.idType);
+    farmersSheet.cell(dataRow, FARMER_COLUMNS.ID_NUMBER).value(farmer.idNumber);
+    farmersSheet
+      .cell(dataRow, FARMER_COLUMNS.HOUSEHOLD_SIZE)
+      .value(farmer.householdSize);
+    farmersSheet.cell(dataRow, FARMER_COLUMNS.IS_LEADER).value(farmer.isLeader);
+    farmersSheet
+      .cell(dataRow, FARMER_COLUMNS.IS_PHONE_SMART)
+      .value(farmer.isPhoneSmart);
+    farmersSheet
+      .cell(dataRow, FARMER_COLUMNS.LEGACY_FARMER_ID)
+      .value(farmer.legacyFarmerId);
   });
 
   // Set column widths for farmers
   const farmerColumnWidths = [
-    15, 15, 20, 25, 12, 10, 15, 25, 30, 30, 15, 18, 12, 10, 12, 15,
+    FARMER_COLUMN_WIDTHS.FIRST_NAME,
+    FARMER_COLUMN_WIDTHS.LAST_NAME,
+    FARMER_COLUMN_WIDTHS.PHONE,
+    FARMER_COLUMN_WIDTHS.EMAIL,
+    FARMER_COLUMN_WIDTHS.DATE_OF_BIRTH,
+    FARMER_COLUMN_WIDTHS.GENDER,
+    FARMER_COLUMN_WIDTHS.COMMUNITY,
+    FARMER_COLUMN_WIDTHS.ADDRESS,
+    FARMER_COLUMN_WIDTHS.DISTRICT,
+    FARMER_COLUMN_WIDTHS.ID_TYPE,
+    FARMER_COLUMN_WIDTHS.ID_NUMBER,
+    FARMER_COLUMN_WIDTHS.HOUSEHOLD_SIZE,
+    FARMER_COLUMN_WIDTHS.IS_LEADER,
+    FARMER_COLUMN_WIDTHS.IS_PHONE_SMART,
+    FARMER_COLUMN_WIDTHS.LEGACY_FARMER_ID,
+    FARMER_COLUMN_WIDTHS.PADDING,
   ];
   farmerColumnWidths.forEach((width, index) => {
     farmersSheet.column(index + 1).width(width);
@@ -372,7 +473,7 @@ async function createFarmerTemplate() {
   // Set headers
   farmHeaders.forEach((header, index) => {
     farmsSheet
-      .cell(1, index + 1)
+      .cell(HEADER_ROW, index + 1)
       .value(header)
       .style("bold", true)
       .style("fill", "E8F5E8")
@@ -381,18 +482,26 @@ async function createFarmerTemplate() {
 
   // Add sample farm data
   sampleFarms.forEach((farm, rowIndex) => {
-    const dataRow = rowIndex + 2;
-    farmsSheet.cell(dataRow, 1).value(farm.farmerRow);
-    farmsSheet.cell(dataRow, 2).value(farm.farmName);
-    farmsSheet.cell(dataRow, 3).value(farm.acreage);
-    farmsSheet.cell(dataRow, 4).value(farm.cropType);
-    farmsSheet.cell(dataRow, 5).value(farm.soilType);
-    farmsSheet.cell(dataRow, 6).value(farm.locationLat);
-    farmsSheet.cell(dataRow, 7).value(farm.locationLng);
+    const dataRow = rowIndex + DATA_START_ROW;
+    farmsSheet.cell(dataRow, FARM_COLUMNS.FARMER_ROW).value(farm.farmerRow);
+    farmsSheet.cell(dataRow, FARM_COLUMNS.FARM_NAME).value(farm.farmName);
+    farmsSheet.cell(dataRow, FARM_COLUMNS.ACREAGE).value(farm.acreage);
+    farmsSheet.cell(dataRow, FARM_COLUMNS.CROP_TYPE).value(farm.cropType);
+    farmsSheet.cell(dataRow, FARM_COLUMNS.SOIL_TYPE).value(farm.soilType);
+    farmsSheet.cell(dataRow, FARM_COLUMNS.LOCATION_LAT).value(farm.locationLat);
+    farmsSheet.cell(dataRow, FARM_COLUMNS.LOCATION_LNG).value(farm.locationLng);
   });
 
   // Set column widths for farms
-  const farmColumnWidths = [12, 25, 12, 25, 12, 12, 12];
+  const farmColumnWidths = [
+    FARM_COLUMN_WIDTHS.FARMER_ROW,
+    FARM_COLUMN_WIDTHS.FARM_NAME,
+    FARM_COLUMN_WIDTHS.ACREAGE,
+    FARM_COLUMN_WIDTHS.CROP_TYPE,
+    FARM_COLUMN_WIDTHS.SOIL_TYPE,
+    FARM_COLUMN_WIDTHS.LOCATION_LAT,
+    FARM_COLUMN_WIDTHS.LOCATION_LNG,
+  ];
   farmColumnWidths.forEach((width, index) => {
     farmsSheet.column(index + 1).width(width);
   });
@@ -420,7 +529,7 @@ async function createFarmerTemplate() {
   ];
   validationHeaders.forEach((header, index) => {
     validationSheet
-      .cell(1, index + 1)
+      .cell(HEADER_ROW, index + 1)
       .value(header)
       .style("bold", true)
       .style("fill", "FFF3E0")
@@ -439,28 +548,40 @@ async function createFarmerTemplate() {
 
   for (let row = 0; row < maxRows; row++) {
     if (row < validationLists.gender.length) {
-      validationSheet.cell(row + 2, 1).value(validationLists.gender[row]);
+      validationSheet
+        .cell(row + DATA_START_ROW, VALIDATION_COLUMNS.GENDER)
+        .value(validationLists.gender[row]);
     }
     if (row < validationLists.idType.length) {
-      validationSheet.cell(row + 2, 2).value(validationLists.idType[row]);
+      validationSheet
+        .cell(row + DATA_START_ROW, VALIDATION_COLUMNS.ID_TYPE)
+        .value(validationLists.idType[row]);
     }
     if (row < validationLists.soilType.length) {
-      validationSheet.cell(row + 2, 3).value(validationLists.soilType[row]);
+      validationSheet
+        .cell(row + DATA_START_ROW, VALIDATION_COLUMNS.SOIL_TYPE)
+        .value(validationLists.soilType[row]);
     }
     if (row < validationLists.yesNo.length) {
-      validationSheet.cell(row + 2, 4).value(validationLists.yesNo[row]);
+      validationSheet
+        .cell(row + DATA_START_ROW, VALIDATION_COLUMNS.YES_NO)
+        .value(validationLists.yesNo[row]);
     }
     if (row < sampleDistricts.length) {
-      validationSheet.cell(row + 2, 5).value(sampleDistricts[row]);
+      validationSheet
+        .cell(row + DATA_START_ROW, VALIDATION_COLUMNS.DISTRICTS)
+        .value(sampleDistricts[row]);
     }
     if (row < sampleOrganizations.length) {
-      validationSheet.cell(row + 2, 6).value(sampleOrganizations[row]);
+      validationSheet
+        .cell(row + DATA_START_ROW, VALIDATION_COLUMNS.ORGANIZATIONS)
+        .value(sampleOrganizations[row]);
     }
   }
 
   // Set column widths for validation sheet
-  validationHeaders.forEach((header, index) => {
-    validationSheet.column(index + 1).width(25);
+  validationHeaders.forEach((_header, index) => {
+    validationSheet.column(index + 1).width(VALIDATION_COLUMN_WIDTH);
   });
 
   // Create output directory

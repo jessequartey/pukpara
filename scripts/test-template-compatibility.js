@@ -3,8 +3,12 @@
  * This script validates that the template generation and parsing logic are compatible
  */
 
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
+
+// Constants
+const BYTES_TO_KILOBYTES = 1024;
+const ASCII_OFFSET_A = 65;
 
 // Test data structure that should match the template
 const testFarmerData = {
@@ -52,7 +56,9 @@ if (fs.existsSync(templatePath)) {
   console.log("✅ Template file exists at:", templatePath);
 
   const stats = fs.statSync(templatePath);
-  console.log(`   📁 File size: ${(stats.size / 1024).toFixed(2)} KB`);
+  console.log(
+    `   📁 File size: ${(stats.size / BYTES_TO_KILOBYTES).toFixed(2)} KB`
+  );
   console.log(`   📅 Last modified: ${stats.mtime.toISOString()}\n`);
 } else {
   console.log("❌ Template file not found at:", templatePath);
@@ -67,14 +73,14 @@ console.log("");
 
 console.log("Farmer Data Mapping:");
 Object.entries(testFarmerData).forEach(([key, value], index) => {
-  const columnLetter = String.fromCharCode(65 + index); // A, B, C, etc.
+  const columnLetter = String.fromCharCode(ASCII_OFFSET_A + index); // A, B, C, etc.
   console.log(`   ${columnLetter} (${index}): ${key} = "${value}"`);
 });
 
 console.log("");
 console.log("Farm Data Mapping:");
 Object.entries(testFarmData).forEach(([key, value], index) => {
-  const columnLetter = String.fromCharCode(65 + index); // A, B, C, etc.
+  const columnLetter = String.fromCharCode(ASCII_OFFSET_A + index); // A, B, C, etc.
   console.log(`   ${columnLetter} (${index}): ${key} = "${value}"`);
 });
 

@@ -86,7 +86,10 @@ type FarmYield = {
   harvestedAt: string;
 };
 
-export function FarmsCard({ farmerId, orgId }: FarmsCardProps) {
+export function FarmsCard({
+  farmerId: _farmerId,
+  orgId: _orgId,
+}: FarmsCardProps) {
   const [selectedFarm, setSelectedFarm] = useState<Farm | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 

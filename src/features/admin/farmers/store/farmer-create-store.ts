@@ -1,3 +1,6 @@
+/** biome-ignore-all lint/performance/useTopLevelRegex: <necessary
+ *
+> */
 import { create } from "zustand";
 
 export type FarmerCreationMode = "single" | "bulk-upload";
@@ -61,6 +64,7 @@ type UploadedFarmer = {
     community: string;
     address: string;
     districtName: string;
+    organizationName: string;
     idType: "ghana_card" | "voters_id" | "passport" | "drivers_license";
     idNumber: string;
     householdSize: number | null;
@@ -90,7 +94,11 @@ type BulkUploadData = {
   uploadResults: {
     successful: number;
     failed: number;
-    errors: Array<{ row: number; message: string; data?: Record<string, any> }>;
+    errors: Array<{
+      row: number;
+      message: string;
+      data?: Record<string, unknown>;
+    }>;
   } | null;
 };
 
@@ -293,7 +301,7 @@ export const useFarmerCreateStore = create<FarmerCreateStoreState>((set) => ({
           const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
           if (dateRegex.test(data.dateOfBirth)) {
             const parsedDate = new Date(data.dateOfBirth);
-            if (isNaN(parsedDate.getTime())) {
+            if (Number.isNaN(parsedDate.getTime())) {
               errors.push({ field: "dateOfBirth", message: "Invalid date" });
             }
           } else {

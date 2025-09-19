@@ -251,10 +251,10 @@ export function OrganizationMembershipsCard({
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
-                        {membership.teams.map((team, index) => (
+                        {membership.teams.map((team) => (
                           <Badge
                             className="text-xs"
-                            key={index}
+                            key={team}
                             variant="outline"
                           >
                             {team}
@@ -309,10 +309,10 @@ export function OrganizationMembershipsCard({
                           {membership.teams.length > 0 && (
                             <>
                               <DropdownMenuSeparator />
-                              {membership.teams.map((team, index) => (
+                              {membership.teams.map((team) => (
                                 <DropdownMenuItem
                                   className="text-muted-foreground"
-                                  key={index}
+                                  key={`remove-${team}`}
                                   onClick={() =>
                                     handleRemoveFromTeam(membership.id, team)
                                   }

@@ -27,11 +27,7 @@ export default function PendingApprovalPage() {
           <Button asChild>
             <Link href="mailto:support@pukpara.com">Contact support</Link>
           </Button>
-          <Button
-            onClick={signOut}
-            type="button"
-            variant="outline"
-          >
+          <Button onClick={signOut} type="button" variant="outline">
             Sign out
           </Button>
         </div>

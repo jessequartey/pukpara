@@ -4,10 +4,10 @@ import {
   createTRPCRouter,
   publicProcedure,
 } from "@/server/api/trpc";
+import { adminRouter } from "./routers/admin";
 import { authRouter } from "./routers/auth";
 import { districtsRouter } from "./routers/districts";
 import { organizationsRouter } from "./routers/organizations";
-import { adminRouter } from "./routers/admin";
 
 /**
  * This is the primary router for your server.

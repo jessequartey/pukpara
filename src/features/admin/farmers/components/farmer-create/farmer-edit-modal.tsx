@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarIcon, Plus, Trash2 } from "lucide-react";
+import { CalendarIcon, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -36,7 +36,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -90,7 +89,9 @@ export const FarmerEditModal = ({
     (state) => state.validateUploadedFarmers
   );
 
-  const [editingFarmIndex, setEditingFarmIndex] = useState<number | null>(null);
+  const [_editingFarmIndex, _setEditingFarmIndex] = useState<number | null>(
+    null
+  );
 
   const form = useForm({
     defaultValues: {
@@ -239,10 +240,10 @@ export const FarmerEditModal = ({
                         Validation Errors:
                       </h4>
                       <div className="flex flex-wrap gap-1">
-                        {farmer.errors.map((error, index) => (
+                        {farmer.errors.map((error) => (
                           <Badge
                             className="text-xs"
-                            key={index}
+                            key={`${error.field}-${error.message}`}
                             variant="destructive"
                           >
                             {error.field}: {error.message}
@@ -641,10 +642,10 @@ export const FarmerEditModal = ({
 
                       {!farm.isValid && (
                         <div className="mb-3 flex flex-wrap gap-1">
-                          {farm.errors.map((error, errorIndex) => (
+                          {farm.errors.map((error) => (
                             <Badge
                               className="text-xs"
-                              key={errorIndex}
+                              key={`${error.field}-${error.message}`}
                               variant="destructive"
                             >
                               {error.field}: {error.message}

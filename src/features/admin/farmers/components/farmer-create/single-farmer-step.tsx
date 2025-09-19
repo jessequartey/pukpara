@@ -30,7 +30,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { PhoneInput } from "@/components/ui/phone-input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Popover,
   PopoverContent,
@@ -74,7 +73,6 @@ const farmerSchema = z.object({
   legacyFarmerId: z.string().optional(),
 });
 
-
 type FarmerSchema = z.infer<typeof farmerSchema>;
 
 type DistrictOption = {
@@ -90,7 +88,6 @@ const idTypeOptions = [
   { value: "passport", label: "Passport" },
   { value: "drivers_license", label: "Driver's License" },
 ];
-
 
 const genderOptions = [
   { value: "male", label: "Male" },
@@ -429,7 +426,13 @@ export const SingleFarmerStep = ({ onBack, onNext }: SingleFarmerStepProps) => {
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder={organizationsLoading ? "Loading organizations..." : "Select organization"} />
+                          <SelectValue
+                            placeholder={
+                              organizationsLoading
+                                ? "Loading organizations..."
+                                : "Select organization"
+                            }
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -437,7 +440,9 @@ export const SingleFarmerStep = ({ onBack, onNext }: SingleFarmerStepProps) => {
                           <SelectItem key={org.id} value={org.id}>
                             <div className="flex flex-col text-left">
                               <span className="font-medium">{org.name}</span>
-                              <span className="text-muted-foreground text-xs">{org.organizationType}</span>
+                              <span className="text-muted-foreground text-xs">
+                                {org.organizationType}
+                              </span>
                             </div>
                           </SelectItem>
                         ))}
@@ -585,15 +590,15 @@ export const SingleFarmerStep = ({ onBack, onNext }: SingleFarmerStepProps) => {
                       <FormLabel>Household size (optional)</FormLabel>
                       <FormControl>
                         <Input
-                          type="number"
                           min="1"
                           placeholder="5"
+                          type="number"
                           {...field}
-                          value={field.value || ""}
                           onChange={(e) => {
                             const value = e.target.value;
                             field.onChange(value ? Number(value) : undefined);
                           }}
+                          value={field.value || ""}
                         />
                       </FormControl>
                       <FormDescription>
@@ -662,7 +667,6 @@ export const SingleFarmerStep = ({ onBack, onNext }: SingleFarmerStepProps) => {
               </div>
             </div>
 
-
             {districtsError || organizationsError ? (
               <div className="space-y-2">
                 {districtsError && (
@@ -672,7 +676,8 @@ export const SingleFarmerStep = ({ onBack, onNext }: SingleFarmerStepProps) => {
                 )}
                 {organizationsError && (
                   <p className="text-destructive text-sm">
-                    Unable to load organizations right now. Try refreshing the page.
+                    Unable to load organizations right now. Try refreshing the
+                    page.
                   </p>
                 )}
               </div>
@@ -694,7 +699,8 @@ export const SingleFarmerStep = ({ onBack, onNext }: SingleFarmerStepProps) => {
         </Form>
       </CardContent>
       <CardFooter className="text-muted-foreground text-xs">
-        In the next step, you'll be able to add farm details and crop information for this farmer.
+        In the next step, you'll be able to add farm details and crop
+        information for this farmer.
       </CardFooter>
     </Card>
   );

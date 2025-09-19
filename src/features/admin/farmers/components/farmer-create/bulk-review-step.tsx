@@ -1,6 +1,13 @@
 "use client";
 
-import { AlertCircle, CheckCircle2, Edit, Plus, Trash2, User, Users } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  Edit,
+  Trash2,
+  User,
+  Users,
+} from "lucide-react";
 import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -17,16 +24,12 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { useFarmerCreateStore, type UploadedFarmer } from "@/features/admin/farmers/store/farmer-create-store";
+import {
+  type UploadedFarmer,
+  useFarmerCreateStore,
+} from "@/features/admin/farmers/store/farmer-create-store";
 import { cn } from "@/lib/utils";
 
 import { FarmerEditModal } from "./farmer-edit-modal";
@@ -37,12 +40,22 @@ type BulkReviewStepProps = {
 };
 
 export const BulkReviewStep = ({ onBack, onNext }: BulkReviewStepProps) => {
-  const parsedFarmers = useFarmerCreateStore((state) => state.bulkUpload.parsedFarmers);
-  const deleteUploadedFarmer = useFarmerCreateStore((state) => state.deleteUploadedFarmer);
-  const validateUploadedFarmers = useFarmerCreateStore((state) => state.validateUploadedFarmers);
+  const parsedFarmers = useFarmerCreateStore(
+    (state) => state.bulkUpload.parsedFarmers
+  );
+  const deleteUploadedFarmer = useFarmerCreateStore(
+    (state) => state.deleteUploadedFarmer
+  );
+  const validateUploadedFarmers = useFarmerCreateStore(
+    (state) => state.validateUploadedFarmers
+  );
 
-  const [editingFarmer, setEditingFarmer] = useState<UploadedFarmer | null>(null);
-  const [expandedFarmers, setExpandedFarmers] = useState<Set<string>>(new Set());
+  const [editingFarmer, setEditingFarmer] = useState<UploadedFarmer | null>(
+    null
+  );
+  const [expandedFarmers, setExpandedFarmers] = useState<Set<string>>(
+    new Set()
+  );
 
   const validFarmers = parsedFarmers.filter((farmer) => farmer.isValid);
   const invalidFarmers = parsedFarmers.filter((farmer) => !farmer.isValid);
@@ -79,7 +92,8 @@ export const BulkReviewStep = ({ onBack, onNext }: BulkReviewStepProps) => {
         <CardHeader>
           <CardTitle>Review farmers</CardTitle>
           <CardDescription>
-            No farmers found in the uploaded file. Please go back and upload a valid file.
+            No farmers found in the uploaded file. Please go back and upload a
+            valid file.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -100,8 +114,8 @@ export const BulkReviewStep = ({ onBack, onNext }: BulkReviewStepProps) => {
             Review farmers ({parsedFarmers.length})
           </CardTitle>
           <CardDescription>
-            Review and edit the farmers from your upload before creating them in the system.
-            Fix any validation errors before proceeding.
+            Review and edit the farmers from your upload before creating them in
+            the system. Fix any validation errors before proceeding.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -111,9 +125,11 @@ export const BulkReviewStep = ({ onBack, onNext }: BulkReviewStepProps) => {
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  <span className="text-sm font-medium">Valid farmers</span>
+                  <span className="font-medium text-sm">Valid farmers</span>
                 </div>
-                <div className="text-2xl font-bold text-green-600">{validFarmers.length}</div>
+                <div className="font-bold text-2xl text-green-600">
+                  {validFarmers.length}
+                </div>
               </CardContent>
             </Card>
 
@@ -121,9 +137,11 @@ export const BulkReviewStep = ({ onBack, onNext }: BulkReviewStepProps) => {
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
                   <AlertCircle className="h-4 w-4 text-red-600" />
-                  <span className="text-sm font-medium">Need attention</span>
+                  <span className="font-medium text-sm">Need attention</span>
                 </div>
-                <div className="text-2xl font-bold text-red-600">{invalidFarmers.length}</div>
+                <div className="font-bold text-2xl text-red-600">
+                  {invalidFarmers.length}
+                </div>
               </CardContent>
             </Card>
 
@@ -131,9 +149,11 @@ export const BulkReviewStep = ({ onBack, onNext }: BulkReviewStepProps) => {
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4 text-blue-600" />
-                  <span className="text-sm font-medium">Total farmers</span>
+                  <span className="font-medium text-sm">Total farmers</span>
                 </div>
-                <div className="text-2xl font-bold text-blue-600">{parsedFarmers.length}</div>
+                <div className="font-bold text-2xl text-blue-600">
+                  {parsedFarmers.length}
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -144,7 +164,9 @@ export const BulkReviewStep = ({ onBack, onNext }: BulkReviewStepProps) => {
               <h4 className="font-medium text-sm">Farmers</h4>
               <div className="flex gap-2">
                 <Button
-                  onClick={() => setExpandedFarmers(new Set(parsedFarmers.map(f => f.id)))}
+                  onClick={() =>
+                    setExpandedFarmers(new Set(parsedFarmers.map((f) => f.id)))
+                  }
                   size="sm"
                   variant="outline"
                 >
@@ -164,12 +186,12 @@ export const BulkReviewStep = ({ onBack, onNext }: BulkReviewStepProps) => {
               <div className="space-y-3">
                 {parsedFarmers.map((farmer) => (
                   <FarmerCard
-                    key={farmer.id}
                     farmer={farmer}
                     isExpanded={expandedFarmers.has(farmer.id)}
-                    onToggle={() => toggleFarmer(farmer.id)}
-                    onEdit={() => setEditingFarmer(farmer)}
+                    key={farmer.id}
                     onDelete={() => handleDeleteFarmer(farmer.id)}
+                    onEdit={() => setEditingFarmer(farmer)}
+                    onToggle={() => toggleFarmer(farmer.id)}
                   />
                 ))}
               </div>
@@ -182,11 +204,12 @@ export const BulkReviewStep = ({ onBack, onNext }: BulkReviewStepProps) => {
               Back
             </Button>
             <Button
+              disabled={validFarmers.length === 0}
               onClick={handleContinue}
               size="lg"
-              disabled={validFarmers.length === 0}
             >
-              Create {validFarmers.length} Farmer{validFarmers.length !== 1 ? 's' : ''}
+              Create {validFarmers.length} Farmer
+              {validFarmers.length !== 1 ? "s" : ""}
             </Button>
           </div>
         </CardContent>
@@ -195,8 +218,8 @@ export const BulkReviewStep = ({ onBack, onNext }: BulkReviewStepProps) => {
       {/* Edit Modal */}
       <FarmerEditModal
         farmer={editingFarmer}
-        open={!!editingFarmer}
         onClose={() => setEditingFarmer(null)}
+        open={!!editingFarmer}
       />
     </>
   );
@@ -210,19 +233,29 @@ type FarmerCardProps = {
   onDelete: () => void;
 };
 
-const FarmerCard = ({ farmer, isExpanded, onToggle, onEdit, onDelete }: FarmerCardProps) => {
+const FarmerCard = ({
+  farmer,
+  isExpanded,
+  onToggle,
+  onEdit,
+  onDelete,
+}: FarmerCardProps) => {
   const totalFarms = farmer.farms.length;
-  const validFarms = farmer.farms.filter(f => f.isValid).length;
+  const validFarms = farmer.farms.filter((f) => f.isValid).length;
   const invalidFarms = totalFarms - validFarms;
 
   return (
-    <Card className={cn(
-      "transition-colors",
-      farmer.isValid ? "border-green-200 bg-green-50/50" : "border-red-200 bg-red-50/50"
-    )}>
-      <Collapsible open={isExpanded} onOpenChange={onToggle}>
+    <Card
+      className={cn(
+        "transition-colors",
+        farmer.isValid
+          ? "border-green-200 bg-green-50/50"
+          : "border-red-200 bg-red-50/50"
+      )}
+    >
+      <Collapsible onOpenChange={onToggle} open={isExpanded}>
         <CollapsibleTrigger asChild>
-          <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+          <CardHeader className="cursor-pointer transition-colors hover:bg-muted/50">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2">
@@ -230,29 +263,26 @@ const FarmerCard = ({ farmer, isExpanded, onToggle, onEdit, onDelete }: FarmerCa
                     {farmer.isValid ? "Valid" : "Errors"}
                   </Badge>
                   <span className="font-medium">
-                    Row {farmer.rowNumber}: {farmer.data.firstName} {farmer.data.lastName}
+                    Row {farmer.rowNumber}: {farmer.data.firstName}{" "}
+                    {farmer.data.lastName}
                   </span>
                 </div>
                 {totalFarms > 0 && (
-                  <Badge variant="outline" className="text-xs">
-                    {totalFarms} farm{totalFarms !== 1 ? 's' : ''}
+                  <Badge className="text-xs" variant="outline">
+                    {totalFarms} farm{totalFarms !== 1 ? "s" : ""}
                   </Badge>
                 )}
               </div>
 
-              <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                <Button
-                  onClick={onEdit}
-                  size="sm"
-                  variant="outline"
-                >
+              <div className="flex items-center gap-2">
+                <Button onClick={onEdit} size="sm" variant="outline">
                   <Edit className="h-3 w-3" />
                 </Button>
                 <Button
+                  className="text-red-600 hover:text-red-700"
                   onClick={onDelete}
                   size="sm"
                   variant="outline"
-                  className="text-red-600 hover:text-red-700"
                 >
                   <Trash2 className="h-3 w-3" />
                 </Button>
@@ -260,9 +290,13 @@ const FarmerCard = ({ farmer, isExpanded, onToggle, onEdit, onDelete }: FarmerCa
             </div>
 
             {!farmer.isValid && (
-              <div className="flex flex-wrap gap-1 mt-2">
-                {farmer.errors.map((error, index) => (
-                  <Badge key={index} variant="destructive" className="text-xs">
+              <div className="mt-2 flex flex-wrap gap-1">
+                {farmer.errors.map((error) => (
+                  <Badge
+                    className="text-xs"
+                    key={`${error.field}-${error.message}`}
+                    variant="destructive"
+                  >
                     {error.field}: {error.message}
                   </Badge>
                 ))}
@@ -277,17 +311,37 @@ const FarmerCard = ({ farmer, isExpanded, onToggle, onEdit, onDelete }: FarmerCa
               {/* Farmer Details */}
               <div className="grid gap-2 text-sm">
                 <div className="grid gap-1 md:grid-cols-2">
-                  <div><strong>Phone:</strong> {farmer.data.phone}</div>
-                  <div><strong>Email:</strong> {farmer.data.email || "—"}</div>
-                  <div><strong>Gender:</strong> {farmer.data.gender}</div>
-                  <div><strong>DOB:</strong> {farmer.data.dateOfBirth}</div>
-                  <div><strong>Community:</strong> {farmer.data.community}</div>
-                  <div><strong>District:</strong> {farmer.data.districtName}</div>
-                  <div><strong>ID Type:</strong> {farmer.data.idType}</div>
-                  <div><strong>ID Number:</strong> {farmer.data.idNumber}</div>
+                  <div>
+                    <strong>Phone:</strong> {farmer.data.phone}
+                  </div>
+                  <div>
+                    <strong>Email:</strong> {farmer.data.email || "—"}
+                  </div>
+                  <div>
+                    <strong>Gender:</strong> {farmer.data.gender}
+                  </div>
+                  <div>
+                    <strong>DOB:</strong> {farmer.data.dateOfBirth}
+                  </div>
+                  <div>
+                    <strong>Community:</strong> {farmer.data.community}
+                  </div>
+                  <div>
+                    <strong>District:</strong> {farmer.data.districtName}
+                  </div>
+                  <div>
+                    <strong>ID Type:</strong> {farmer.data.idType}
+                  </div>
+                  <div>
+                    <strong>ID Number:</strong> {farmer.data.idNumber}
+                  </div>
                 </div>
-                <div><strong>Address:</strong> {farmer.data.address}</div>
-                <div><strong>Organization:</strong> {farmer.data.organizationName}</div>
+                <div>
+                  <strong>Address:</strong> {farmer.data.address}
+                </div>
+                <div>
+                  <strong>Organization:</strong> {farmer.data.organizationName}
+                </div>
               </div>
 
               {/* Farms */}
@@ -300,35 +354,49 @@ const FarmerCard = ({ farmer, isExpanded, onToggle, onEdit, onDelete }: FarmerCa
                         Farms ({totalFarms})
                       </h5>
                       {invalidFarms > 0 && (
-                        <Badge variant="destructive" className="text-xs">
-                          {invalidFarms} error{invalidFarms !== 1 ? 's' : ''}
+                        <Badge className="text-xs" variant="destructive">
+                          {invalidFarms} error{invalidFarms !== 1 ? "s" : ""}
                         </Badge>
                       )}
                     </div>
 
                     <div className="space-y-2">
-                      {farmer.farms.map((farm, index) => (
-                        <Card key={farm.id} className={cn(
-                          "p-3",
-                          farm.isValid ? "border-green-200" : "border-red-200"
-                        )}>
+                      {farmer.farms.map((farm, _index) => (
+                        <Card
+                          className={cn(
+                            "p-3",
+                            farm.isValid ? "border-green-200" : "border-red-200"
+                          )}
+                          key={farm.id}
+                        >
                           <div className="flex items-start justify-between">
                             <div className="space-y-1 text-sm">
                               <div className="flex items-center gap-2">
                                 <span className="font-medium">{farm.name}</span>
-                                <Badge variant={farm.isValid ? "success" : "destructive"} className="text-xs">
+                                <Badge
+                                  className="text-xs"
+                                  variant={
+                                    farm.isValid ? "success" : "destructive"
+                                  }
+                                >
                                   {farm.isValid ? "Valid" : "Error"}
                                 </Badge>
                               </div>
                               <div className="text-muted-foreground">
-                                {farm.acreage ? `${farm.acreage} acres` : "No acreage"} •
-                                {farm.cropType || "No crop type"} •
+                                {farm.acreage
+                                  ? `${farm.acreage} acres`
+                                  : "No acreage"}{" "}
+                                •{farm.cropType || "No crop type"} •
                                 {farm.soilType || "No soil type"}
                               </div>
                               {!farm.isValid && (
-                                <div className="flex flex-wrap gap-1 mt-1">
-                                  {farm.errors.map((error, errorIndex) => (
-                                    <Badge key={errorIndex} variant="destructive" className="text-xs">
+                                <div className="mt-1 flex flex-wrap gap-1">
+                                  {farm.errors.map((error) => (
+                                    <Badge
+                                      className="text-xs"
+                                      key={`${error.field || "farm"}-${error.message}`}
+                                      variant="destructive"
+                                    >
                                       {error.message}
                                     </Badge>
                                   ))}

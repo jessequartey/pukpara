@@ -369,8 +369,10 @@ export function LoansInputCreditsCard(_: LoansInputCreditsCardProps) {
                             {credit.itemsCount} items
                           </p>
                           <div className="text-muted-foreground text-xs">
-                            {credit.items.slice(0, 2).map((item, index) => (
-                              <div key={index}>
+                            {credit.items.slice(0, 2).map((item) => (
+                              <div
+                                key={`${item.name}-${item.quantity}-${item.unit}`}
+                              >
                                 {item.name} ({item.quantity} {item.unit})
                               </div>
                             ))}

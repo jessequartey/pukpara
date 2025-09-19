@@ -59,7 +59,6 @@ export function useFarmerListController() {
     }
 
     // Apply simple sorting
-    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Sorting logic is straightforward
     const sorted = [...filtered].sort((a, b) => {
       const getFieldValue = (item: typeof a, field: string) => {
         if (field === "name") {

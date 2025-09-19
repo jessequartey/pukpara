@@ -40,7 +40,6 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
 
   if (t._config.isDev) {
     // artificial delay in dev
-    // biome-ignore lint/style/noMagicNumbers: <neccessary>
     const waitMs = Math.floor(Math.random() * 400) + 100;
     await new Promise((resolve) => setTimeout(resolve, waitMs));
   }

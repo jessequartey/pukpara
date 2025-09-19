@@ -31,7 +31,7 @@ type AuditEntry = {
   performedBy: string;
   performedAt: string;
   category: "profile" | "savings" | "loan" | "membership" | "farm" | "kyc";
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 };
 
 export function ActivityAuditCard({ farmerId }: ActivityAuditCardProps) {

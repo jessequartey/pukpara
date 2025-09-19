@@ -42,7 +42,9 @@ export const FarmsStep = ({ onBack, onNext }: FarmsStepProps) => {
   const removeFarm = useFarmerCreateStore((state) => state.removeFarm);
   const updateFarm = useFarmerCreateStore((state) => state.updateFarm);
 
-  const [errors, setErrors] = useState<Record<number, Record<string, string>>>({});
+  const [errors, setErrors] = useState<Record<number, Record<string, string>>>(
+    {}
+  );
 
   const validateFarms = () => {
     const newErrors: Record<number, Record<string, string>> = {};
@@ -91,13 +93,13 @@ export const FarmsStep = ({ onBack, onNext }: FarmsStepProps) => {
     const newErrors = { ...errors };
     delete newErrors[index];
     // Shift error indices for farms after the removed one
-    Object.keys(newErrors).forEach((key) => {
-      const idx = parseInt(key);
+    for (const key of Object.keys(newErrors)) {
+      const idx = Number.parseInt(key, 10);
       if (idx > index) {
         newErrors[idx - 1] = newErrors[idx];
         delete newErrors[idx];
       }
-    });
+    }
     setErrors(newErrors);
   };
 
@@ -106,17 +108,18 @@ export const FarmsStep = ({ onBack, onNext }: FarmsStepProps) => {
       <CardHeader>
         <CardTitle>Farm details</CardTitle>
         <CardDescription>
-          Add farm information for this farmer. You can add multiple farms or skip this step and add them later.
+          Add farm information for this farmer. You can add multiple farms or
+          skip this step and add them later.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="flex items-center justify-between">
           <h4 className="font-medium text-sm">Farms ({farms.length})</h4>
           <Button
+            onClick={handleAddFarm}
+            size="sm"
             type="button"
             variant="outline"
-            size="sm"
-            onClick={handleAddFarm}
           >
             <Plus className="mr-2 h-4 w-4" />
             Add Farm
@@ -124,11 +127,12 @@ export const FarmsStep = ({ onBack, onNext }: FarmsStepProps) => {
         </div>
 
         {farms.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground text-sm mb-4">
-              No farms added yet. You can add farms now or skip this step and add them later.
+          <div className="py-8 text-center">
+            <p className="mb-4 text-muted-foreground text-sm">
+              No farms added yet. You can add farms now or skip this step and
+              add them later.
             </p>
-            <Button type="button" variant="outline" onClick={handleAddFarm}>
+            <Button onClick={handleAddFarm} type="button" variant="outline">
               <Plus className="mr-2 h-4 w-4" />
               Add Your First Farm
             </Button>
@@ -136,17 +140,18 @@ export const FarmsStep = ({ onBack, onNext }: FarmsStepProps) => {
         ) : (
           <div className="space-y-4">
             {farms.map((farm, index) => (
-              <Card key={index} className="p-4">
+              <Card
+                className="p-4"
+                key={`farm-${index}-${farm.name || "unnamed"}`}
+              >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h5 className="font-medium text-sm">
-                      Farm #{index + 1}
-                    </h5>
+                    <h5 className="font-medium text-sm">Farm #{index + 1}</h5>
                     <Button
+                      onClick={() => handleRemoveFarm(index)}
+                      size="sm"
                       type="button"
                       variant="ghost"
-                      size="sm"
-                      onClick={() => handleRemoveFarm(index)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -157,8 +162,6 @@ export const FarmsStep = ({ onBack, onNext }: FarmsStepProps) => {
                       <Label htmlFor={`farm-name-${index}`}>Farm name *</Label>
                       <Input
                         id={`farm-name-${index}`}
-                        placeholder="Main Farm"
-                        value={farm.name}
                         onChange={(e) => {
                           updateFarm(index, { name: e.target.value });
                           // Clear error when user starts typing
@@ -171,9 +174,13 @@ export const FarmsStep = ({ onBack, onNext }: FarmsStepProps) => {
                             setErrors(newErrors);
                           }
                         }}
+                        placeholder="Main Farm"
+                        value={farm.name}
                       />
                       {errors[index]?.name && (
-                        <p className="text-destructive text-sm">{errors[index].name}</p>
+                        <p className="text-destructive text-sm">
+                          {errors[index].name}
+                        </p>
                       )}
                     </div>
 
@@ -181,11 +188,7 @@ export const FarmsStep = ({ onBack, onNext }: FarmsStepProps) => {
                       <Label htmlFor={`farm-acreage-${index}`}>Acreage</Label>
                       <Input
                         id={`farm-acreage-${index}`}
-                        type="number"
-                        step="0.1"
                         min="0"
-                        placeholder="2.5"
-                        value={farm.acreage || ""}
                         onChange={(e) => {
                           const value = e.target.value;
                           updateFarm(index, {
@@ -201,9 +204,15 @@ export const FarmsStep = ({ onBack, onNext }: FarmsStepProps) => {
                             setErrors(newErrors);
                           }
                         }}
+                        placeholder="2.5"
+                        step="0.1"
+                        type="number"
+                        value={farm.acreage || ""}
                       />
                       {errors[index]?.acreage && (
-                        <p className="text-destructive text-sm">{errors[index].acreage}</p>
+                        <p className="text-destructive text-sm">
+                          {errors[index].acreage}
+                        </p>
                       )}
                     </div>
 
@@ -211,21 +220,29 @@ export const FarmsStep = ({ onBack, onNext }: FarmsStepProps) => {
                       <Label htmlFor={`farm-crop-${index}`}>Crop type</Label>
                       <Input
                         id={`farm-crop-${index}`}
-                        placeholder="Maize, Rice, Cassava"
-                        value={farm.cropType}
                         onChange={(e) =>
                           updateFarm(index, { cropType: e.target.value })
                         }
+                        placeholder="Maize, Rice, Cassava"
+                        value={farm.cropType}
                       />
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor={`farm-soil-${index}`}>Soil type</Label>
                       <Select
-                        value={farm.soilType}
                         onValueChange={(value) =>
-                          updateFarm(index, { soilType: value as "sandy" | "clay" | "loamy" | "silt" | "rocky" | "" })
+                          updateFarm(index, {
+                            soilType: value as
+                              | "sandy"
+                              | "clay"
+                              | "loamy"
+                              | "silt"
+                              | "rocky"
+                              | "",
+                          })
                         }
+                        value={farm.soilType}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select soil type" />

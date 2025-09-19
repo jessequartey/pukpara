@@ -5,7 +5,12 @@ import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -27,7 +32,6 @@ import { userColumns } from "../user-table/columns";
 import type { UserTableSortState } from "../user-table/index";
 
 import { PaginationControls } from "./pagination-controls";
-
 
 type UserDirectoryController = {
   search: string;
@@ -83,7 +87,7 @@ export function UserDirectoryCard({ controller }: UserDirectoryCardProps) {
     sort,
     setSort,
     selectedIds,
-    setSelectedIds,
+    setSelectedIds: _setSelectedIds,
     data,
     total,
     totalPages,
@@ -112,7 +116,6 @@ export function UserDirectoryCard({ controller }: UserDirectoryCardProps) {
       return next;
     });
   };
-
 
   const handleApprove = (row: UserTableRow) => {
     try {
@@ -296,9 +299,7 @@ export function UserDirectoryCard({ controller }: UserDirectoryCardProps) {
               ))}
             </div>
           </div>
-          {isFetching ? (
-            <Badge variant="outline">Refreshing…</Badge>
-          ) : null}
+          {isFetching ? <Badge variant="outline">Refreshing…</Badge> : null}
         </div>
         <PaginationControls
           isLoading={isFetching}

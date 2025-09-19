@@ -55,7 +55,9 @@ type ApiKey = {
 const SESSION_REVOKE_DELAY = 1000;
 const ALL_SESSIONS_REVOKE_DELAY = 1500;
 
-export function SecuritySessionsCard({ userId }: SecuritySessionsCardProps) {
+export function SecuritySessionsCard({
+  userId: _userId,
+}: SecuritySessionsCardProps) {
   const [isRevoking, setIsRevoking] = useState<string | null>(null);
 
   // Mock data - replace with actual API calls

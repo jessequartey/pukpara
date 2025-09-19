@@ -14,9 +14,6 @@ export type FarmerTableProps = {
   onSelectAll: (checked: boolean) => void;
   onApprove: (row: FarmerTableRow) => void;
   onReject: (row: FarmerTableRow) => void;
-  onSuspend: (row: FarmerTableRow) => void;
-  onBan: (row: FarmerTableRow) => void;
-  onUnban: (row: FarmerTableRow) => void;
   onDelete: (row: FarmerTableRow) => void;
   onView: (row: FarmerTableRow) => void;
   isLoading?: boolean;
@@ -33,9 +30,6 @@ export function FarmerTable({
   onSelectAll,
   onApprove,
   onReject,
-  onSuspend,
-  onBan,
-  onUnban,
   onDelete,
   onView,
   isLoading,
@@ -59,14 +53,11 @@ export function FarmerTable({
       isFetching={isFetching}
       isLoading={isLoading}
       onApprove={onApprove}
-      onBan={onBan}
       onDelete={onDelete}
       onReject={onReject}
       onSortChange={onSortChange}
-      onSuspend={onSuspend}
       onToggleSelect={onSelectRow}
       onToggleSelectAll={onSelectAll}
-      onUnban={onUnban}
       onView={onView}
       selectedIds={selectedIds}
       sort={sort}

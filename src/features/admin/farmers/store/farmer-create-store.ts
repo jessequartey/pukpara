@@ -2,6 +2,14 @@ import { create } from "zustand";
 
 export type FarmerCreationMode = "single" | "bulk-upload";
 
+type OrganizationOption = {
+  id: string;
+  name: string;
+  slug: string;
+  organizationType: string;
+  memberCount?: number;
+};
+
 type FarmerFormData = {
   firstName: string;
   lastName: string;
@@ -53,7 +61,6 @@ type UploadedFarmer = {
     community: string;
     address: string;
     districtName: string;
-    organizationName: string;
     idType: "ghana_card" | "voters_id" | "passport" | "drivers_license";
     idNumber: string;
     householdSize: number | null;
@@ -93,6 +100,7 @@ type FarmerCreateStoreState = {
   farmer: FarmerFormData;
   farms: FarmData[];
   bulkUpload: BulkUploadData;
+  selectedOrganization: OrganizationOption | null;
   setMode: (mode: FarmerCreationMode) => void;
   setStep: (step: number) => void;
   nextStep: () => void;
@@ -103,15 +111,23 @@ type FarmerCreateStoreState = {
   removeFarm: (index: number) => void;
   updateFarm: (index: number, farm: Partial<FarmData>) => void;
   setBulkUploadData: (data: Partial<BulkUploadData>) => void;
-  updateUploadedFarmer: (farmerId: string, data: Partial<UploadedFarmer["data"]>) => void;
-  updateUploadedFarm: (farmerId: string, farmId: string, data: Partial<UploadedFarmer["farms"][0]>) => void;
+  setSelectedOrganization: (organization: OrganizationOption | null) => void;
+  updateUploadedFarmer: (
+    farmerId: string,
+    data: Partial<UploadedFarmer["data"]>
+  ) => void;
+  updateUploadedFarm: (
+    farmerId: string,
+    farmId: string,
+    data: Partial<UploadedFarmer["farms"][0]>
+  ) => void;
   deleteUploadedFarmer: (farmerId: string) => void;
   deleteUploadedFarm: (farmerId: string, farmId: string) => void;
   validateUploadedFarmers: () => void;
   reset: () => void;
 };
 
-const TOTAL_STEPS = 3;
+const TOTAL_STEPS = 4;
 
 const initialFarmerState: FarmerFormData = {
   firstName: "",
@@ -159,6 +175,7 @@ export const useFarmerCreateStore = create<FarmerCreateStoreState>((set) => ({
   farmer: { ...initialFarmerState },
   farms: [],
   bulkUpload: { ...initialBulkUploadState },
+  selectedOrganization: null,
   setMode: (mode) => set({ mode }),
   setStep: (step) => set({ step: clampStep(step) }),
   nextStep: () =>
@@ -192,6 +209,8 @@ export const useFarmerCreateStore = create<FarmerCreateStoreState>((set) => ({
     set((state) => ({
       bulkUpload: { ...state.bulkUpload, ...data },
     })),
+  setSelectedOrganization: (organization) =>
+    set({ selectedOrganization: organization }),
   updateUploadedFarmer: (farmerId, data) =>
     set((state) => ({
       bulkUpload: {
@@ -244,11 +263,16 @@ export const useFarmerCreateStore = create<FarmerCreateStoreState>((set) => ({
     })),
   validateUploadedFarmers: () =>
     set((state) => {
-      const validateFarmer = (data: UploadedFarmer["data"]): ValidationError[] => {
+      const validateFarmer = (
+        data: UploadedFarmer["data"]
+      ): ValidationError[] => {
         const errors: ValidationError[] = [];
 
         if (!data.firstName?.trim()) {
-          errors.push({ field: "firstName", message: "First name is required" });
+          errors.push({
+            field: "firstName",
+            message: "First name is required",
+          });
         }
         if (!data.lastName?.trim()) {
           errors.push({ field: "lastName", message: "Last name is required" });
@@ -256,41 +280,121 @@ export const useFarmerCreateStore = create<FarmerCreateStoreState>((set) => ({
         if (!data.phone?.trim()) {
           errors.push({ field: "phone", message: "Phone number is required" });
         } else if (!/^\+233\d{9}$/.test(data.phone)) {
-          errors.push({ field: "phone", message: "Invalid phone format. Use +233XXXXXXXXX" });
+          errors.push({
+            field: "phone",
+            message: "Invalid phone format. Use +233XXXXXXXXX",
+          });
         }
         if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
           errors.push({ field: "email", message: "Invalid email format" });
         }
-        if (!data.dateOfBirth?.trim()) {
-          errors.push({ field: "dateOfBirth", message: "Date of birth is required" });
+        if (data.dateOfBirth?.trim()) {
+          // Validate date format
+          const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+          if (dateRegex.test(data.dateOfBirth)) {
+            const parsedDate = new Date(data.dateOfBirth);
+            if (isNaN(parsedDate.getTime())) {
+              errors.push({ field: "dateOfBirth", message: "Invalid date" });
+            }
+          } else {
+            errors.push({
+              field: "dateOfBirth",
+              message: "Date must be in YYYY-MM-DD format",
+            });
+          }
+        } else {
+          errors.push({
+            field: "dateOfBirth",
+            message: "Date of birth is required",
+          });
         }
         if (!data.community?.trim()) {
           errors.push({ field: "community", message: "Community is required" });
         }
         if (!data.address?.trim() || data.address.length < 5) {
-          errors.push({ field: "address", message: "Address must be at least 5 characters" });
+          errors.push({
+            field: "address",
+            message: "Address must be at least 5 characters",
+          });
         }
         if (!data.districtName?.trim()) {
-          errors.push({ field: "districtName", message: "District name is required" });
-        }
-        if (!data.organizationName?.trim()) {
-          errors.push({ field: "organizationName", message: "Organization name is required" });
+          errors.push({
+            field: "districtName",
+            message: "District name is required",
+          });
         }
         if (!data.idNumber?.trim() || data.idNumber.length < 5) {
-          errors.push({ field: "idNumber", message: "ID number must be at least 5 characters" });
+          errors.push({
+            field: "idNumber",
+            message: "ID number must be at least 5 characters",
+          });
+        }
+        if (
+          !(
+            data.idType &&
+            ["ghana_card", "voters_id", "passport", "drivers_license"].includes(
+              data.idType
+            )
+          )
+        ) {
+          errors.push({ field: "idType", message: "Invalid ID type" });
+        }
+        if (
+          !(data.gender && ["male", "female", "other"].includes(data.gender))
+        ) {
+          errors.push({ field: "gender", message: "Invalid gender" });
+        }
+        if (data.householdSize !== null && data.householdSize <= 0) {
+          errors.push({
+            field: "householdSize",
+            message: "Household size must be greater than 0",
+          });
         }
 
         return errors;
       };
 
-      const validateFarm = (farm: UploadedFarmer["farms"][0]): ValidationError[] => {
+      const validateFarm = (
+        farm: UploadedFarmer["farms"][0]
+      ): ValidationError[] => {
         const errors: ValidationError[] = [];
 
         if (!farm.name?.trim()) {
           errors.push({ field: "name", message: "Farm name is required" });
         }
-        if (farm.acreage !== null && farm.acreage <= 0) {
-          errors.push({ field: "acreage", message: "Acreage must be greater than 0" });
+        if (
+          farm.acreage !== null &&
+          farm.acreage !== undefined &&
+          farm.acreage <= 0
+        ) {
+          errors.push({
+            field: "acreage",
+            message: "Acreage must be greater than 0",
+          });
+        }
+        if (
+          farm.soilType &&
+          !["sandy", "clay", "loamy", "silt", "rocky"].includes(farm.soilType)
+        ) {
+          errors.push({ field: "soilType", message: "Invalid soil type" });
+        }
+        if (
+          farm.locationLat !== undefined &&
+          (farm.locationLat < -90 || farm.locationLat > 90)
+        ) {
+          errors.push({
+            field: "locationLat",
+            message: "Latitude must be between -90 and 90",
+          });
+        }
+        if (
+          farm.locationLng !== undefined &&
+          (farm.locationLng < -180 || farm.locationLng > 180)
+        ) {
+          errors.push({
+            field: "locationLng",
+            message: "Longitude must be between -180 and 180",
+          });
         }
 
         return errors;
@@ -310,7 +414,8 @@ export const useFarmerCreateStore = create<FarmerCreateStoreState>((set) => ({
         return {
           ...farmer,
           errors: farmerErrors,
-          isValid: farmerErrors.length === 0 && validatedFarms.every(f => f.isValid),
+          isValid:
+            farmerErrors.length === 0 && validatedFarms.every((f) => f.isValid),
           farms: validatedFarms,
         };
       });
@@ -329,9 +434,10 @@ export const useFarmerCreateStore = create<FarmerCreateStoreState>((set) => ({
       farmer: { ...initialFarmerState },
       farms: [],
       bulkUpload: { ...initialBulkUploadState },
+      selectedOrganization: null,
     }),
 }));
 
 export const farmerWizardTotalSteps = TOTAL_STEPS;
 
-export type { UploadedFarmer, ValidationError };
+export type { UploadedFarmer, ValidationError, OrganizationOption };

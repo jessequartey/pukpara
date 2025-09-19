@@ -1,11 +1,12 @@
+/** biome-ignore-all lint/performance/noNamespaceImport: <necessary>*/
 "use client";
 
 import { CheckCircle2, Download, Upload, XCircle } from "lucide-react";
+import { nanoid } from "nanoid";
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
-
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,8 +25,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useFarmerCreateStore, type UploadedFarmer } from "@/features/admin/farmers/store/farmer-create-store";
-import { nanoid } from "nanoid";
+import {
+  type UploadedFarmer,
+  useFarmerCreateStore,
+} from "@/features/admin/farmers/store/farmer-create-store";
 import { cn } from "@/lib/utils";
 
 type BulkUploadStepProps = {
@@ -103,18 +106,26 @@ export const BulkUploadStep = ({ onBack, onNext }: BulkUploadStepProps) => {
           const farmsSheetName = "Farms";
 
           if (!workbook.SheetNames.includes(farmersSheetName)) {
-            reject(new Error("Farmers sheet not found. Please use the correct template."));
+            reject(
+              new Error(
+                "Farmers sheet not found. Please use the correct template."
+              )
+            );
             return;
           }
 
           const farmersSheet = workbook.Sheets[farmersSheetName];
-          const farmersData = XLSX.utils.sheet_to_json(farmersSheet, { header: 1 }) as any[][];
+          const farmersData = XLSX.utils.sheet_to_json(farmersSheet, {
+            header: 1,
+          }) as any[][];
 
           // Get Farms sheet (optional)
           let farmsData: any[][] = [];
           if (workbook.SheetNames.includes(farmsSheetName)) {
             const farmsSheet = workbook.Sheets[farmsSheetName];
-            farmsData = XLSX.utils.sheet_to_json(farmsSheet, { header: 1 }) as any[][];
+            farmsData = XLSX.utils.sheet_to_json(farmsSheet, {
+              header: 1,
+            }) as any[][];
           }
 
           // Parse farmers (skip header row)
@@ -123,7 +134,7 @@ export const BulkUploadStep = ({ onBack, onNext }: BulkUploadStepProps) => {
 
           for (let i = 1; i < farmersData.length; i++) {
             const row = farmersData[i];
-            if (!row || row.every(cell => !cell)) continue; // Skip empty rows
+            if (!row || row.every((cell) => !cell && cell !== 0)) continue; // Skip empty rows
 
             const farmer: UploadedFarmer = {
               id: nanoid(),
@@ -136,17 +147,24 @@ export const BulkUploadStep = ({ onBack, onNext }: BulkUploadStepProps) => {
                 phone: String(row[2] || "").trim(),
                 email: String(row[3] || "").trim(),
                 dateOfBirth: String(row[4] || "").trim(),
-                gender: String(row[5] || "male").toLowerCase() as "male" | "female" | "other",
+                gender: String(row[5] || "male").toLowerCase() as
+                  | "male"
+                  | "female"
+                  | "other",
                 community: String(row[6] || "").trim(),
                 address: String(row[7] || "").trim(),
                 districtName: String(row[8] || "").trim(),
-                organizationName: String(row[9] || "").trim(),
-                idType: String(row[10] || "ghana_card").toLowerCase() as "ghana_card" | "voters_id" | "passport" | "drivers_license",
-                idNumber: String(row[11] || "").trim(),
-                householdSize: row[12] ? Number(row[12]) : null,
-                isLeader: String(row[13] || "No").toLowerCase() === "yes",
-                isPhoneSmart: String(row[14] || "No").toLowerCase() === "yes",
-                legacyFarmerId: String(row[15] || "").trim(),
+                idType: String(row[9] || "ghana_card").toLowerCase() as
+                  | "ghana_card"
+                  | "voters_id"
+                  | "passport"
+                  | "drivers_license",
+                idNumber: String(row[10] || "").trim(),
+                householdSize:
+                  row[11] && !isNaN(Number(row[11])) ? Number(row[11]) : null,
+                isLeader: String(row[12] || "No").toLowerCase() === "yes",
+                isPhoneSmart: String(row[13] || "No").toLowerCase() === "yes",
+                legacyFarmerId: String(row[14] || "").trim(),
               },
               farms: [],
             };
@@ -160,20 +178,36 @@ export const BulkUploadStep = ({ onBack, onNext }: BulkUploadStepProps) => {
 
             for (let i = 1; i < farmsData.length; i++) {
               const row = farmsData[i];
-              if (!row || row.every(cell => !cell)) continue; // Skip empty rows
+              if (!row || row.every((cell) => !cell && cell !== 0)) continue; // Skip empty rows
 
-              const farmerRowNumber = Number(row[0]);
-              const farmerIndex = farmers.findIndex(f => f.rowNumber === farmerRowNumber);
+              const farmerRowNumber = Number(row[0]); // This is the Excel row number (2, 3, 4, etc.)
+              // Find farmer by matching the Excel row number (farmer's rowNumber is i+1 where i is the data row index)
+              const farmerIndex = farmers.findIndex(
+                (f) => f.rowNumber === farmerRowNumber
+              );
 
               if (farmerIndex !== -1) {
                 const farm = {
                   id: nanoid(),
                   name: String(row[1] || "").trim(),
-                  acreage: row[2] ? Number(row[2]) : null,
+                  acreage:
+                    row[2] && !isNaN(Number(row[2])) ? Number(row[2]) : null,
                   cropType: String(row[3] || "").trim(),
-                  soilType: String(row[4] || "").toLowerCase() as "sandy" | "clay" | "loamy" | "silt" | "rocky" | "",
-                  locationLat: row[5] ? Number(row[5]) : undefined,
-                  locationLng: row[6] ? Number(row[6]) : undefined,
+                  soilType: String(row[4] || "").toLowerCase() as
+                    | "sandy"
+                    | "clay"
+                    | "loamy"
+                    | "silt"
+                    | "rocky"
+                    | "",
+                  locationLat:
+                    row[5] && !isNaN(Number(row[5]))
+                      ? Number(row[5])
+                      : undefined,
+                  locationLng:
+                    row[6] && !isNaN(Number(row[6]))
+                      ? Number(row[6])
+                      : undefined,
                   errors: [],
                   isValid: true,
                 };
@@ -200,7 +234,11 @@ export const BulkUploadStep = ({ onBack, onNext }: BulkUploadStepProps) => {
       return;
     }
 
-    setBulkUploadData({ isUploading: true, isProcessing: true, uploadProgress: 0 });
+    setBulkUploadData({
+      isUploading: true,
+      isProcessing: true,
+      uploadProgress: 0,
+    });
 
     try {
       // Simulate upload progress
@@ -222,16 +260,19 @@ export const BulkUploadStep = ({ onBack, onNext }: BulkUploadStepProps) => {
         parsedFarmers,
       });
 
-      toast.success(`Successfully parsed ${parsedFarmers.length} farmers from file`);
+      toast.success(
+        `Successfully parsed ${parsedFarmers.length} farmers from file`
+      );
     } catch (error) {
       setBulkUploadData({
         isUploading: false,
         isProcessing: false,
         uploadProgress: 0,
-        parsedFarmers: []
+        parsedFarmers: [],
       });
 
-      const message = error instanceof Error ? error.message : "Failed to parse file";
+      const message =
+        error instanceof Error ? error.message : "Failed to parse file";
       toast.error(message);
     }
   };
@@ -346,7 +387,9 @@ export const BulkUploadStep = ({ onBack, onNext }: BulkUploadStepProps) => {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="font-medium text-sm">
-                {bulkUpload.isProcessing ? "Processing file..." : "Uploading..."}
+                {bulkUpload.isProcessing
+                  ? "Processing file..."
+                  : "Uploading..."}
               </span>
               <span className="text-muted-foreground text-sm">
                 {bulkUpload.uploadProgress}%
@@ -426,28 +469,27 @@ export const BulkUploadStep = ({ onBack, onNext }: BulkUploadStepProps) => {
             <h4 className="font-medium text-sm">Parsed Results</h4>
             <div className="grid gap-4 md:grid-cols-3">
               <div className="rounded-lg border p-3">
-                <div className="text-2xl font-bold text-blue-600">
+                <div className="font-bold text-2xl text-blue-600">
                   {bulkUpload.parsedFarmers.length}
                 </div>
-                <div className="text-sm text-muted-foreground">
+                <div className="text-muted-foreground text-sm">
                   Total farmers
                 </div>
               </div>
               <div className="rounded-lg border p-3">
-                <div className="text-2xl font-bold text-green-600">
-                  {bulkUpload.parsedFarmers.reduce((sum, farmer) => sum + farmer.farms.length, 0)}
+                <div className="font-bold text-2xl text-green-600">
+                  {bulkUpload.parsedFarmers.reduce(
+                    (sum, farmer) => sum + farmer.farms.length,
+                    0
+                  )}
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  Total farms
-                </div>
+                <div className="text-muted-foreground text-sm">Total farms</div>
               </div>
               <div className="rounded-lg border p-3">
-                <div className="text-2xl font-bold text-amber-600">
+                <div className="font-bold text-2xl text-amber-600">
                   Ready for review
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  Status
-                </div>
+                <div className="text-muted-foreground text-sm">Status</div>
               </div>
             </div>
           </div>

@@ -39,7 +39,10 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useFarmerCreateStore, type UploadedFarmer } from "@/features/admin/farmers/store/farmer-create-store";
+import {
+  type UploadedFarmer,
+  useFarmerCreateStore,
+} from "@/features/admin/farmers/store/farmer-create-store";
 import { cn } from "@/lib/utils";
 
 type FarmerEditModalProps = {
@@ -69,11 +72,23 @@ const soilTypeOptions = [
   { value: "rocky", label: "Rocky" },
 ];
 
-export const FarmerEditModal = ({ farmer, open, onClose }: FarmerEditModalProps) => {
-  const updateUploadedFarmer = useFarmerCreateStore((state) => state.updateUploadedFarmer);
-  const updateUploadedFarm = useFarmerCreateStore((state) => state.updateUploadedFarm);
-  const deleteUploadedFarm = useFarmerCreateStore((state) => state.deleteUploadedFarm);
-  const validateUploadedFarmers = useFarmerCreateStore((state) => state.validateUploadedFarmers);
+export const FarmerEditModal = ({
+  farmer,
+  open,
+  onClose,
+}: FarmerEditModalProps) => {
+  const updateUploadedFarmer = useFarmerCreateStore(
+    (state) => state.updateUploadedFarmer
+  );
+  const updateUploadedFarm = useFarmerCreateStore(
+    (state) => state.updateUploadedFarm
+  );
+  const deleteUploadedFarm = useFarmerCreateStore(
+    (state) => state.deleteUploadedFarm
+  );
+  const validateUploadedFarmers = useFarmerCreateStore(
+    (state) => state.validateUploadedFarmers
+  );
 
   const [editingFarmIndex, setEditingFarmIndex] = useState<number | null>(null);
 
@@ -84,12 +99,16 @@ export const FarmerEditModal = ({ farmer, open, onClose }: FarmerEditModalProps)
       phone: "",
       email: "",
       dateOfBirth: "",
-      gender: "male" as const,
+      gender: "male" as "male" | "female" | "other",
       community: "",
       address: "",
       districtName: "",
       organizationName: "",
-      idType: "ghana_card" as const,
+      idType: "ghana_card" as
+        | "ghana_card"
+        | "voters_id"
+        | "passport"
+        | "drivers_license",
       idNumber: "",
       householdSize: "",
       isLeader: false,
@@ -123,12 +142,16 @@ export const FarmerEditModal = ({ farmer, open, onClose }: FarmerEditModalProps)
   }, [farmer, form]);
 
   const handleSave = () => {
-    if (!farmer) return;
+    if (!farmer) {
+      return;
+    }
 
     const formData = form.getValues();
     const updatedData = {
       ...formData,
-      householdSize: formData.householdSize ? Number(formData.householdSize) : null,
+      householdSize: formData.householdSize
+        ? Number(formData.householdSize)
+        : null,
     };
 
     updateUploadedFarmer(farmer.id, updatedData);
@@ -136,71 +159,92 @@ export const FarmerEditModal = ({ farmer, open, onClose }: FarmerEditModalProps)
     onClose();
   };
 
-  const handleFarmUpdate = (farmIndex: number, field: string, value: any) => {
-    if (!farmer) return;
+  const handleFarmUpdate = (
+    farmIndex: number,
+    field: string,
+    value: unknown
+  ) => {
+    if (!farmer) {
+      return;
+    }
 
     const farm = farmer.farms[farmIndex];
-    if (!farm) return;
+    if (!farm) {
+      return;
+    }
 
     updateUploadedFarm(farmer.id, farm.id, { [field]: value });
     validateUploadedFarmers();
   };
 
   const handleDeleteFarm = (farmIndex: number) => {
-    if (!farmer) return;
+    if (!farmer) {
+      return;
+    }
 
     const farm = farmer.farms[farmIndex];
-    if (!farm) return;
+    if (!farm) {
+      return;
+    }
 
     deleteUploadedFarm(farmer.id, farm.id);
     validateUploadedFarmers();
   };
 
-  if (!farmer) return null;
+  if (!farmer) {
+    return null;
+  }
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh]">
+    <Dialog onOpenChange={onClose} open={open}>
+      <DialogContent className="max-h-[80vh] max-w-4xl">
         <DialogHeader>
           <DialogTitle>
             Edit Farmer: {farmer.data.firstName} {farmer.data.lastName}
           </DialogTitle>
           <DialogDescription>
-            Make changes to the farmer details and farms. All changes are automatically validated.
+            Make changes to the farmer details and farms. All changes are
+            automatically validated.
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="farmer" className="w-full">
+        <Tabs className="w-full" defaultValue="farmer">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="farmer" className="flex items-center gap-2">
+            <TabsTrigger className="flex items-center gap-2" value="farmer">
               Farmer Details
               {farmer.errors.length > 0 && (
-                <Badge variant="destructive" className="text-xs">
+                <Badge className="text-xs" variant="destructive">
                   {farmer.errors.length}
                 </Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="farms" className="flex items-center gap-2">
+            <TabsTrigger className="flex items-center gap-2" value="farms">
               Farms ({farmer.farms.length})
-              {farmer.farms.some(f => !f.isValid) && (
-                <Badge variant="destructive" className="text-xs">
+              {farmer.farms.some((f) => !f.isValid) && (
+                <Badge className="text-xs" variant="destructive">
                   Errors
                 </Badge>
               )}
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="farmer" className="space-y-4">
+          <TabsContent className="space-y-4" value="farmer">
             <ScrollArea className="h-[400px] pr-4">
               <Form {...form}>
                 <div className="space-y-4">
                   {/* Validation errors */}
                   {farmer.errors.length > 0 && (
                     <div className="space-y-2">
-                      <h4 className="text-sm font-medium text-red-600">Validation Errors:</h4>
+                      <h4 className="font-medium text-red-600 text-sm">
+                        Validation Errors:
+                      </h4>
                       <div className="flex flex-wrap gap-1">
                         {farmer.errors.map((error, index) => (
-                          <Badge key={index} variant="destructive" className="text-xs">
+                          <Badge
+                            className="text-xs"
+                            key={index}
+                            variant="destructive"
+                          >
                             {error.field}: {error.message}
                           </Badge>
                         ))}
@@ -210,7 +254,9 @@ export const FarmerEditModal = ({ farmer, open, onClose }: FarmerEditModalProps)
 
                   {/* Personal Information */}
                   <div className="space-y-4">
-                    <h4 className="font-medium text-sm">Personal Information</h4>
+                    <h4 className="font-medium text-sm">
+                      Personal Information
+                    </h4>
                     <div className="grid gap-4 md:grid-cols-2">
                       <FormField
                         control={form.control}
@@ -247,7 +293,10 @@ export const FarmerEditModal = ({ farmer, open, onClose }: FarmerEditModalProps)
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Gender *</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value}
+                            >
                               <FormControl>
                                 <SelectTrigger>
                                   <SelectValue />
@@ -255,7 +304,10 @@ export const FarmerEditModal = ({ farmer, open, onClose }: FarmerEditModalProps)
                               </FormControl>
                               <SelectContent>
                                 {genderOptions.map((option) => (
-                                  <SelectItem key={option.value} value={option.value}>
+                                  <SelectItem
+                                    key={option.value}
+                                    value={option.value}
+                                  >
                                     {option.label}
                                   </SelectItem>
                                 ))}
@@ -275,11 +327,11 @@ export const FarmerEditModal = ({ farmer, open, onClose }: FarmerEditModalProps)
                               <PopoverTrigger asChild>
                                 <FormControl>
                                   <Button
-                                    variant="outline"
                                     className={cn(
                                       "w-full pl-3 text-left font-normal",
                                       !field.value && "text-muted-foreground"
                                     )}
+                                    variant="outline"
                                   >
                                     {field.value ? (
                                       new Date(field.value).toLocaleDateString()
@@ -290,17 +342,27 @@ export const FarmerEditModal = ({ farmer, open, onClose }: FarmerEditModalProps)
                                   </Button>
                                 </FormControl>
                               </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0" align="start">
+                              <PopoverContent
+                                align="start"
+                                className="w-auto p-0"
+                              >
                                 <Calendar
-                                  mode="single"
-                                  selected={field.value ? new Date(field.value) : undefined}
-                                  onSelect={(date) =>
-                                    field.onChange(date?.toISOString().split("T")[0])
-                                  }
                                   disabled={(date) =>
-                                    date > new Date() || date < new Date("1900-01-01")
+                                    date > new Date() ||
+                                    date < new Date("1900-01-01")
                                   }
                                   initialFocus
+                                  mode="single"
+                                  onSelect={(date) =>
+                                    field.onChange(
+                                      date?.toISOString().split("T")[0]
+                                    )
+                                  }
+                                  selected={
+                                    field.value
+                                      ? new Date(field.value)
+                                      : undefined
+                                  }
                                 />
                               </PopoverContent>
                             </Popover>
@@ -346,7 +408,9 @@ export const FarmerEditModal = ({ farmer, open, onClose }: FarmerEditModalProps)
 
                   {/* Location Information */}
                   <div className="space-y-4">
-                    <h4 className="font-medium text-sm">Location Information</h4>
+                    <h4 className="font-medium text-sm">
+                      Location Information
+                    </h4>
                     <div className="grid gap-4 md:grid-cols-2">
                       <FormField
                         control={form.control}
@@ -418,7 +482,10 @@ export const FarmerEditModal = ({ farmer, open, onClose }: FarmerEditModalProps)
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>ID type *</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value}
+                            >
                               <FormControl>
                                 <SelectTrigger>
                                   <SelectValue />
@@ -426,7 +493,10 @@ export const FarmerEditModal = ({ farmer, open, onClose }: FarmerEditModalProps)
                               </FormControl>
                               <SelectContent>
                                 {idTypeOptions.map((option) => (
-                                  <SelectItem key={option.value} value={option.value}>
+                                  <SelectItem
+                                    key={option.value}
+                                    value={option.value}
+                                  >
                                     {option.label}
                                   </SelectItem>
                                 ))}
@@ -454,7 +524,9 @@ export const FarmerEditModal = ({ farmer, open, onClose }: FarmerEditModalProps)
 
                   {/* Additional Information */}
                   <div className="space-y-4">
-                    <h4 className="font-medium text-sm">Additional Information</h4>
+                    <h4 className="font-medium text-sm">
+                      Additional Information
+                    </h4>
                     <div className="grid gap-4 md:grid-cols-2">
                       <FormField
                         control={form.control}
@@ -463,7 +535,7 @@ export const FarmerEditModal = ({ farmer, open, onClose }: FarmerEditModalProps)
                           <FormItem>
                             <FormLabel>Household size</FormLabel>
                             <FormControl>
-                              <Input {...field} type="number" min="1" />
+                              <Input {...field} min="1" type="number" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -532,43 +604,49 @@ export const FarmerEditModal = ({ farmer, open, onClose }: FarmerEditModalProps)
             </ScrollArea>
           </TabsContent>
 
-          <TabsContent value="farms" className="space-y-4">
+          <TabsContent className="space-y-4" value="farms">
             <ScrollArea className="h-[400px] pr-4">
               <div className="space-y-4">
                 {farmer.farms.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
+                  <div className="py-8 text-center text-muted-foreground">
                     <p>No farms for this farmer</p>
                   </div>
                 ) : (
                   farmer.farms.map((farm, index) => (
                     <div
-                      key={farm.id}
                       className={cn(
                         "rounded-lg border p-4",
                         farm.isValid ? "border-green-200" : "border-red-200"
                       )}
+                      key={farm.id}
                     >
-                      <div className="flex items-start justify-between mb-3">
+                      <div className="mb-3 flex items-start justify-between">
                         <div className="flex items-center gap-2">
                           <h5 className="font-medium">Farm #{index + 1}</h5>
-                          <Badge variant={farm.isValid ? "success" : "destructive"}>
+                          <Badge
+                            variant={farm.isValid ? "success" : "destructive"}
+                          >
                             {farm.isValid ? "Valid" : "Errors"}
                           </Badge>
                         </div>
                         <Button
+                          className="text-red-600 hover:text-red-700"
                           onClick={() => handleDeleteFarm(index)}
                           size="sm"
                           variant="outline"
-                          className="text-red-600 hover:text-red-700"
                         >
                           <Trash2 className="h-3 w-3" />
                         </Button>
                       </div>
 
                       {!farm.isValid && (
-                        <div className="flex flex-wrap gap-1 mb-3">
+                        <div className="mb-3 flex flex-wrap gap-1">
                           {farm.errors.map((error, errorIndex) => (
-                            <Badge key={errorIndex} variant="destructive" className="text-xs">
+                            <Badge
+                              className="text-xs"
+                              key={errorIndex}
+                              variant="destructive"
+                            >
                               {error.field}: {error.message}
                             </Badge>
                           ))}
@@ -577,44 +655,86 @@ export const FarmerEditModal = ({ farmer, open, onClose }: FarmerEditModalProps)
 
                       <div className="grid gap-3 md:grid-cols-2">
                         <div>
-                          <label className="text-sm font-medium">Farm name *</label>
+                          <label
+                            className="font-medium text-sm"
+                            htmlFor={`farm-name-${index}`}
+                          >
+                            Farm name *
+                          </label>
                           <Input
-                            value={farm.name}
-                            onChange={(e) => handleFarmUpdate(index, "name", e.target.value)}
+                            id={`farm-name-${index}`}
+                            onChange={(e) =>
+                              handleFarmUpdate(index, "name", e.target.value)
+                            }
                             placeholder="Farm name"
+                            value={farm.name}
                           />
                         </div>
                         <div>
-                          <label className="text-sm font-medium">Acreage</label>
+                          <label
+                            className="font-medium text-sm"
+                            htmlFor={`farm-acreage-${index}`}
+                          >
+                            Acreage
+                          </label>
                           <Input
-                            type="number"
-                            step="0.1"
+                            id={`farm-acreage-${index}`}
                             min="0"
-                            value={farm.acreage || ""}
-                            onChange={(e) => handleFarmUpdate(index, "acreage", e.target.value ? Number(e.target.value) : null)}
+                            onChange={(e) =>
+                              handleFarmUpdate(
+                                index,
+                                "acreage",
+                                e.target.value ? Number(e.target.value) : null
+                              )
+                            }
                             placeholder="2.5"
+                            step="0.1"
+                            type="number"
+                            value={farm.acreage || ""}
                           />
                         </div>
                         <div>
-                          <label className="text-sm font-medium">Crop type</label>
+                          <label
+                            className="font-medium text-sm"
+                            htmlFor={`farm-croptype-${index}`}
+                          >
+                            Crop type
+                          </label>
                           <Input
-                            value={farm.cropType}
-                            onChange={(e) => handleFarmUpdate(index, "cropType", e.target.value)}
+                            id={`farm-croptype-${index}`}
+                            onChange={(e) =>
+                              handleFarmUpdate(
+                                index,
+                                "cropType",
+                                e.target.value
+                              )
+                            }
                             placeholder="Maize, Rice, Cassava"
+                            value={farm.cropType}
                           />
                         </div>
                         <div>
-                          <label className="text-sm font-medium">Soil type</label>
+                          <label
+                            className="font-medium text-sm"
+                            htmlFor={`farm-soiltype-${index}`}
+                          >
+                            Soil type
+                          </label>
                           <Select
+                            onValueChange={(value) =>
+                              handleFarmUpdate(index, "soilType", value)
+                            }
                             value={farm.soilType}
-                            onValueChange={(value) => handleFarmUpdate(index, "soilType", value)}
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Select soil type" />
                             </SelectTrigger>
                             <SelectContent>
                               {soilTypeOptions.map((option) => (
-                                <SelectItem key={option.value} value={option.value}>
+                                <SelectItem
+                                  key={option.value}
+                                  value={option.value}
+                                >
                                   {option.label}
                                 </SelectItem>
                               ))}
@@ -634,9 +754,7 @@ export const FarmerEditModal = ({ farmer, open, onClose }: FarmerEditModalProps)
           <Button onClick={onClose} variant="outline">
             Cancel
           </Button>
-          <Button onClick={handleSave}>
-            Save Changes
-          </Button>
+          <Button onClick={handleSave}>Save Changes</Button>
         </div>
       </DialogContent>
     </Dialog>

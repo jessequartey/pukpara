@@ -1,10 +1,14 @@
-"use client";
-
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -14,19 +18,31 @@ import {
 import { Input } from "@/components/ui/input";
 import { api } from "@/trpc/react";
 
+import { ROW_OPTIONS } from "../../hooks/use-farmer-list-controller";
 import { FarmerTable } from "../farmer-table";
 import type { FarmerColumnKey, FarmerTableRow } from "../farmer-table/columns";
 import { farmerColumns } from "../farmer-table/columns";
 import type { FarmerTableSortState } from "../farmer-table/index";
+import { PaginationControls } from "./pagination-controls";
 
 type FarmerDirectoryController = {
   farmers: FarmerTableRow[];
   search: string;
   setSearch: (search: string) => void;
+  page: number;
+  setPage: (page: number) => void;
+  pageSize: (typeof ROW_OPTIONS)[number];
+  setPageSize: (pageSize: (typeof ROW_OPTIONS)[number]) => void;
   sort: FarmerTableSortState;
   setSort: (sort: FarmerTableSortState) => void;
   selectedIds: Set<string>;
   setSelectedIds: (ids: Set<string>) => void;
+  total: number;
+  totalPages: number;
+  startRow: number;
+  endRow: number;
+  handleSelectRow: (id: string, checked: boolean) => void;
+  handleSelectAll: (checked: boolean) => void;
   isLoading: boolean;
   isFetching: boolean;
 };
@@ -41,9 +57,6 @@ export function FarmerDirectoryCard({ controller }: FarmerDirectoryCardProps) {
   const utils = api.useUtils();
   const approveMutation = api.admin.farmers.approve.useMutation();
   const rejectMutation = api.admin.farmers.reject.useMutation();
-  const suspendMutation = api.admin.farmers.suspend.useMutation();
-  const banMutation = api.admin.farmers.ban.useMutation();
-  const unbanMutation = api.admin.farmers.unban.useMutation();
   const deleteMutation = api.admin.farmers.delete.useMutation();
 
   const allColumnKeys = useMemo(
@@ -65,10 +78,19 @@ export function FarmerDirectoryCard({ controller }: FarmerDirectoryCardProps) {
     farmers,
     search,
     setSearch,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
     sort,
     setSort,
     selectedIds,
-    setSelectedIds,
+    total,
+    totalPages,
+    startRow,
+    endRow,
+    handleSelectRow,
+    handleSelectAll,
     isLoading,
     isFetching,
   } = controller;
@@ -91,30 +113,10 @@ export function FarmerDirectoryCard({ controller }: FarmerDirectoryCardProps) {
     });
   };
 
-  // The filtering is now handled in the controller hook
-
-  const handleSelectRow = (id: string, checked: boolean) => {
-    const newSelected = new Set(selectedIds);
-    if (checked) {
-      newSelected.add(id);
-    } else {
-      newSelected.delete(id);
-    }
-    setSelectedIds(newSelected);
-  };
-
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedIds(new Set(farmers.map((farmer) => farmer.id)));
-    } else {
-      setSelectedIds(new Set());
-    }
-  };
-
   const handleApprove = async (row: FarmerTableRow) => {
     try {
       setIsActionLoading(true);
-      await approveMutation.mutateAsync({ userIds: [row.id] });
+      await approveMutation.mutateAsync({ farmerIds: [row.id] });
       await utils.admin.farmers.all.invalidate();
       toast.success(`${row.name} has been approved successfully.`);
     } catch {
@@ -127,7 +129,7 @@ export function FarmerDirectoryCard({ controller }: FarmerDirectoryCardProps) {
   const handleReject = async (row: FarmerTableRow) => {
     try {
       setIsActionLoading(true);
-      await rejectMutation.mutateAsync({ userIds: [row.id] });
+      await rejectMutation.mutateAsync({ farmerIds: [row.id] });
       await utils.admin.farmers.all.invalidate();
       toast.success(`${row.name} has been rejected.`);
     } catch {
@@ -137,56 +139,12 @@ export function FarmerDirectoryCard({ controller }: FarmerDirectoryCardProps) {
     }
   };
 
-  const handleSuspend = async (row: FarmerTableRow) => {
-    try {
-      setIsActionLoading(true);
-      await suspendMutation.mutateAsync({ userIds: [row.id] });
-      await utils.admin.farmers.all.invalidate();
-      toast.success(`${row.name} has been suspended.`);
-    } catch {
-      toast.error("Failed to suspend farmer. Please try again.");
-    } finally {
-      setIsActionLoading(false);
-    }
-  };
-
-  const handleBan = async (row: FarmerTableRow) => {
-    try {
-      setIsActionLoading(true);
-      await banMutation.mutateAsync({
-        userIds: [row.id],
-        reason: "Administrative action",
-      });
-      await utils.admin.farmers.all.invalidate();
-      toast.success(`${row.name} has been banned from the platform.`);
-    } catch {
-      toast.error("Failed to ban farmer. Please try again.");
-    } finally {
-      setIsActionLoading(false);
-    }
-  };
-
-  const handleUnban = async (row: FarmerTableRow) => {
-    try {
-      setIsActionLoading(true);
-      await unbanMutation.mutateAsync({ userIds: [row.id] });
-      await utils.admin.farmers.all.invalidate();
-      toast.success(
-        `${row.name} has been unbanned and can access the platform again.`
-      );
-    } catch {
-      toast.error("Failed to unban farmer. Please try again.");
-    } finally {
-      setIsActionLoading(false);
-    }
-  };
-
   const handleDelete = async (row: FarmerTableRow) => {
     try {
       setIsActionLoading(true);
-      await deleteMutation.mutateAsync({ userIds: [row.id] });
+      await deleteMutation.mutateAsync({ farmerIds: [row.id] });
       await utils.admin.farmers.all.invalidate();
-      toast.success(`${row.name} has been permanently deleted.`);
+      toast.success(`${row.name} has been deleted.`);
     } catch {
       toast.error("Failed to delete farmer. Please try again.");
     } finally {
@@ -207,7 +165,7 @@ export function FarmerDirectoryCard({ controller }: FarmerDirectoryCardProps) {
             aria-label="Search farmers"
             className="w-full sm:max-w-lg"
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search by name, email, phone, location, organization, or crops..."
+            placeholder="Search by name, Pukpara ID, phone, location, organization, or community..."
             type="search"
             value={search}
           />
@@ -242,20 +200,52 @@ export function FarmerDirectoryCard({ controller }: FarmerDirectoryCardProps) {
           isFetching={isFetching}
           isLoading={isLoading || isActionLoading}
           onApprove={handleApprove}
-          onBan={handleBan}
           onDelete={handleDelete}
           onReject={handleReject}
           onSelectAll={handleSelectAll}
           onSelectRow={handleSelectRow}
           onSortChange={setSort}
-          onSuspend={handleSuspend}
-          onUnban={handleUnban}
           onView={handleView}
           selectedIds={selectedIds}
           sort={sort}
           visibleColumnKeys={visibleColumnKeys}
         />
       </CardContent>
+      <CardFooter className="flex flex-col gap-4 border-t pt-6 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-wrap items-center gap-3 text-muted-foreground text-sm">
+          <span>
+            Showing {startRow}–{endRow} of {total}
+          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs uppercase tracking-wide">Rows</span>
+            <div className="flex items-center gap-1">
+              {ROW_OPTIONS.map((option) => (
+                <Button
+                  key={option}
+                  onClick={() => {
+                    setPageSize(option as (typeof ROW_OPTIONS)[number]);
+                    setPage(1);
+                  }}
+                  size="sm"
+                  type="button"
+                  variant={option === pageSize ? "secondary" : "ghost"}
+                >
+                  {option}
+                </Button>
+              ))}
+            </div>
+          </div>
+          {isFetching ? <Badge variant="outline">Refreshing…</Badge> : null}
+        </div>
+        <PaginationControls
+          isLoading={isFetching}
+          onPageChange={(nextPage) =>
+            setPage(Math.max(1, Math.min(totalPages, nextPage)))
+          }
+          page={page}
+          totalPages={totalPages}
+        />
+      </CardFooter>
     </Card>
   );
 }

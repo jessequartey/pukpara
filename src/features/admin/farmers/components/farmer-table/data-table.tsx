@@ -33,7 +33,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { USER_STATUS } from "@/config/constants/auth";
+
 import { cn } from "@/lib/utils";
 
 import type { FarmerColumn, FarmerColumnKey, FarmerTableRow } from "./columns";
@@ -53,9 +53,6 @@ type DataTableProps = {
   onToggleSelectAll: (checked: boolean) => void;
   onApprove: (row: FarmerTableRow) => void;
   onReject: (row: FarmerTableRow) => void;
-  onSuspend: (row: FarmerTableRow) => void;
-  onBan: (row: FarmerTableRow) => void;
-  onUnban: (row: FarmerTableRow) => void;
   onDelete: (row: FarmerTableRow) => void;
   onView: (row: FarmerTableRow) => void;
   isLoading?: boolean;
@@ -124,7 +121,7 @@ const SelectionCell = ({
   );
 };
 
-type ActionType = "approve" | "reject" | "suspend" | "ban" | "unban" | "delete";
+type ActionType = "approve" | "reject" | "delete";
 
 type PendingAction = {
   type: ActionType;
@@ -135,9 +132,6 @@ const ActionsCell = ({
   row,
   onApprove,
   onReject,
-  onSuspend,
-  onBan,
-  onUnban,
   onDelete,
   onView,
   pendingAction,
@@ -146,18 +140,14 @@ const ActionsCell = ({
   row: FarmerTableRow;
   onApprove: (row: FarmerTableRow) => void;
   onReject: (row: FarmerTableRow) => void;
-  onSuspend: (row: FarmerTableRow) => void;
-  onBan: (row: FarmerTableRow) => void;
-  onUnban: (row: FarmerTableRow) => void;
   onDelete: (row: FarmerTableRow) => void;
   onView: (row: FarmerTableRow) => void;
   pendingAction: PendingAction;
   setPendingAction: (action: PendingAction) => void;
 }) => {
-  const isActive = row.status === USER_STATUS.APPROVED;
-  const isPending = row.status === USER_STATUS.PENDING;
-  const isSuspended = row.status === USER_STATUS.SUSPENDED;
-  const isBanned = row.banned;
+  const isVerified = row.kycStatus === "verified";
+  const isPending = row.kycStatus === "pending";
+  const isRejected = row.kycStatus === "rejected";
 
   const handleAction = (type: ActionType) => {
     setPendingAction({ type, row });
@@ -177,29 +167,14 @@ const ActionsCell = ({
               View details
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            {(isPending || isSuspended) && (
+            {(isPending || isRejected) && (
               <DropdownMenuItem onSelect={() => handleAction("approve")}>
                 Approve
               </DropdownMenuItem>
             )}
-            {(isPending || isActive) && (
+            {(isPending || isVerified) && (
               <DropdownMenuItem onSelect={() => handleAction("reject")}>
                 Reject
-              </DropdownMenuItem>
-            )}
-            {(isPending || isActive) && (
-              <DropdownMenuItem onSelect={() => handleAction("suspend")}>
-                Suspend
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuSeparator />
-            {isBanned ? (
-              <DropdownMenuItem onSelect={() => handleAction("unban")}>
-                Unban farmer
-              </DropdownMenuItem>
-            ) : (
-              <DropdownMenuItem onSelect={() => handleAction("ban")}>
-                Ban farmer
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator />
@@ -226,12 +201,6 @@ const ActionsCell = ({
                     return "Approve Farmer";
                   case "reject":
                     return "Reject Farmer";
-                  case "suspend":
-                    return "Suspend Farmer";
-                  case "ban":
-                    return "Ban Farmer";
-                  case "unban":
-                    return "Unban Farmer";
                   case "delete":
                     return "Delete Farmer";
                   default:
@@ -243,17 +212,11 @@ const ActionsCell = ({
               {(() => {
                 switch (pendingAction?.type) {
                   case "approve":
-                    return `Are you sure you want to approve "${row.name}"? This will activate the farmer and set their status to approved.`;
+                    return `Are you sure you want to approve "${row.name}"? This will set their KYC status to verified.`;
                   case "reject":
-                    return `Are you sure you want to reject "${row.name}"? This will set the farmer status to rejected.`;
-                  case "suspend":
-                    return `Are you sure you want to suspend "${row.name}"? This will suspend the farmer from accessing the platform.`;
-                  case "ban":
-                    return `Are you sure you want to ban "${row.name}"? This will permanently ban the farmer from the platform.`;
-                  case "unban":
-                    return `Are you sure you want to unban "${row.name}"? This will restore their access to the platform.`;
+                    return `Are you sure you want to reject "${row.name}"? This will set their KYC status to rejected.`;
                   case "delete":
-                    return `Are you sure you want to delete "${row.name}"? This action cannot be undone and will remove all associated data.`;
+                    return `Are you sure you want to delete "${row.name}"? This action will soft delete the farmer.`;
                   default:
                     return "";
                 }
@@ -264,8 +227,7 @@ const ActionsCell = ({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               className={
-                pendingAction?.type === "delete" ||
-                pendingAction?.type === "ban"
+                pendingAction?.type === "delete"
                   ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   : ""
               }
@@ -276,15 +238,6 @@ const ActionsCell = ({
                     break;
                   case "reject":
                     onReject(row);
-                    break;
-                  case "suspend":
-                    onSuspend(row);
-                    break;
-                  case "ban":
-                    onBan(row);
-                    break;
-                  case "unban":
-                    onUnban(row);
                     break;
                   case "delete":
                     onDelete(row);
@@ -301,12 +254,6 @@ const ActionsCell = ({
                     return "Approve";
                   case "reject":
                     return "Reject";
-                  case "suspend":
-                    return "Suspend";
-                  case "ban":
-                    return "Ban";
-                  case "unban":
-                    return "Unban";
                   case "delete":
                     return "Delete";
                   default:
@@ -331,9 +278,6 @@ export const DataTable = ({
   onToggleSelectAll,
   onApprove,
   onReject,
-  onSuspend,
-  onBan,
-  onUnban,
   onDelete,
   onView,
   isLoading = false,
@@ -452,11 +396,8 @@ export const DataTable = ({
                   })}
                   <ActionsCell
                     onApprove={onApprove}
-                    onBan={onBan}
                     onDelete={onDelete}
                     onReject={onReject}
-                    onSuspend={onSuspend}
-                    onUnban={onUnban}
                     onView={onView}
                     pendingAction={pendingAction}
                     row={row}

@@ -2,37 +2,40 @@ import type { ReactNode } from "react";
 
 export type FarmerTableRow = {
   id: string;
+  pukparaId: string;
   name: string;
-  email: string;
-  emailVerified: boolean;
-  image: string | null;
-  createdAt: Date | string | null;
-  phoneNumber: string | null;
-  phoneNumberVerified: boolean | null;
-  role: string | null;
-  banned: boolean | null;
-  banReason: string | null;
-  banExpires: Date | string | null;
+  firstName: string;
+  lastName: string;
+  gender: string | null;
+  dateOfBirth: Date | null;
+  phone: string | null;
+  isPhoneSmart: boolean;
+  idNumber: string | null;
+  idType: string | null;
   address: string;
-  status: string | null;
-  approvedAt: Date | string | null;
+  community: string | null;
+  householdSize: number | null;
+  isLeader: boolean;
+  imgUrl: string | null;
+  kycStatus: string;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+  districtId: string | null;
   districtName: string | null;
   regionName: string | null;
-  organizationCount: number;
-  organizationNames: string[];
-  farmSize: number | null; // in acres/hectares
-  farmLocation: string | null;
-  cropTypes: string[];
-  certifications: string[];
+  organizationId: string;
+  organizationName: string | null;
+  farmCount: number;
+  totalAcreage: number;
 };
 
 export type FarmerColumnKey =
   | "name"
   | "contact"
   | "location"
-  // | "status"
-  | "organizations"
-  // | "farming"
+  | "kycStatus"
+  | "organization"
+  | "farming"
   | "createdAt";
 
 export type FarmerColumn = {
@@ -77,11 +80,9 @@ export const farmerColumns: FarmerColumn[] = [
     header: "Contact",
     render: (row) => (
       <div className="flex flex-col gap-1">
-        <span className="text-sm">{row.email}</span>
-        {row.phoneNumber && (
-          <span className="text-muted-foreground text-xs">
-            {row.phoneNumber}
-          </span>
+        <span className="text-sm">{row.pukparaId}</span>
+        {row.phone && (
+          <span className="text-muted-foreground text-xs">{row.phone}</span>
         )}
       </div>
     ),
@@ -99,17 +100,39 @@ export const farmerColumns: FarmerColumn[] = [
     ),
   },
   {
-    key: "organizations",
-    header: "Organizations",
+    key: "kycStatus",
+    header: "KYC Status",
+    render: (row) => (
+      <div className="flex flex-col gap-1">
+        <span className="text-sm capitalize">{row.kycStatus}</span>
+        {row.isLeader && (
+          <span className="text-muted-foreground text-xs">Leader</span>
+        )}
+      </div>
+    ),
+  },
+  {
+    key: "organization",
+    header: "Organization",
+    render: (row) => (
+      <div className="flex flex-col gap-1">
+        <span className="text-sm">{row.organizationName ?? "—"}</span>
+        {row.community && (
+          <span className="text-muted-foreground text-xs">{row.community}</span>
+        )}
+      </div>
+    ),
+  },
+  {
+    key: "farming",
+    header: "Farming",
     align: "right",
     render: (row) => (
       <div className="flex flex-col gap-1 text-right">
-        <span className="text-sm tabular-nums">{row.organizationCount}</span>
-        {row.organizationNames.length > 0 && (
-          <span className="max-w-32 truncate text-muted-foreground text-xs">
-            {row.organizationNames.slice(0, 2).join(", ")}
-            {row.organizationNames.length > 2 &&
-              ` +${row.organizationNames.length - 2}`}
+        <span className="text-sm tabular-nums">{row.farmCount} farms</span>
+        {row.totalAcreage > 0 && (
+          <span className="text-muted-foreground text-xs">
+            {row.totalAcreage.toFixed(1)} acres
           </span>
         )}
       </div>

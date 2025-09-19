@@ -3,15 +3,12 @@ import { count, eq, inArray, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { z } from "zod";
 
-import { USER_STATUS } from "@/config/constants/auth";
 import {
   district,
-  farm as farmTable,
   farmer,
-  member,
+  farm as farmTable,
   organization,
   region,
-  user,
 } from "@/server/db/schema";
 import { createTRPCRouter, protectedProcedure } from "../../trpc";
 
@@ -109,7 +106,7 @@ export const adminFarmersRouter = createTRPCRouter({
           .returning();
 
         // Create farms if provided
-        const createdFarms: typeof farmTable.$inferInsert[] = [];
+        const createdFarms: (typeof farmTable.$inferInsert)[] = [];
         if (farms.length > 0) {
           const farmRecords = farms.map((farmData) => ({
             id: nanoid(),
@@ -119,8 +116,12 @@ export const adminFarmersRouter = createTRPCRouter({
             acreage: farmData.acreage ? farmData.acreage.toString() : null,
             cropType: farmData.cropType || null,
             soilType: farmData.soilType || null,
-            locationLat: farmData.locationLat ? farmData.locationLat.toString() : null,
-            locationLng: farmData.locationLng ? farmData.locationLng.toString() : null,
+            locationLat: farmData.locationLat
+              ? farmData.locationLat.toString()
+              : null,
+            locationLng: farmData.locationLng
+              ? farmData.locationLng.toString()
+              : null,
             status: "active" as const,
           }));
 
@@ -179,12 +180,24 @@ export const adminFarmersRouter = createTRPCRouter({
         .select({
           id: organization.id,
           name: organization.name,
+          slug: organization.slug,
           organizationType: organization.organizationType,
+          memberCount: sql<number>`COUNT(DISTINCT ${farmer.id})`,
         })
         .from(organization)
+        .leftJoin(farmer, eq(farmer.organizationId, organization.id))
+        .groupBy(
+          organization.id,
+          organization.name,
+          organization.slug,
+          organization.organizationType
+        )
         .orderBy(organization.name);
 
-      return organizations;
+      return organizations.map((org) => ({
+        ...org,
+        memberCount: Number(org.memberCount ?? 0),
+      }));
     } catch (error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -201,62 +214,92 @@ export const adminFarmersRouter = createTRPCRouter({
     try {
       const farmersData = await ctx.db
         .select({
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          emailVerified: user.emailVerified,
-          image: user.image,
-          createdAt: user.createdAt,
-          phoneNumber: user.phoneNumber,
-          phoneNumberVerified: user.phoneNumberVerified,
-          role: user.role,
-          banned: user.banned,
-          banReason: user.banReason,
-          banExpires: user.banExpires,
-          address: user.address,
-          status: user.status,
-          approvedAt: user.approvedAt,
-          districtId: user.districtId,
+          id: farmer.id,
+          pukparaId: farmer.pukparaId,
+          firstName: farmer.firstName,
+          lastName: farmer.lastName,
+          gender: farmer.gender,
+          dateOfBirth: farmer.dateOfBirth,
+          phone: farmer.phone,
+          isPhoneSmart: farmer.isPhoneSmart,
+          idNumber: farmer.idNumber,
+          idType: farmer.idType,
+          address: farmer.address,
+          community: farmer.community,
+          householdSize: farmer.householdSize,
+          isLeader: farmer.isLeader,
+          imgUrl: farmer.imgUrl,
+          kycStatus: farmer.kycStatus,
+          createdAt: farmer.createdAt,
+          updatedAt: farmer.updatedAt,
+          districtId: farmer.districtId,
           districtName: district.name,
           regionName: region.name,
-          organizationCount: sql<number>`COUNT(DISTINCT ${member.organizationId})`,
-          organizationNames: sql<
-            string[]
-          >`ARRAY_AGG(DISTINCT ${organization.name}) FILTER (WHERE ${organization.name} IS NOT NULL)`,
+          organizationId: farmer.organizationId,
+          organizationName: organization.name,
+          farmCount: sql<number>`COUNT(DISTINCT ${farmTable.id})`,
+          totalAcreage: sql<number>`COALESCE(SUM(CAST(${farmTable.acreage} AS DECIMAL)), 0)`,
         })
-        .from(user)
-        .leftJoin(district, eq(district.id, user.districtId))
+        .from(farmer)
+        .leftJoin(district, eq(district.id, farmer.districtId))
         .leftJoin(region, eq(region.code, district.regionCode))
-        .leftJoin(member, eq(member.userId, user.id))
-        .leftJoin(organization, eq(organization.id, member.organizationId))
-        .groupBy(user.id, district.name, region.name)
-        .orderBy(user.createdAt);
+        .leftJoin(organization, eq(organization.id, farmer.organizationId))
+        .leftJoin(farmTable, eq(farmTable.farmerId, farmer.id))
+        .where(eq(farmer.isDeleted, false))
+        .groupBy(
+          farmer.id,
+          farmer.pukparaId,
+          farmer.firstName,
+          farmer.lastName,
+          farmer.gender,
+          farmer.dateOfBirth,
+          farmer.phone,
+          farmer.isPhoneSmart,
+          farmer.idNumber,
+          farmer.idType,
+          farmer.address,
+          farmer.community,
+          farmer.householdSize,
+          farmer.isLeader,
+          farmer.imgUrl,
+          farmer.kycStatus,
+          farmer.createdAt,
+          farmer.updatedAt,
+          farmer.districtId,
+          district.name,
+          region.name,
+          farmer.organizationId,
+          organization.name
+        )
+        .orderBy(farmer.createdAt);
 
       return farmersData.map((row) => ({
         id: row.id,
-        name: row.name,
-        email: row.email,
-        emailVerified: row.emailVerified,
-        image: row.image,
+        pukparaId: row.pukparaId || "",
+        name: `${row.firstName} ${row.lastName}`,
+        firstName: row.firstName,
+        lastName: row.lastName,
+        gender: row.gender,
+        dateOfBirth: row.dateOfBirth,
+        phone: row.phone,
+        isPhoneSmart: row.isPhoneSmart ?? false,
+        idNumber: row.idNumber,
+        idType: row.idType,
+        address: row.address || "",
+        community: row.community,
+        householdSize: row.householdSize,
+        isLeader: row.isLeader ?? false,
+        imgUrl: row.imgUrl,
+        kycStatus: row.kycStatus || "pending",
         createdAt: row.createdAt,
-        phoneNumber: row.phoneNumber,
-        phoneNumberVerified: row.phoneNumberVerified,
-        role: row.role,
-        banned: row.banned,
-        banReason: row.banReason,
-        banExpires: row.banExpires,
-        address: row.address,
-        status: row.status,
-        approvedAt: row.approvedAt,
+        updatedAt: row.updatedAt,
+        districtId: row.districtId,
         districtName: row.districtName,
         regionName: row.regionName,
-        organizationCount: Number(row.organizationCount ?? 0),
-        organizationNames: row.organizationNames ?? [],
-        // Mock farming-related data for now - you can extend the schema later
-        farmSize: null,
-        farmLocation: null,
-        cropTypes: [],
-        certifications: [],
+        organizationId: row.organizationId,
+        organizationName: row.organizationName,
+        farmCount: Number(row.farmCount ?? 0),
+        totalAcreage: Number(row.totalAcreage ?? 0),
       }));
     } catch (error) {
       throw new TRPCError({
@@ -267,40 +310,42 @@ export const adminFarmersRouter = createTRPCRouter({
     }
   }),
 
-  // Approve farmers
+  // Approve farmers (update KYC status to verified)
   approve: protectedProcedure
     .input(
       z.object({
-        userIds: z.array(z.string().min(1)).min(1),
+        farmerIds: z.array(z.string().min(1)).min(1),
       })
     )
     .mutation(async ({ ctx, input }) => {
       ensurePlatformAdmin(ctx.session.user);
 
-      const uniqueIds = Array.from(new Set(input.userIds));
+      const uniqueIds = Array.from(new Set(input.farmerIds));
 
       if (uniqueIds.length === 0) {
         return { updated: 0 };
       }
 
-      const now = new Date();
-
       try {
-        const usersToApprove = await ctx.db
-          .select({ id: user.id, name: user.name })
-          .from(user)
-          .where(inArray(user.id, uniqueIds));
+        const farmersToApprove = await ctx.db
+          .select({
+            id: farmer.id,
+            firstName: farmer.firstName,
+            lastName: farmer.lastName,
+          })
+          .from(farmer)
+          .where(inArray(farmer.id, uniqueIds));
 
-        if (usersToApprove.length === 0) {
+        if (farmersToApprove.length === 0) {
           throw new TRPCError({ code: "NOT_FOUND" });
         }
 
         await ctx.db
-          .update(user)
-          .set({ status: USER_STATUS.APPROVED, approvedAt: now })
-          .where(inArray(user.id, uniqueIds));
+          .update(farmer)
+          .set({ kycStatus: "verified" })
+          .where(inArray(farmer.id, uniqueIds));
 
-        return { updated: usersToApprove.length };
+        return { updated: farmersToApprove.length };
       } catch (error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -310,18 +355,18 @@ export const adminFarmersRouter = createTRPCRouter({
       }
     }),
 
-  // Reject farmers
+  // Reject farmers (update KYC status to rejected)
   reject: protectedProcedure
     .input(
       z.object({
-        userIds: z.array(z.string().min(1)).min(1),
+        farmerIds: z.array(z.string().min(1)).min(1),
         reason: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       ensurePlatformAdmin(ctx.session.user);
 
-      const uniqueIds = Array.from(new Set(input.userIds));
+      const uniqueIds = Array.from(new Set(input.farmerIds));
 
       if (uniqueIds.length === 0) {
         return { updated: 0 };
@@ -329,9 +374,9 @@ export const adminFarmersRouter = createTRPCRouter({
 
       try {
         await ctx.db
-          .update(user)
-          .set({ status: USER_STATUS.REJECTED })
-          .where(inArray(user.id, uniqueIds));
+          .update(farmer)
+          .set({ kycStatus: "rejected" })
+          .where(inArray(farmer.id, uniqueIds));
 
         return { updated: uniqueIds.length };
       } catch (error) {
@@ -343,131 +388,27 @@ export const adminFarmersRouter = createTRPCRouter({
       }
     }),
 
-  // Suspend farmers
-  suspend: protectedProcedure
-    .input(
-      z.object({
-        userIds: z.array(z.string().min(1)).min(1),
-        reason: z.string().optional(),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      ensurePlatformAdmin(ctx.session.user);
-
-      const uniqueIds = Array.from(new Set(input.userIds));
-
-      if (uniqueIds.length === 0) {
-        return { updated: 0 };
-      }
-
-      try {
-        await ctx.db
-          .update(user)
-          .set({ status: USER_STATUS.SUSPENDED })
-          .where(inArray(user.id, uniqueIds));
-
-        return { updated: uniqueIds.length };
-      } catch (error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to suspend farmers",
-          cause: error,
-        });
-      }
-    }),
-
-  // Ban farmers
-  ban: protectedProcedure
-    .input(
-      z.object({
-        userIds: z.array(z.string().min(1)).min(1),
-        reason: z.string().optional(),
-        expiresAt: z.date().optional(),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      ensurePlatformAdmin(ctx.session.user);
-
-      const uniqueIds = Array.from(new Set(input.userIds));
-
-      if (uniqueIds.length === 0) {
-        return { updated: 0 };
-      }
-
-      try {
-        await ctx.db
-          .update(user)
-          .set({
-            banned: true,
-            banReason: input.reason,
-            banExpires: input.expiresAt,
-          })
-          .where(inArray(user.id, uniqueIds));
-
-        return { updated: uniqueIds.length };
-      } catch (error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to ban farmers",
-          cause: error,
-        });
-      }
-    }),
-
-  // Unban farmers
-  unban: protectedProcedure
-    .input(
-      z.object({
-        userIds: z.array(z.string().min(1)).min(1),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      ensurePlatformAdmin(ctx.session.user);
-
-      const uniqueIds = Array.from(new Set(input.userIds));
-
-      if (uniqueIds.length === 0) {
-        return { updated: 0 };
-      }
-
-      try {
-        await ctx.db
-          .update(user)
-          .set({
-            banned: false,
-            banReason: null,
-            banExpires: null,
-          })
-          .where(inArray(user.id, uniqueIds));
-
-        return { updated: uniqueIds.length };
-      } catch (error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to unban farmers",
-          cause: error,
-        });
-      }
-    }),
-
-  // Delete farmers
+  // Soft delete farmers
   delete: protectedProcedure
     .input(
       z.object({
-        userIds: z.array(z.string().min(1)).min(1),
+        farmerIds: z.array(z.string().min(1)).min(1),
       })
     )
     .mutation(async ({ ctx, input }) => {
       ensurePlatformAdmin(ctx.session.user);
 
-      const uniqueIds = Array.from(new Set(input.userIds));
+      const uniqueIds = Array.from(new Set(input.farmerIds));
 
       if (uniqueIds.length === 0) {
         return { deleted: 0 };
       }
 
       try {
-        await ctx.db.delete(user).where(inArray(user.id, uniqueIds));
+        await ctx.db
+          .update(farmer)
+          .set({ isDeleted: true })
+          .where(inArray(farmer.id, uniqueIds));
 
         return { deleted: uniqueIds.length };
       } catch (error) {
@@ -484,18 +425,19 @@ export const adminFarmersRouter = createTRPCRouter({
     ensurePlatformAdmin(ctx.session.user);
 
     try {
-      const statusCounts = await ctx.db
+      const kycStatusCounts = await ctx.db
         .select({
-          status: user.status,
+          kycStatus: farmer.kycStatus,
           count: count(),
         })
-        .from(user)
-        .groupBy(user.status);
+        .from(farmer)
+        .where(eq(farmer.isDeleted, false))
+        .groupBy(farmer.kycStatus);
 
       const statusMap = new Map<string, number>();
-      for (const entry of statusCounts) {
-        if (entry.status) {
-          statusMap.set(entry.status, Number(entry.count ?? 0));
+      for (const entry of kycStatusCounts) {
+        if (entry.kycStatus) {
+          statusMap.set(entry.kycStatus, Number(entry.count ?? 0));
         }
       }
 
@@ -506,14 +448,15 @@ export const adminFarmersRouter = createTRPCRouter({
 
       return {
         totalFarmers,
-        approvedFarmers: statusMap.get(USER_STATUS.APPROVED) ?? 0,
-        pendingFarmers: statusMap.get(USER_STATUS.PENDING) ?? 0,
-        suspendedFarmers: statusMap.get(USER_STATUS.SUSPENDED) ?? 0,
-        rejectedFarmers: statusMap.get(USER_STATUS.REJECTED) ?? 0,
-        statusBreakdown: Object.values(USER_STATUS).map((status) => ({
-          status,
-          count: statusMap.get(status) ?? 0,
-        })),
+        verifiedFarmers: statusMap.get("verified") ?? 0,
+        pendingFarmers: statusMap.get("pending") ?? 0,
+        rejectedFarmers: statusMap.get("rejected") ?? 0,
+        kycStatusBreakdown: ["pending", "verified", "rejected"].map(
+          (status) => ({
+            status,
+            count: statusMap.get(status) ?? 0,
+          })
+        ),
       };
     } catch (error) {
       throw new TRPCError({

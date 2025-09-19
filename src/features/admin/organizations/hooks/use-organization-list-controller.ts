@@ -5,10 +5,8 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { ORGANIZATION_STATUS } from "@/config/constants/auth";
-import type {
-  OrganizationTableRow,
-} from "@/features/admin/organizations/components/organization-table/index";
 import type { SortState } from "@/features/admin/organizations/components/organization-table/data-table";
+import type { OrganizationTableRow } from "@/features/admin/organizations/components/organization-table/index";
 import { api } from "@/trpc/react";
 
 const ROW_OPTION_SMALL = 10;
@@ -77,7 +75,10 @@ const createApproveSingleHandler = (approveMutation: {
 };
 
 // Helper function to get sort value for a field
-const getSortValue = (row: OrganizationTableRow, field: string): string | number => {
+const getSortValue = (
+  row: OrganizationTableRow,
+  field: string
+): string | number => {
   switch (field) {
     case "name":
       return row.name.toLowerCase();
@@ -258,8 +259,7 @@ export function useOrganizationListController(): UseOrganizationListControllerRe
   };
 
   const handleDeleteSingle = (row: OrganizationTableRow) => {
-    setSelectedIds(new Set([row.id]));
-    setConfirmAction("delete");
+    deleteMutation.mutate({ organizationIds: [row.id] });
   };
 
   const handleView = (row: OrganizationTableRow) => {

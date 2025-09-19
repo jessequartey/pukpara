@@ -3,13 +3,13 @@ import { PageTitle } from "@/components/ui/page-title";
 import { PlaceholderSection } from "@/features/admin/overview/components/placeholder-section";
 
 type CommodityDetailPageProps = {
-  params: { commodityId: string };
+  params: Promise<{ commodityId: string }>;
 };
 
-export default function CommodityDetailPage({
+export default async function CommodityDetailPage({
   params,
 }: CommodityDetailPageProps) {
-  const commodityId = decodeURIComponent(params.commodityId);
+  const { commodityId } = await params;
   const basePath = "/admin/inventory";
 
   return (

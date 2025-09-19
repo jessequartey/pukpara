@@ -2,13 +2,11 @@ import { ArrowLeft } from "lucide-react";
 import { PageTitle } from "@/components/ui/page-title";
 import { PlaceholderSection } from "@/features/admin/overview/components/placeholder-section";
 
-type AdminUserDetailPageProps = {
-  params: { userId: string };
-};
-
-export default function AdminUserDetailPage({
+export default async function AdminUserDetailPage({
   params,
-}: AdminUserDetailPageProps) {
+}: {
+  params: { userId: string };
+}) {
   const userId = decodeURIComponent(params.userId);
 
   return (

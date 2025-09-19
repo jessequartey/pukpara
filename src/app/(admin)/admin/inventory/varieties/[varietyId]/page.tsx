@@ -3,11 +3,13 @@ import { PageTitle } from "@/components/ui/page-title";
 import { PlaceholderSection } from "@/features/admin/overview/components/placeholder-section";
 
 type VarietyDetailPageProps = {
-  params: { varietyId: string };
+  params: Promise<{ varietyId: string }>;
 };
 
-export default function VarietyDetailPage({ params }: VarietyDetailPageProps) {
-  const varietyId = decodeURIComponent(params.varietyId);
+export default async function VarietyDetailPage({
+  params,
+}: VarietyDetailPageProps) {
+  const { varietyId } = await params;
   const basePath = "/admin/inventory";
 
   return (

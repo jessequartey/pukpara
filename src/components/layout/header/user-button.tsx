@@ -19,24 +19,26 @@ export const UserButton = () => {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="flex items-center gap-2 hover:bg-accent">
-        <Avatar className="h-9 w-9 border">
-          <AvatarImage
-            alt={`${getDisplayName(user)} avatar`}
-            src={user?.image || undefined}
-          />
-          <AvatarFallback>{getUserInitials(user)}</AvatarFallback>
-        </Avatar>
-        <div className="hidden min-w-0 flex-1 flex-col text-start sm:flex">
-          <span className="truncate font-medium text-sm">
-            {getDisplayName(user)}
-          </span>
-          {user?.email && (
-            <span className="truncate text-muted-foreground text-xs">
-              {user.email}
+      <DropdownMenuTrigger asChild>
+        <Button className="relative p-2" variant="ghost">
+          <Avatar className="h-9 w-9 border">
+            <AvatarImage
+              alt={`${getDisplayName(user)} avatar`}
+              src={user?.image || undefined}
+            />
+            <AvatarFallback>{getUserInitials(user)}</AvatarFallback>
+          </Avatar>
+          <div className="hidden min-w-0 flex-1 flex-col text-start sm:flex">
+            <span className="truncate font-medium text-sm">
+              {getDisplayName(user)}
             </span>
-          )}
-        </div>
+            {user?.email && (
+              <span className="truncate text-muted-foreground text-xs">
+                {user.email}
+              </span>
+            )}
+          </div>
+        </Button>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="w-64 p-2">

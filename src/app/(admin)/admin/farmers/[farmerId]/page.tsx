@@ -2,13 +2,11 @@ import { ArrowLeft } from "lucide-react";
 import { PageTitle } from "@/components/ui/page-title";
 import { PlaceholderSection } from "@/features/admin/overview/components/placeholder-section";
 
-type AdminFarmerDetailPageProps = {
-  params: { farmerId: string };
-};
-
-export default function AdminFarmerDetailPage({
+export default async function AdminFarmerDetailPage({
   params,
-}: AdminFarmerDetailPageProps) {
+}: {
+  params: { farmerId: string };
+}) {
   const farmerId = decodeURIComponent(params.farmerId);
 
   return (

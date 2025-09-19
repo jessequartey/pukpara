@@ -18,7 +18,7 @@ import type { UserTableRow } from "../user-table/columns";
 import type { UserTableSortState } from "../user-table/index";
 
 // Mock data for now - replace with actual API call
-const mockUsers: UserTableRow[] = [
+const _mockUsers: UserTableRow[] = [
   {
     id: "user_1",
     name: "John Doe",
@@ -100,7 +100,9 @@ export function UserDirectoryCard({ controller }: UserDirectoryCardProps) {
 
   // Filter users based on search
   const filteredUsers = users.filter((user) => {
-    if (!search) return true;
+    if (!search) {
+      return true;
+    }
 
     const searchLower = search.toLowerCase();
     return (
@@ -133,36 +135,36 @@ export function UserDirectoryCard({ controller }: UserDirectoryCardProps) {
     }
   };
 
-  const handleApprove = async (row: UserTableRow) => {
+  const handleApprove = (row: UserTableRow) => {
     try {
       setIsActionLoading(true);
       // TODO: Implement user approval API call
       toast.success(`${row.name} has been approved successfully.`);
-    } catch (error) {
+    } catch {
       toast.error("Failed to approve user. Please try again.");
     } finally {
       setIsActionLoading(false);
     }
   };
 
-  const handleReject = async (row: UserTableRow) => {
+  const handleReject = (row: UserTableRow) => {
     try {
       setIsActionLoading(true);
       // TODO: Implement user rejection API call
       toast.success(`${row.name} has been rejected.`);
-    } catch (error) {
+    } catch {
       toast.error("Failed to reject user. Please try again.");
     } finally {
       setIsActionLoading(false);
     }
   };
 
-  const handleSuspend = async (row: UserTableRow) => {
+  const handleSuspend = (row: UserTableRow) => {
     try {
       setIsActionLoading(true);
       // TODO: Implement user suspension API call
       toast.success(`${row.name} has been suspended.`);
-    } catch (error) {
+    } catch {
       toast.error("Failed to suspend user. Please try again.");
     } finally {
       setIsActionLoading(false);
@@ -174,11 +176,11 @@ export function UserDirectoryCard({ controller }: UserDirectoryCardProps) {
       setIsActionLoading(true);
       await banUser({
         userId: row.id,
-        reason: "Administrative action",
-        // expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+        banReason: "Administrative action",
+        // banExpiresIn: 30 * 24 * 60 * 60 * 1000, // 30 days in milliseconds
       });
       toast.success(`${row.name} has been banned from the platform.`);
-    } catch (error) {
+    } catch {
       toast.error("Failed to ban user. Please try again.");
     } finally {
       setIsActionLoading(false);
@@ -192,7 +194,7 @@ export function UserDirectoryCard({ controller }: UserDirectoryCardProps) {
       toast.success(
         `${row.name} has been unbanned and can access the platform again.`
       );
-    } catch (error) {
+    } catch {
       toast.error("Failed to unban user. Please try again.");
     } finally {
       setIsActionLoading(false);
@@ -204,7 +206,7 @@ export function UserDirectoryCard({ controller }: UserDirectoryCardProps) {
       setIsActionLoading(true);
       await removeUser({ userId: row.id });
       toast.success(`${row.name} has been permanently deleted.`);
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete user. Please try again.");
     } finally {
       setIsActionLoading(false);
@@ -225,7 +227,7 @@ export function UserDirectoryCard({ controller }: UserDirectoryCardProps) {
       );
       // Refresh the page to show the impersonated session
       window.location.reload();
-    } catch (error) {
+    } catch {
       toast.error("Failed to impersonate user. Please try again.");
     } finally {
       setIsActionLoading(false);

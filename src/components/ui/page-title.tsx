@@ -1,8 +1,8 @@
 /** biome-ignore-all lint/nursery/useConsistentTypeDefinitions: <necessary for type inference> */
 
-import type { ReactNode } from "react";
 import { Plus } from "lucide-react";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import {
   Breadcrumb,
   BreadcrumbItem,

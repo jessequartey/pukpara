@@ -3,12 +3,9 @@ import { and, count, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import {
-  ORGANIZATION_KYC_STATUS,
-  ORGANIZATION_LICENSE_STATUS,
   ORGANIZATION_MEMBER_ROLE,
   ORGANIZATION_STATUS,
   ORGANIZATION_SUBSCRIPTION_TYPE,
-  ORGANIZATION_TYPE,
   USER_STATUS,
 } from "@/config/constants/auth";
 import {

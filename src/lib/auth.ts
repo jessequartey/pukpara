@@ -1,6 +1,5 @@
 // src/lib/auth.ts
 /** biome-ignore-all lint/performance/noNamespaceImport: <neccessary> */
-import { randomUUID } from "node:crypto";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import {
@@ -13,31 +12,23 @@ import {
 import {
   ORGANIZATION_KYC_STATUS,
   ORGANIZATION_LICENSE_STATUS,
-  ORGANIZATION_MEMBER_ROLE,
   ORGANIZATION_STATUS,
   ORGANIZATION_SUBSCRIPTION_TYPE,
-  ORGANIZATION_TYPE,
   USER_KYC_STATUS,
   USER_STATUS,
 } from "@/config/constants/auth";
 import { db } from "@/server/db";
 import * as schema from "@/server/db/schema";
-import { sendPasswordResetEmail, sendOrganizationInviteEmail } from "@/server/email/resend";
+import { sendPasswordResetEmail } from "@/server/email/resend";
 import { AdminRoles, ac as adminAC } from "./admin-permissions";
+import {
+  buildAdminOrganizationData,
+  buildDefaultOrganizationData,
+  createOrganizationWithMembership,
+  type OrganizationMetadata,
+  shouldCreateOrganization,
+} from "./auth-organization-utils";
 import { OrgRoles, ac as orgAC } from "./org-permissions";
-
-const DEFAULT_ORGANIZATION_SUFFIX = "Organization" as const;
-const SLUG_SUFFIX_LENGTH = 6;
-
-const createSlug = (value: string) => {
-  const base = value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/-{2,}/g, "-")
-    .replace(/^-|-$/g, "");
-  return base.length > 0 ? base : "org";
-};
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, { provider: "pg", schema }),
@@ -105,22 +96,11 @@ export const auth = betterAuth({
           const authContext = ctx?.context;
           const userId = newUser.id;
 
-          if (!(authContext && userId)) {
+          if (!(await shouldCreateOrganization(authContext, userId))) {
             return;
           }
 
-          const existingMembership = await authContext.adapter.findMany({
-            model: "member",
-            where: [
-              {
-                field: "userId",
-                value: userId,
-              },
-            ],
-            limit: 1,
-          });
-
-          if (existingMembership.length > 0) {
+          if (!authContext) {
             return;
           }
 
@@ -130,104 +110,21 @@ export const auth = betterAuth({
               ? newUser.name.trim()
               : "New";
 
-          // Check if this is an admin-created user with organization metadata
-          const orgMetadata = newUser.organizationMetadata as {
-            organizationName?: string;
-            organizationSlug?: string;
-            organizationType?: string;
-            organizationSubType?: string;
-            subscriptionType?: string;
-            licenseStatus?: string;
-            maxUsers?: number;
-            contactEmail?: string;
-            contactPhone?: string;
-            billingEmail?: string;
-            address?: string;
-            districtId?: string;
-            regionId?: string;
-            source?: "admin" | "signup";
-          } | null;
+          const orgMetadata =
+            newUser.organizationMetadata as OrganizationMetadata | null;
+          const isAdminCreated =
+            orgMetadata?.source === "admin" && orgMetadata.organizationName;
 
-          let organizationName: string;
-          let slug: string;
-          let organizationType: string;
-          let organizationData: Record<string, unknown>;
+          const organizationData = isAdminCreated
+            ? buildAdminOrganizationData(orgMetadata, now)
+            : buildDefaultOrganizationData(displayName, userId, now);
 
-          if (orgMetadata?.source === "admin" && orgMetadata.organizationName) {
-            // Admin-created user with specific organization details
-            organizationName = orgMetadata.organizationName;
-            slug = orgMetadata.organizationSlug || createSlug(organizationName);
-            organizationType = orgMetadata.organizationType || ORGANIZATION_TYPE.FARMER_ORG;
-
-            organizationData = {
-              name: organizationName,
-              slug,
-              organizationType,
-              createdAt: now,
-              ...(orgMetadata.organizationSubType && { organizationSubType: orgMetadata.organizationSubType }),
-              ...(orgMetadata.subscriptionType && { subscriptionType: orgMetadata.subscriptionType }),
-              ...(orgMetadata.licenseStatus && { licenseStatus: orgMetadata.licenseStatus }),
-              ...(orgMetadata.maxUsers && { maxUsers: orgMetadata.maxUsers }),
-              ...(orgMetadata.contactEmail && { contactEmail: orgMetadata.contactEmail }),
-              ...(orgMetadata.contactPhone && { contactPhone: orgMetadata.contactPhone }),
-              ...(orgMetadata.billingEmail && { billingEmail: orgMetadata.billingEmail }),
-              ...(orgMetadata.address && { address: orgMetadata.address }),
-              ...(orgMetadata.districtId && { districtId: orgMetadata.districtId }),
-              ...(orgMetadata.regionId && { regionId: orgMetadata.regionId }),
-            };
-          } else {
-            // Regular sign-up user - create farmer organization by default
-            organizationName = `${displayName} ${DEFAULT_ORGANIZATION_SUFFIX}`.trim();
-            const baseSlug = createSlug(displayName);
-            const suffixSource =
-              typeof userId === "string" && userId.length > 0
-                ? userId.slice(-SLUG_SUFFIX_LENGTH)
-                : randomUUID().slice(0, SLUG_SUFFIX_LENGTH);
-            const sanitizedSuffix = suffixSource
-              .toLowerCase()
-              .replace(/[^a-z0-9]/g, "");
-            const suffix =
-              sanitizedSuffix.length > 0
-                ? sanitizedSuffix
-                : randomUUID().replace(/-/g, "").slice(0, SLUG_SUFFIX_LENGTH);
-            slug = `${baseSlug}-${suffix}`;
-            organizationType = ORGANIZATION_TYPE.FARMER_ORG;
-
-            organizationData = {
-              name: organizationName,
-              slug,
-              organizationType,
-              createdAt: now,
-            };
-          }
-
-          const organizationId =
-            authContext.generateId({ model: "organization" }) ||
-            `org_${randomUUID().replace(/-/g, "")}`;
-          const memberId =
-            authContext.generateId({ model: "member" }) ||
-            `mem_${randomUUID().replace(/-/g, "")}`;
-
-          await authContext.adapter.transaction(async (transaction) => {
-            await transaction.create({
-              model: "organization",
-              data: {
-                id: organizationId,
-                ...organizationData,
-              },
-            });
-
-            await transaction.create({
-              model: "member",
-              data: {
-                id: memberId,
-                organizationId,
-                userId,
-                role: ORGANIZATION_MEMBER_ROLE.OWNER,
-                createdAt: now,
-              },
-            });
-          });
+          await createOrganizationWithMembership(
+            authContext,
+            organizationData,
+            userId,
+            now
+          );
         },
       },
     },
@@ -248,7 +145,7 @@ export const auth = betterAuth({
             return;
           }
 
-          const memberships = await authContext.adapter.findMany({
+          const memberships = (await authContext.adapter.findMany({
             model: "member",
             where: [
               {
@@ -261,7 +158,7 @@ export const auth = betterAuth({
               direction: "asc",
             },
             limit: 1,
-          });
+          })) as Array<{ organizationId?: string }>;
 
           const primaryMembership = memberships.at(0);
 

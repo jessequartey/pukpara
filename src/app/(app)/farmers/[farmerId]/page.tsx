@@ -1,11 +1,11 @@
 import { ArrowLeft, FileText, MapPin, User } from "lucide-react";
 import { PageTitle } from "@/components/ui/page-title";
 
-type FarmerProfilePageProps = {
+export default async function FarmerProfilePage({
+  params,
+}: {
   params: { orgId: string; farmerId: string };
-};
-
-export default function FarmerProfilePage({ params }: FarmerProfilePageProps) {
+}) {
   const basePath = `/app/${params.orgId}`;
   const farmersPath = `${basePath}/farmers`;
   const farmerId = decodeURIComponent(params.farmerId);

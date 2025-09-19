@@ -187,7 +187,7 @@ const getPasswordResetRedirect = () => {
   return `${baseUrl.replace(TRAILING_SLASH_REGEX, "")}/reset-password`;
 };
 
-const requestPasswordSetup = async (email: string, userName: string, organizationName: string) => {
+const requestPasswordSetup = async (email: string) => {
   const response = await fetch("/api/auth/request-password-reset", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -336,14 +336,27 @@ export function OrganizationCreatePage() {
       source: "admin" as const,
       organizationName: organization.name,
       organizationSlug: organization.slug,
-      organizationType: organization.organizationType ?? ORGANIZATION_TYPE.FARMER_ORG,
-      ...(organization.organizationSubType && { organizationSubType: organization.organizationSubType }),
-      ...(organization.subscriptionType && { subscriptionType: organization.subscriptionType }),
-      ...(organization.licenseStatus && { licenseStatus: organization.licenseStatus }),
+      organizationType:
+        organization.organizationType ?? ORGANIZATION_TYPE.FARMER_ORG,
+      ...(organization.organizationSubType && {
+        organizationSubType: organization.organizationSubType,
+      }),
+      ...(organization.subscriptionType && {
+        subscriptionType: organization.subscriptionType,
+      }),
+      ...(organization.licenseStatus && {
+        licenseStatus: organization.licenseStatus,
+      }),
       ...(organization.maxUsers && { maxUsers: organization.maxUsers }),
-      ...(organization.contactEmail && { contactEmail: organization.contactEmail }),
-      ...(organization.contactPhone && { contactPhone: organization.contactPhone }),
-      ...(organization.billingEmail && { billingEmail: organization.billingEmail }),
+      ...(organization.contactEmail && {
+        contactEmail: organization.contactEmail,
+      }),
+      ...(organization.contactPhone && {
+        contactPhone: organization.contactPhone,
+      }),
+      ...(organization.billingEmail && {
+        billingEmail: organization.billingEmail,
+      }),
       ...(organization.address && { address: organization.address }),
       ...(organization.districtId && { districtId: organization.districtId }),
       ...(organization.regionId && { regionId: organization.regionId }),
@@ -351,23 +364,21 @@ export function OrganizationCreatePage() {
 
     try {
       const response = await createUser({
-        body: {
-          email: newUser.email,
-          password,
-          name: fullName,
-          data: {
-            phoneNumber: newUser.phoneNumber,
-            address: newUser.address,
-            districtId: newUser.districtId,
-            status: USER_STATUS.APPROVED,
-            kycStatus: USER_KYC_STATUS.PENDING,
-            organizationMetadata: orgMetadata,
-          },
+        email: newUser.email,
+        password,
+        name: fullName,
+        data: {
+          phoneNumber: newUser.phoneNumber,
+          address: newUser.address,
+          districtId: newUser.districtId,
+          status: USER_STATUS.APPROVED,
+          kycStatus: USER_KYC_STATUS.PENDING,
+          organizationMetadata: orgMetadata,
         },
       });
 
       try {
-        await requestPasswordSetup(newUser.email, fullName, organization.name);
+        await requestPasswordSetup(newUser.email);
       } catch (inviteError) {
         const inviteMessage =
           extractErrorMessage(inviteError) ??
@@ -376,7 +387,7 @@ export function OrganizationCreatePage() {
       }
 
       return {
-        id: response.user.id,
+        id: response.data?.user?.id ?? "",
         email: newUser.email,
         phoneNumber: newUser.phoneNumber,
         districtId: newUser.districtId,
@@ -458,7 +469,9 @@ export function OrganizationCreatePage() {
         }
 
         // Success - the organization was created by the after hook
-        toast.success(`Organization "${organization.name}" and user created successfully`);
+        toast.success(
+          `Organization "${organization.name}" and user created successfully`
+        );
         resetStore();
         // Navigate to organizations list since we don't know the org ID created by the hook
         router.push("/admin/organizations");
@@ -472,13 +485,17 @@ export function OrganizationCreatePage() {
 
         const payload = buildOrganizationPayload(owner);
 
-        const created = await authClient.organization.create({
-          body: payload,
-        });
+        const created = await authClient.organization.create(payload);
 
-        toast.success(`Organization "${created.name}" created`);
+        if (!created.data) {
+          throw new Error("Failed to create organization");
+        }
+
+        toast.success(`Organization "${created.data.name}" created`);
         resetStore();
-        router.push(`/admin/organizations/${encodeURIComponent(created.id)}`);
+        router.push(
+          `/admin/organizations/${encodeURIComponent(created.data.id)}`
+        );
       }
     } catch (error) {
       const message =

@@ -2,15 +2,16 @@ import { ArrowLeft, Map as MapIcon, Sprout } from "lucide-react";
 import { PageTitle } from "@/components/ui/page-title";
 
 type FarmDetailPageProps = {
-  params: { orgId: string; farmerId: string; farmId: string };
+  params: Promise<{ orgId: string; farmerId: string; farmId: string }>;
 };
 
-export default function FarmDetailPage({ params }: FarmDetailPageProps) {
-  const basePath = `/app/${params.orgId}`;
+export default async function FarmDetailPage({ params }: FarmDetailPageProps) {
+  const { orgId, farmerId, farmId } = await params;
+  const basePath = `/app/${orgId}`;
   const farmersPath = `${basePath}/farmers`;
-  const farmsPath = `${farmersPath}/${params.farmerId}/farms`;
-  const farmerId = decodeURIComponent(params.farmerId);
-  const farmId = decodeURIComponent(params.farmId);
+  const farmsPath = `${farmersPath}/${farmerId}/farms`;
+  const decodedFarmerId = decodeURIComponent(farmerId);
+  const decodedFarmId = decodeURIComponent(farmId);
 
   return (
     <div className="space-y-8">
@@ -23,12 +24,12 @@ export default function FarmDetailPage({ params }: FarmDetailPageProps) {
         breadcrumbs={[
           { label: "Organization", href: basePath },
           { label: "Farmers", href: farmersPath },
-          { label: farmerId, href: `${farmersPath}/${params.farmerId}` },
+          { label: decodedFarmerId, href: `${farmersPath}/${farmerId}` },
           { label: "Farms", href: farmsPath },
-          { label: farmId },
+          { label: decodedFarmId },
         ]}
         description="Farm boundaries, production timelines, and agronomic performance."
-        title={`Farm: ${farmId}`}
+        title={`Farm: ${decodedFarmId}`}
       />
 
       <div className="grid gap-6 lg:grid-cols-3">

@@ -103,18 +103,22 @@ export const NewUserStep = ({ onBack, onNext }: NewUserStepProps) => {
   );
 
   const fetchDistrictOptions = useCallback(
-    async (query?: string) => {
+    (query?: string) => {
       if (districtsLoading) {
-        return [] as DistrictOption[];
+        return Promise.resolve([] as DistrictOption[]);
       }
 
       if (!query) {
-        return districtOptionsList;
+        return Promise.resolve(districtOptionsList);
       }
 
       const normalized = query.trim().toLowerCase();
-      return districtOptionsList.filter((option) =>
-        `${option.name} ${option.regionName}`.toLowerCase().includes(normalized)
+      return Promise.resolve(
+        districtOptionsList.filter((option) =>
+          `${option.name} ${option.regionName}`
+            .toLowerCase()
+            .includes(normalized)
+        )
       );
     },
     [districtOptionsList, districtsLoading]
@@ -130,6 +134,37 @@ export const NewUserStep = ({ onBack, onNext }: NewUserStepProps) => {
     form.reset(storedUser);
   }, [form, storedUser]);
 
+  const updateOrganizationFromUserData = useCallback(
+    (values: NewUserSchema, selectedDistrict: DistrictOption | null) => {
+      const updates: Partial<OrganizationState> = {};
+
+      // Update contact information if not already set
+      if (!organization.contactEmail && values.email) {
+        updates.contactEmail = values.email;
+        updates.billingEmail = values.email;
+      }
+      if (!organization.contactPhone && values.phoneNumber) {
+        updates.contactPhone = values.phoneNumber;
+      }
+      if (!organization.address && values.address) {
+        updates.address = values.address;
+      }
+
+      // Update district information if not already set
+      if (!organization.districtId && selectedDistrict) {
+        updates.districtId = selectedDistrict.id;
+        updates.districtName = selectedDistrict.name;
+        updates.regionId = selectedDistrict.regionCode;
+        updates.regionName = selectedDistrict.regionName;
+      }
+
+      if (Object.keys(updates).length > 0) {
+        setOrganizationData(updates);
+      }
+    },
+    [organization, setOrganizationData]
+  );
+
   const handleSubmit = (data: NewUserSchema) => {
     const selectedDistrict = districtIndex.get(data.districtId);
 
@@ -139,32 +174,7 @@ export const NewUserStep = ({ onBack, onNext }: NewUserStepProps) => {
     }
 
     setNewUserData(data);
-
-    const updates: Partial<OrganizationState> = {};
-
-    if (!organization.contactEmail) {
-      updates.contactEmail = data.email;
-    }
-    if (!organization.billingEmail) {
-      updates.billingEmail = data.email;
-    }
-    if (!organization.contactPhone) {
-      updates.contactPhone = data.phoneNumber;
-    }
-    if (!organization.address) {
-      updates.address = data.address;
-    }
-    if (!organization.districtId) {
-      updates.districtId = selectedDistrict.id;
-      updates.districtName = selectedDistrict.name;
-      updates.regionId = selectedDistrict.regionCode;
-      updates.regionName = selectedDistrict.regionName;
-    }
-
-    if (Object.keys(updates).length > 0) {
-      setOrganizationData(updates);
-    }
-
+    updateOrganizationFromUserData(data, selectedDistrict);
     onNext();
   };
 
@@ -173,34 +183,10 @@ export const NewUserStep = ({ onBack, onNext }: NewUserStepProps) => {
     setNewUserData(values);
 
     const selectedDistrict = values.districtId
-      ? districtIndex.get(values.districtId)
+      ? (districtIndex.get(values.districtId) ?? null)
       : null;
 
-    const updates: Partial<OrganizationState> = {};
-
-    if (!organization.contactEmail && values.email) {
-      updates.contactEmail = values.email;
-    }
-    if (!organization.billingEmail && values.email) {
-      updates.billingEmail = values.email;
-    }
-    if (!organization.contactPhone && values.phoneNumber) {
-      updates.contactPhone = values.phoneNumber;
-    }
-    if (!organization.address && values.address) {
-      updates.address = values.address;
-    }
-    if (!organization.districtId && selectedDistrict) {
-      updates.districtId = selectedDistrict.id;
-      updates.districtName = selectedDistrict.name;
-      updates.regionId = selectedDistrict.regionCode;
-      updates.regionName = selectedDistrict.regionName;
-    }
-
-    if (Object.keys(updates).length > 0) {
-      setOrganizationData(updates);
-    }
-
+    updateOrganizationFromUserData(values, selectedDistrict);
     onBack();
   };
 

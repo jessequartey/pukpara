@@ -3,13 +3,13 @@ import { PageTitle } from "@/components/ui/page-title";
 import { PlaceholderSection } from "@/features/admin/overview/components/placeholder-section";
 
 type AdminPaymentDetailPageProps = {
-  params: { paymentId: string };
+  params: Promise<{ paymentId: string }>;
 };
 
-export default function AdminPaymentDetailPage({
+export default async function AdminPaymentDetailPage({
   params,
 }: AdminPaymentDetailPageProps) {
-  const paymentId = decodeURIComponent(params.paymentId);
+  const { paymentId } = await params;
 
   return (
     <div className="space-y-8">

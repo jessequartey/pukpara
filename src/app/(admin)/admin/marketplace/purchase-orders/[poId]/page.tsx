@@ -3,13 +3,13 @@ import { PageTitle } from "@/components/ui/page-title";
 import { PlaceholderSection } from "@/features/admin/overview/components/placeholder-section";
 
 type AdminPurchaseOrderDetailPageProps = {
-  params: { poId: string };
+  params: Promise<{ poId: string }>;
 };
 
-export default function AdminPurchaseOrderDetailPage({
+export default async function AdminPurchaseOrderDetailPage({
   params,
 }: AdminPurchaseOrderDetailPageProps) {
-  const poId = decodeURIComponent(params.poId);
+  const { poId } = await params;
   const basePath = "/admin/marketplace";
 
   return (

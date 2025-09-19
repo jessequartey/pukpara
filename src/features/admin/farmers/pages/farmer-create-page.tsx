@@ -12,6 +12,7 @@ import { UploadModeStep } from "@/features/admin/farmers/components/farmer-creat
 import { FarmerPageTitle } from "@/features/admin/farmers/components/farmer-page-title";
 import { useFarmerCreateStore } from "@/features/admin/farmers/store/farmer-create-store";
 import { cn } from "@/lib/utils";
+import { api } from "@/trpc/react";
 
 const stepTitles = ["Upload method", "Farmer details"] as const;
 
@@ -118,10 +119,13 @@ export function FarmerCreatePage() {
   const step = useFarmerCreateStore((state) => state.step);
   const mode = useFarmerCreateStore((state) => state.mode);
   const farmer = useFarmerCreateStore((state) => state.farmer);
+  const farms = useFarmerCreateStore((state) => state.farms);
   const bulkUpload = useFarmerCreateStore((state) => state.bulkUpload);
   const nextStep = useFarmerCreateStore((state) => state.nextStep);
   const prevStep = useFarmerCreateStore((state) => state.prevStep);
   const resetStore = useFarmerCreateStore((state) => state.reset);
+
+  const createFarmerMutation = api.admin.farmers.create.useMutation();
 
   const [_isSubmitting, setIsSubmitting] = useState(false);
 
@@ -158,18 +162,40 @@ export function FarmerCreatePage() {
     return { valid: true } as const;
   };
 
-  const handleCreateSingleFarmer = async (farmerData: any) => {
+  const handleCreateSingleFarmer = async () => {
     setIsSubmitting(true);
 
     try {
-      // Simulate API call to create farmer
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Prepare farmer data for API
+      const farmerPayload = {
+        firstName: farmer.firstName,
+        lastName: farmer.lastName,
+        gender: farmer.gender,
+        dateOfBirth: farmer.dateOfBirth ? new Date(farmer.dateOfBirth) : undefined,
+        phone: farmer.phone || undefined,
+        isPhoneSmart: farmer.isPhoneSmart,
+        idNumber: farmer.idNumber || undefined,
+        idType: farmer.idType as "ghana_card" | "voters_id" | "passport" | "drivers_license" | undefined,
+        address: farmer.address || undefined,
+        districtId: farmer.districtId || undefined,
+        community: farmer.community || undefined,
+        householdSize: farmer.householdSize || undefined,
+        isLeader: farmer.isLeader,
+        organizationId: farmer.organizationId,
+        farms: farms.map(farm => ({
+          name: farm.name,
+          acreage: farm.acreage || undefined,
+          cropType: farm.cropType || undefined,
+          soilType: farm.soilType || undefined,
+          locationLat: farm.locationLat,
+          locationLng: farm.locationLng,
+        })),
+      };
 
-      // In a real implementation, this would make an API call
-      // const response = await api.farmers.create.mutate(farmerData);
+      const result = await createFarmerMutation.mutateAsync(farmerPayload);
 
       toast.success(
-        `Farmer "${farmerData.firstName} ${farmerData.lastName}" created successfully`
+        `Farmer "${farmer.firstName} ${farmer.lastName}" created successfully${farms.length > 0 ? ` with ${farms.length} farm(s)` : ""}`
       );
       resetStore();
       router.push("/admin/farmers");

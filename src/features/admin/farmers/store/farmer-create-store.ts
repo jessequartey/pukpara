@@ -17,8 +17,20 @@ type FarmerFormData = {
   idNumber: string;
   isLeader: boolean;
   isPhoneSmart: boolean;
+  organizationId: string;
+  householdSize: number | null;
   legacyFarmerId?: string;
   photoUrl?: string;
+};
+
+type FarmData = {
+  id?: string;
+  name: string;
+  acreage: number | null;
+  cropType: string;
+  soilType: "sandy" | "clay" | "loamy" | "silt" | "rocky" | "";
+  locationLat?: number;
+  locationLng?: number;
 };
 
 type BulkUploadData = {
@@ -36,12 +48,17 @@ type FarmerCreateStoreState = {
   step: number;
   mode: FarmerCreationMode | null;
   farmer: FarmerFormData;
+  farms: FarmData[];
   bulkUpload: BulkUploadData;
   setMode: (mode: FarmerCreationMode) => void;
   setStep: (step: number) => void;
   nextStep: () => void;
   prevStep: () => void;
   setFarmerData: (data: Partial<FarmerFormData>) => void;
+  setFarms: (farms: FarmData[]) => void;
+  addFarm: (farm: FarmData) => void;
+  removeFarm: (index: number) => void;
+  updateFarm: (index: number, farm: Partial<FarmData>) => void;
   setBulkUploadData: (data: Partial<BulkUploadData>) => void;
   reset: () => void;
 };
@@ -63,6 +80,8 @@ const initialFarmerState: FarmerFormData = {
   idNumber: "",
   isLeader: false,
   isPhoneSmart: false,
+  organizationId: "",
+  householdSize: null,
   legacyFarmerId: "",
   photoUrl: "",
 };
@@ -88,6 +107,7 @@ export const useFarmerCreateStore = create<FarmerCreateStoreState>((set) => ({
   step: 1,
   mode: null,
   farmer: { ...initialFarmerState },
+  farms: [],
   bulkUpload: { ...initialBulkUploadState },
   setMode: (mode) => set({ mode }),
   setStep: (step) => set({ step: clampStep(step) }),
@@ -103,6 +123,21 @@ export const useFarmerCreateStore = create<FarmerCreateStoreState>((set) => ({
     set((state) => ({
       farmer: { ...state.farmer, ...data },
     })),
+  setFarms: (farms) => set({ farms }),
+  addFarm: (farm) =>
+    set((state) => ({
+      farms: [...state.farms, farm],
+    })),
+  removeFarm: (index) =>
+    set((state) => ({
+      farms: state.farms.filter((_, i) => i !== index),
+    })),
+  updateFarm: (index, farmData) =>
+    set((state) => ({
+      farms: state.farms.map((farm, i) =>
+        i === index ? { ...farm, ...farmData } : farm
+      ),
+    })),
   setBulkUploadData: (data) =>
     set((state) => ({
       bulkUpload: { ...state.bulkUpload, ...data },
@@ -112,6 +147,7 @@ export const useFarmerCreateStore = create<FarmerCreateStoreState>((set) => ({
       step: 1,
       mode: null,
       farmer: { ...initialFarmerState },
+      farms: [],
       bulkUpload: { ...initialBulkUploadState },
     }),
 }));

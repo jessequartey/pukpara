@@ -1,10 +1,13 @@
 import { TRPCError } from "@trpc/server";
 import { and, count, eq, inArray, sql } from "drizzle-orm";
+import { nanoid } from "nanoid";
 import { z } from "zod";
 
 import { USER_STATUS } from "@/config/constants/auth";
 import {
   district,
+  farm,
+  farmer,
   member,
   organization,
   region,
@@ -44,6 +47,147 @@ const ensurePlatformAdmin = (sessionUser: unknown) => {
 };
 
 export const adminFarmersRouter = createTRPCRouter({
+  // Create a new farmer with farms
+  create: protectedProcedure
+    .input(
+      z.object({
+        // Farmer basic info
+        firstName: z.string().min(1, "First name is required"),
+        lastName: z.string().min(1, "Last name is required"),
+        gender: z.enum(["male", "female", "other"]).optional(),
+        dateOfBirth: z.date().optional(),
+        phone: z.string().optional(),
+        isPhoneSmart: z.boolean().default(false),
+        idNumber: z.string().optional(),
+        idType: z
+          .enum(["ghana_card", "voters_id", "passport", "drivers_license"])
+          .optional(),
+        address: z.string().optional(),
+        districtId: z.string().optional(),
+        community: z.string().optional(),
+        householdSize: z.number().int().positive().optional(),
+        isLeader: z.boolean().default(false),
+        imgUrl: z.string().url().optional(),
+        organizationId: z.string().min(1, "Organization is required"),
+        // Farms
+        farms: z
+          .array(
+            z.object({
+              name: z.string().min(1, "Farm name is required"),
+              acreage: z.number().positive().optional(),
+              cropType: z.string().optional(),
+              soilType: z
+                .enum(["sandy", "clay", "loamy", "silt", "rocky"])
+                .optional(),
+              locationLat: z.number().optional(),
+              locationLng: z.number().optional(),
+            })
+          )
+          .default([]),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      ensurePlatformAdmin(ctx.session.user);
+
+      const { farms, ...farmerData } = input;
+
+      try {
+        // Generate farmer ID
+        const farmerId = nanoid();
+        const pukparaId = `FRM-${farmerId.slice(0, 8).toUpperCase()}`;
+
+        // Create the farmer
+        const [newFarmer] = await ctx.db
+          .insert(farmer)
+          .values({
+            id: farmerId,
+            pukparaId,
+            ...farmerData,
+            kycStatus: "pending",
+          })
+          .returning();
+
+        // Create farms if provided
+        const createdFarms = [];
+        if (farms.length > 0) {
+          const farmRecords = farms.map((farm) => ({
+            id: nanoid(),
+            farmerId,
+            organizationId: input.organizationId,
+            ...farm,
+            status: "active" as const,
+          }));
+
+          const insertedFarms = await ctx.db
+            .insert(farm)
+            .values(farmRecords)
+            .returning();
+
+          createdFarms.push(...insertedFarms);
+        }
+
+        return {
+          farmer: newFarmer,
+          farms: createdFarms,
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to create farmer",
+          cause: error,
+        });
+      }
+    }),
+
+  // Get districts for dropdown
+  getDistricts: protectedProcedure.query(async ({ ctx }) => {
+    ensurePlatformAdmin(ctx.session.user);
+
+    try {
+      const districts = await ctx.db
+        .select({
+          id: district.id,
+          name: district.name,
+          regionName: region.name,
+        })
+        .from(district)
+        .leftJoin(region, eq(region.code, district.regionCode))
+        .orderBy(district.name);
+
+      return districts;
+    } catch (error) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to fetch districts",
+        cause: error,
+      });
+    }
+  }),
+
+  // Get organizations for dropdown
+  getOrganizations: protectedProcedure.query(async ({ ctx }) => {
+    ensurePlatformAdmin(ctx.session.user);
+
+    try {
+      const organizations = await ctx.db
+        .select({
+          id: organization.id,
+          name: organization.name,
+          organizationType: organization.organizationType,
+        })
+        .from(organization)
+        .orderBy(organization.name);
+
+      return organizations;
+    } catch (error) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to fetch organizations",
+        cause: error,
+      });
+    }
+  }),
+
   // Get all farmers for client-side filtering
   all: protectedProcedure.query(async ({ ctx }) => {
     ensurePlatformAdmin(ctx.session.user);
@@ -70,7 +214,9 @@ export const adminFarmersRouter = createTRPCRouter({
           districtName: district.name,
           regionName: region.name,
           organizationCount: sql<number>`COUNT(DISTINCT ${member.organizationId})`,
-          organizationNames: sql<string[]>`ARRAY_AGG(DISTINCT ${organization.name}) FILTER (WHERE ${organization.name} IS NOT NULL)`,
+          organizationNames: sql<
+            string[]
+          >`ARRAY_AGG(DISTINCT ${organization.name}) FILTER (WHERE ${organization.name} IS NOT NULL)`,
         })
         .from(user)
         .leftJoin(district, eq(district.id, user.districtId))

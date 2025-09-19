@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { PhoneInput } from "@/components/ui/phone-input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Popover,
   PopoverContent,
@@ -62,13 +63,24 @@ const farmerSchema = z.object({
   community: z.string().min(1, "Community is required"),
   address: z.string().min(ADDRESS_MIN_LENGTH, "Address is required"),
   districtId: z.string().min(1, "Select a district"),
-  idType: z.enum(["national_id", "passport", "drivers_license", "voter_id"], {
+  organizationId: z.string().min(1, "Select an organization"),
+  idType: z.enum(["ghana_card", "voters_id", "passport", "drivers_license"], {
     message: "Select an ID type",
   }),
   idNumber: z.string().min(ID_NUMBER_MIN_LENGTH, "ID number is required"),
+  householdSize: z.number().int().positive().optional(),
   isLeader: z.boolean().default(false),
   isPhoneSmart: z.boolean().default(false),
   legacyFarmerId: z.string().optional(),
+});
+
+const farmSchema = z.object({
+  name: z.string().min(1, "Farm name is required"),
+  acreage: z.number().positive("Acreage must be positive").optional(),
+  cropType: z.string().optional(),
+  soilType: z.enum(["sandy", "clay", "loamy", "silt", "rocky", ""], {
+    message: "Select a soil type",
+  }).optional(),
 });
 
 type FarmerSchema = z.infer<typeof farmerSchema>;
@@ -81,10 +93,18 @@ type DistrictOption = {
 };
 
 const idTypeOptions = [
-  { value: "national_id", label: "National ID" },
+  { value: "ghana_card", label: "Ghana Card" },
+  { value: "voters_id", label: "Voter's ID" },
   { value: "passport", label: "Passport" },
   { value: "drivers_license", label: "Driver's License" },
-  { value: "voter_id", label: "Voter ID" },
+];
+
+const soilTypeOptions = [
+  { value: "sandy", label: "Sandy" },
+  { value: "clay", label: "Clay" },
+  { value: "loamy", label: "Loamy" },
+  { value: "silt", label: "Silt" },
+  { value: "rocky", label: "Rocky" },
 ];
 
 const genderOptions = [
@@ -94,40 +114,51 @@ const genderOptions = [
 ];
 
 type SingleFarmerStepProps = {
-  onNext: (data: FarmerSchema) => void;
+  onNext: () => void;
   onBack: () => void;
 };
 
 export const SingleFarmerStep = ({ onBack, onNext }: SingleFarmerStepProps) => {
   const setFarmerData = useFarmerCreateStore((state) => state.setFarmerData);
   const storedFarmer = useFarmerCreateStore((state) => state.farmer);
+  const farms = useFarmerCreateStore((state) => state.farms);
+  const setFarms = useFarmerCreateStore((state) => state.setFarms);
+  const addFarm = useFarmerCreateStore((state) => state.addFarm);
+  const removeFarm = useFarmerCreateStore((state) => state.removeFarm);
+  const updateFarm = useFarmerCreateStore((state) => state.updateFarm);
 
   const {
     data: districtData,
     isLoading: districtsLoading,
     isError: districtsError,
-  } = api.districts.list.useQuery(undefined, {
+  } = api.admin.farmers.getDistricts.useQuery(undefined, {
     staleTime: Number.POSITIVE_INFINITY,
   });
 
-  const regions = useMemo(() => districtData?.regions ?? [], [districtData]);
+  const {
+    data: organizationData,
+    isLoading: organizationsLoading,
+    isError: organizationsError,
+  } = api.admin.farmers.getOrganizations.useQuery(undefined, {
+    staleTime: Number.POSITIVE_INFINITY,
+  });
 
   const districtIndex = useMemo(() => {
     const map = new Map<string, DistrictOption>();
 
-    for (const regionEntry of regions) {
-      for (const districtEntry of regionEntry.districts) {
-        map.set(districtEntry.id, {
-          id: districtEntry.id,
-          name: districtEntry.name,
-          regionName: regionEntry.name,
-          regionCode: regionEntry.code,
+    if (districtData) {
+      for (const district of districtData) {
+        map.set(district.id, {
+          id: district.id,
+          name: district.name,
+          regionName: district.regionName ?? "Unknown Region",
+          regionCode: district.regionName ?? "UNK",
         });
       }
     }
 
     return map;
-  }, [regions]);
+  }, [districtData]);
 
   const districtOptionsList = useMemo(
     () => Array.from(districtIndex.values()),
@@ -168,8 +199,10 @@ export const SingleFarmerStep = ({ onBack, onNext }: SingleFarmerStepProps) => {
       community: storedFarmer.community,
       address: storedFarmer.address,
       districtId: storedFarmer.districtId,
+      organizationId: storedFarmer.organizationId,
       idType: storedFarmer.idType as any,
       idNumber: storedFarmer.idNumber,
+      householdSize: storedFarmer.householdSize || undefined,
       isLeader: storedFarmer.isLeader,
       isPhoneSmart: storedFarmer.isPhoneSmart,
       legacyFarmerId: storedFarmer.legacyFarmerId,
@@ -188,8 +221,10 @@ export const SingleFarmerStep = ({ onBack, onNext }: SingleFarmerStepProps) => {
       community: storedFarmer.community,
       address: storedFarmer.address,
       districtId: storedFarmer.districtId,
+      organizationId: storedFarmer.organizationId,
       idType: storedFarmer.idType as any,
       idNumber: storedFarmer.idNumber,
+      householdSize: storedFarmer.householdSize || undefined,
       isLeader: storedFarmer.isLeader,
       isPhoneSmart: storedFarmer.isPhoneSmart,
       legacyFarmerId: storedFarmer.legacyFarmerId,
@@ -204,14 +239,20 @@ export const SingleFarmerStep = ({ onBack, onNext }: SingleFarmerStepProps) => {
       return;
     }
 
+    if (!data.organizationId) {
+      toast.error("Select an organization before continuing");
+      return;
+    }
+
     const farmerData = {
       ...data,
       regionId: selectedDistrict.regionCode,
       email: data.email || "",
+      householdSize: data.householdSize || null,
     };
 
     setFarmerData(farmerData);
-    onNext(farmerData);
+    onNext();
   };
 
   const handleBack = () => {
@@ -396,6 +437,38 @@ export const SingleFarmerStep = ({ onBack, onNext }: SingleFarmerStepProps) => {
               </div>
             </div>
 
+            {/* Organization */}
+            <div className="space-y-4">
+              <h4 className="font-medium text-sm">Organization</h4>
+              <FormField
+                control={form.control}
+                name="organizationId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Organization *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={organizationsLoading ? "Loading organizations..." : "Select organization"} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {organizationData?.map((org) => (
+                          <SelectItem key={org.id} value={org.id}>
+                            <div className="flex flex-col text-left">
+                              <span className="font-medium">{org.name}</span>
+                              <span className="text-muted-foreground text-xs">{org.organizationType}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             {/* Location Information */}
             <div className="space-y-4">
               <h4 className="font-medium text-sm">Location Information</h4>
@@ -526,6 +599,32 @@ export const SingleFarmerStep = ({ onBack, onNext }: SingleFarmerStepProps) => {
               <div className="space-y-4">
                 <FormField
                   control={form.control}
+                  name="householdSize"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Household size (optional)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="1"
+                          placeholder="5"
+                          {...field}
+                          value={field.value || ""}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            field.onChange(value ? Number(value) : undefined);
+                          }}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Number of people living in the household
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
                   name="isLeader"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-start space-x-3 space-y-0">
@@ -583,10 +682,134 @@ export const SingleFarmerStep = ({ onBack, onNext }: SingleFarmerStepProps) => {
               </div>
             </div>
 
-            {districtsError ? (
-              <p className="text-destructive text-sm">
-                Unable to load districts right now. Try refreshing the page.
-              </p>
+            {/* Farms Section */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium text-sm">Farms (Optional)</h4>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    addFarm({
+                      name: "",
+                      acreage: null,
+                      cropType: "",
+                      soilType: "",
+                    });
+                  }}
+                >
+                  Add Farm
+                </Button>
+              </div>
+              {farms.length === 0 ? (
+                <p className="text-muted-foreground text-sm">
+                  No farms added yet. You can add farms now or later.
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {farms.map((farm, index) => (
+                    <Card key={index} className="p-4">
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <h5 className="font-medium text-sm">
+                            Farm #{index + 1}
+                          </h5>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeFarm(index)}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <div>
+                            <label className="block text-sm font-medium mb-1">
+                              Farm name *
+                            </label>
+                            <Input
+                              placeholder="Main Farm"
+                              value={farm.name}
+                              onChange={(e) =>
+                                updateFarm(index, { name: e.target.value })
+                              }
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-1">
+                              Acreage
+                            </label>
+                            <Input
+                              type="number"
+                              step="0.1"
+                              min="0"
+                              placeholder="2.5"
+                              value={farm.acreage || ""}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                updateFarm(index, {
+                                  acreage: value ? Number(value) : null,
+                                });
+                              }}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-1">
+                              Crop type
+                            </label>
+                            <Input
+                              placeholder="Maize, Rice, Cassava"
+                              value={farm.cropType}
+                              onChange={(e) =>
+                                updateFarm(index, { cropType: e.target.value })
+                              }
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-1">
+                              Soil type
+                            </label>
+                            <Select
+                              value={farm.soilType}
+                              onValueChange={(value) =>
+                                updateFarm(index, { soilType: value })
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select soil type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {soilTypeOptions.map((option) => (
+                                  <SelectItem key={option.value} value={option.value}>
+                                    {option.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {districtsError || organizationsError ? (
+              <div className="space-y-2">
+                {districtsError && (
+                  <p className="text-destructive text-sm">
+                    Unable to load districts right now. Try refreshing the page.
+                  </p>
+                )}
+                {organizationsError && (
+                  <p className="text-destructive text-sm">
+                    Unable to load organizations right now. Try refreshing the page.
+                  </p>
+                )}
+              </div>
             ) : null}
 
             <div className="flex flex-col gap-3 md:flex-row md:justify-between">

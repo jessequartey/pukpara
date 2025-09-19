@@ -1,10 +1,5 @@
 import { create } from "zustand";
 
-import {
-  USER_KYC_STATUS,
-  USER_STATUS,
-} from "@/config/constants/auth";
-
 export type UserCreationMode = "new-organization" | "existing-organization";
 
 type UserFormData = {
@@ -97,41 +92,39 @@ const clampStep = (step: number) => {
   return step;
 };
 
-export const useUserCreateStore = create<UserCreateStoreState>(
-  (set) => ({
-    step: 1,
-    mode: null,
-    user: { ...initialUserState },
-    existingOrganization: null,
-    newOrganization: { ...initialNewOrganizationState },
-    setMode: (mode) => set({ mode }),
-    setStep: (step) => set({ step: clampStep(step) }),
-    nextStep: () =>
-      set((state) => ({
-        step: clampStep(state.step + 1),
-      })),
-    prevStep: () =>
-      set((state) => ({
-        step: clampStep(state.step - 1),
-      })),
-    setUserData: (data) =>
-      set((state) => ({
-        user: { ...state.user, ...data },
-      })),
-    setExistingOrganization: (org) => set({ existingOrganization: org }),
-    setNewOrganizationData: (data) =>
-      set((state) => ({
-        newOrganization: { ...state.newOrganization, ...data },
-      })),
-    reset: () =>
-      set({
-        step: 1,
-        mode: null,
-        user: { ...initialUserState },
-        existingOrganization: null,
-        newOrganization: { ...initialNewOrganizationState },
-      }),
-  })
-);
+export const useUserCreateStore = create<UserCreateStoreState>((set) => ({
+  step: 1,
+  mode: null,
+  user: { ...initialUserState },
+  existingOrganization: null,
+  newOrganization: { ...initialNewOrganizationState },
+  setMode: (mode) => set({ mode }),
+  setStep: (step) => set({ step: clampStep(step) }),
+  nextStep: () =>
+    set((state) => ({
+      step: clampStep(state.step + 1),
+    })),
+  prevStep: () =>
+    set((state) => ({
+      step: clampStep(state.step - 1),
+    })),
+  setUserData: (data) =>
+    set((state) => ({
+      user: { ...state.user, ...data },
+    })),
+  setExistingOrganization: (org) => set({ existingOrganization: org }),
+  setNewOrganizationData: (data) =>
+    set((state) => ({
+      newOrganization: { ...state.newOrganization, ...data },
+    })),
+  reset: () =>
+    set({
+      step: 1,
+      mode: null,
+      user: { ...initialUserState },
+      existingOrganization: null,
+      newOrganization: { ...initialNewOrganizationState },
+    }),
+}));
 
 export const userWizardTotalSteps = TOTAL_STEPS;

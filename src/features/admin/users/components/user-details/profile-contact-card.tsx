@@ -1,9 +1,9 @@
 "use client";
 
-import { Edit, Upload, User, Calendar, MapPin, Shield } from "lucide-react";
+import { Calendar, Edit, MapPin, Shield, Upload, User } from "lucide-react";
 import { useState } from "react";
-
-import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,15 +12,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { toast } from "sonner";
 
 type ProfileContactCardProps = {
   userId: string;
 };
 
 export function ProfileContactCard({ userId }: ProfileContactCardProps) {
-  const [isEditing, setIsEditing] = useState(false);
+  const [_isEditing, setIsEditing] = useState(false);
 
   // Mock user data - replace with actual API call
   const user = {
@@ -93,10 +91,10 @@ export function ProfileContactCard({ userId }: ProfileContactCardProps) {
               )}
             </Avatar>
             <Button
+              className="-bottom-2 -right-2 absolute h-8 w-8 rounded-full p-0"
+              onClick={handleUploadAvatar}
               size="sm"
               variant="outline"
-              className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
-              onClick={handleUploadAvatar}
             >
               <Upload className="h-3 w-3" />
             </Button>
@@ -114,7 +112,7 @@ export function ProfileContactCard({ userId }: ProfileContactCardProps) {
             <MapPin className="h-4 w-4 text-muted-foreground" />
             <span className="font-medium text-sm">Location</span>
           </div>
-          <div className="pl-6 space-y-1">
+          <div className="space-y-1 pl-6">
             <p className="text-sm">{user.address}</p>
             <p className="text-muted-foreground text-sm">
               {user.districtName}, {user.regionName}
@@ -128,7 +126,7 @@ export function ProfileContactCard({ userId }: ProfileContactCardProps) {
             <Calendar className="h-4 w-4 text-muted-foreground" />
             <span className="font-medium text-sm">Account Timeline</span>
           </div>
-          <div className="pl-6 space-y-2 text-sm">
+          <div className="space-y-2 pl-6 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Created:</span>
               <span>{formatDate(user.createdAt)}</span>
@@ -150,7 +148,7 @@ export function ProfileContactCard({ userId }: ProfileContactCardProps) {
             <Shield className="h-4 w-4 text-muted-foreground" />
             <span className="font-medium text-sm">Consent</span>
           </div>
-          <div className="pl-6 space-y-2 text-sm">
+          <div className="space-y-2 pl-6 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Terms:</span>
               <span>{formatDate(user.consentTermsAt)}</span>
@@ -164,12 +162,12 @@ export function ProfileContactCard({ userId }: ProfileContactCardProps) {
 
         {/* Actions */}
         <div className="flex gap-2">
-          <Button size="sm" variant="outline" onClick={handleEditProfile}>
+          <Button onClick={handleEditProfile} size="sm" variant="outline">
             <Edit className="mr-2 h-4 w-4" />
             Edit Profile
           </Button>
           {user.kycStatus !== "verified" && (
-            <Button size="sm" onClick={handleMarkKycVerified}>
+            <Button onClick={handleMarkKycVerified} size="sm">
               Mark KYC Verified
             </Button>
           )}

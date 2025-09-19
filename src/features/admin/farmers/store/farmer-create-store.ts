@@ -84,38 +84,36 @@ const clampStep = (step: number) => {
   return step;
 };
 
-export const useFarmerCreateStore = create<FarmerCreateStoreState>(
-  (set) => ({
-    step: 1,
-    mode: null,
-    farmer: { ...initialFarmerState },
-    bulkUpload: { ...initialBulkUploadState },
-    setMode: (mode) => set({ mode }),
-    setStep: (step) => set({ step: clampStep(step) }),
-    nextStep: () =>
-      set((state) => ({
-        step: clampStep(state.step + 1),
-      })),
-    prevStep: () =>
-      set((state) => ({
-        step: clampStep(state.step - 1),
-      })),
-    setFarmerData: (data) =>
-      set((state) => ({
-        farmer: { ...state.farmer, ...data },
-      })),
-    setBulkUploadData: (data) =>
-      set((state) => ({
-        bulkUpload: { ...state.bulkUpload, ...data },
-      })),
-    reset: () =>
-      set({
-        step: 1,
-        mode: null,
-        farmer: { ...initialFarmerState },
-        bulkUpload: { ...initialBulkUploadState },
-      }),
-  })
-);
+export const useFarmerCreateStore = create<FarmerCreateStoreState>((set) => ({
+  step: 1,
+  mode: null,
+  farmer: { ...initialFarmerState },
+  bulkUpload: { ...initialBulkUploadState },
+  setMode: (mode) => set({ mode }),
+  setStep: (step) => set({ step: clampStep(step) }),
+  nextStep: () =>
+    set((state) => ({
+      step: clampStep(state.step + 1),
+    })),
+  prevStep: () =>
+    set((state) => ({
+      step: clampStep(state.step - 1),
+    })),
+  setFarmerData: (data) =>
+    set((state) => ({
+      farmer: { ...state.farmer, ...data },
+    })),
+  setBulkUploadData: (data) =>
+    set((state) => ({
+      bulkUpload: { ...state.bulkUpload, ...data },
+    })),
+  reset: () =>
+    set({
+      step: 1,
+      mode: null,
+      farmer: { ...initialFarmerState },
+      bulkUpload: { ...initialBulkUploadState },
+    }),
+}));
 
 export const farmerWizardTotalSteps = TOTAL_STEPS;

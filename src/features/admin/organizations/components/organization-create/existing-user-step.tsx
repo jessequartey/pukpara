@@ -24,12 +24,12 @@ import { cn } from "@/lib/utils";
 const searchSchema = z.string().trim().min(2).or(z.literal(""));
 const SEARCH_DEBOUNCE_MS = 350;
 
-interface UserWithRole {
+type UserWithRole = {
   id: string;
   email: string | null;
   name: string | null;
   role?: string;
-}
+};
 
 type ExistingUserStepProps = {
   onBack: () => void;

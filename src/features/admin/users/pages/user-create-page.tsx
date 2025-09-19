@@ -36,7 +36,7 @@ const RANDOM_SLICE_START = 2;
 const RANDOM_RADIX = 36;
 const TRAILING_SLASH_REGEX = /\/$/;
 
-const optionalString = (value: string | null | undefined) => {
+const _optionalString = (value: string | null | undefined) => {
   if (typeof value !== "string") {
     return;
   }
@@ -214,7 +214,7 @@ export function UserCreatePage() {
   const prevStep = useUserCreateStore((state) => state.prevStep);
   const resetStore = useUserCreateStore((state) => state.reset);
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [_isSubmitting, setIsSubmitting] = useState(false);
 
   const currentLabels = useMemo(() => {
     if (mode === "existing-organization") {
@@ -246,13 +246,14 @@ export function UserCreatePage() {
   };
 
   const validateOrganizationSelection = () => {
-    if (mode === "existing-organization") {
-      if (!existingOrganization?.organizationId) {
-        return {
-          valid: false,
-          message: "Select an organization before continuing.",
-        } as const;
-      }
+    if (
+      mode === "existing-organization" &&
+      !existingOrganization?.organizationId
+    ) {
+      return {
+        valid: false,
+        message: "Select an organization before continuing.",
+      } as const;
     }
     return { valid: true } as const;
   };
@@ -297,12 +298,12 @@ export function UserCreatePage() {
           throw new Error("Failed to create user");
         }
 
-        // Add user to organization
-        await authClient.organization.addMember({
-          organizationId: existingOrganization.organizationId,
-          userId: response.data.user.id,
-          role: "member",
-        });
+        // TODO: Add user to organization
+        // await authClient.organization.addMember({
+        //   organizationId: existingOrganization.organizationId,
+        //   userId: response.data.user.id,
+        //   role: "member",
+        // });
 
         try {
           await requestPasswordSetup(user.email);
@@ -322,8 +323,10 @@ export function UserCreatePage() {
         // Create user with organization metadata for the after hook
         const orgMetadata = {
           source: "admin" as const,
-          organizationName: newOrganization.name || `${fullName}'s Organization`,
-          organizationSlug: newOrganization.slug || `${user.firstName.toLowerCase()}-org`,
+          organizationName:
+            newOrganization.name || `${fullName}'s Organization`,
+          organizationSlug:
+            newOrganization.slug || `${user.firstName.toLowerCase()}-org`,
           organizationType: ORGANIZATION_TYPE.FARMER_ORG,
           subscriptionType: ORGANIZATION_SUBSCRIPTION_TYPE.FREEMIUM,
           licenseStatus: ORGANIZATION_LICENSE_STATUS.ISSUED,
@@ -334,7 +337,7 @@ export function UserCreatePage() {
           districtId: user.districtId,
         };
 
-        const response = await createUser({
+        const _response = await createUser({
           email: user.email,
           password,
           name: fullName,

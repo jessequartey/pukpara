@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,7 @@ import {
 } from "@/lib/auth-admin-client";
 
 import { FarmerTable } from "../farmer-table";
-import type { FarmerTableRow, FarmerColumnKey } from "../farmer-table/columns";
+import type { FarmerColumnKey, FarmerTableRow } from "../farmer-table/columns";
 import { farmerColumns } from "../farmer-table/columns";
 import type { FarmerTableSortState } from "../farmer-table/index";
 
@@ -127,9 +127,9 @@ export function FarmerDirectoryCard({ controller }: FarmerDirectoryCardProps) {
     []
   );
 
-  const [visibleColumnKeys, setVisibleColumnKeys] = useState<Set<FarmerColumnKey>>(
-    () => new Set(allColumnKeys)
-  );
+  const [visibleColumnKeys, setVisibleColumnKeys] = useState<
+    Set<FarmerColumnKey>
+  >(() => new Set(allColumnKeys));
 
   useEffect(() => {
     if (visibleColumnKeys.size === 0 && allColumnKeys.length > 0) {

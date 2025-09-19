@@ -1,8 +1,8 @@
 "use client";
 
-import { ProfileContactCard } from "./user-details/profile-contact-card";
 import { AccountStatusComplianceCard } from "./user-details/account-status-compliance-card";
 import { OrganizationMembershipsCard } from "./user-details/organization-memberships-card";
+import { ProfileContactCard } from "./user-details/profile-contact-card";
 
 type UserDetailsContentProps = {
   userId: string;
@@ -10,7 +10,7 @@ type UserDetailsContentProps = {
 
 export function UserDetailsContent({ userId }: UserDetailsContentProps) {
   // Mock user data - replace with actual API call
-  const user = {
+  const _user = {
     id: userId,
     name: "John Doe",
     email: "john.doe@example.com",

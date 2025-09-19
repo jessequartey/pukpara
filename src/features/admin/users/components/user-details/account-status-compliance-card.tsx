@@ -1,8 +1,8 @@
 "use client";
 
-import { Shield, AlertTriangle, CheckCircle, Clock, Ban } from "lucide-react";
+import { AlertTriangle, Ban, CheckCircle, Clock, Shield } from "lucide-react";
 import { useState } from "react";
-
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,8 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { toast } from "sonner";
-import { USER_STATUS, USER_KYC_STATUS } from "@/config/constants/auth";
+import { USER_KYC_STATUS, USER_STATUS } from "@/config/constants/auth";
 
 type AccountStatusComplianceCardProps = {
   userId: string;
@@ -42,7 +41,7 @@ export function AccountStatusComplianceCard({
     setIsProcessing(true);
     try {
       // API call would go here
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       toast.success("User approved successfully");
     } catch {
       toast.error("Failed to approve user");
@@ -94,7 +93,7 @@ export function AccountStatusComplianceCard({
   const formatDate = (date: Date) => {
     return date.toLocaleDateString("en-US", {
       year: "numeric",
-      month: "short", 
+      month: "short",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
@@ -148,7 +147,7 @@ export function AccountStatusComplianceCard({
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 {getStatusIcon(user.status)}
-                <span className="text-sm font-medium">Account Status</span>
+                <span className="font-medium text-sm">Account Status</span>
               </div>
               <Badge variant={getStatusBadgeVariant(user.status)}>
                 {user.status}
@@ -157,7 +156,7 @@ export function AccountStatusComplianceCard({
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 {getKycStatusIcon(user.kycStatus)}
-                <span className="text-sm font-medium">KYC Status</span>
+                <span className="font-medium text-sm">KYC Status</span>
               </div>
               <Badge variant={getKycBadgeVariant(user.kycStatus)}>
                 {user.kycStatus}
@@ -187,7 +186,9 @@ export function AccountStatusComplianceCard({
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm">Phone Verified</span>
-              <Badge variant={user.phoneNumberVerified ? "default" : "secondary"}>
+              <Badge
+                variant={user.phoneNumberVerified ? "default" : "secondary"}
+              >
                 {user.phoneNumberVerified ? "Verified" : "Pending"}
               </Badge>
             </div>
@@ -205,7 +206,9 @@ export function AccountStatusComplianceCard({
               <CheckCircle className="h-4 w-4 text-green-600" />
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Address Verification</span>
+              <span className="text-muted-foreground">
+                Address Verification
+              </span>
               <CheckCircle className="h-4 w-4 text-green-600" />
             </div>
             <div className="flex items-center justify-between">
@@ -222,23 +225,31 @@ export function AccountStatusComplianceCard({
           <h4 className="font-medium">Controls</h4>
           <div className="grid grid-cols-2 gap-2">
             {user.status === USER_STATUS.PENDING && (
-              <Button 
-                size="sm" 
-                onClick={handleApproveNow} 
+              <Button
                 disabled={isProcessing}
+                onClick={handleApproveNow}
+                size="sm"
               >
                 {isProcessing ? "Processing..." : "Approve Now"}
               </Button>
             )}
             {user.kycStatus !== USER_KYC_STATUS.VERIFIED && (
-              <Button size="sm" variant="outline" onClick={handleRequestKyc}>
+              <Button onClick={handleRequestKyc} size="sm" variant="outline">
                 Request KYC Docs
               </Button>
             )}
-            <Button size="sm" variant="outline" onClick={handleSuspendWithReason}>
+            <Button
+              onClick={handleSuspendWithReason}
+              size="sm"
+              variant="outline"
+            >
               Suspend with Reason
             </Button>
-            <Button size="sm" variant="destructive" onClick={handleBanWithReason}>
+            <Button
+              onClick={handleBanWithReason}
+              size="sm"
+              variant="destructive"
+            >
               Ban with Reason
             </Button>
           </div>

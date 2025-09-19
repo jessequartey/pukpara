@@ -1,21 +1,40 @@
 "use client";
 
-import { useState } from "react";
 import {
-  MapPin,
-  Plus,
-  MoreHorizontal,
+  Activity,
   Edit,
   Eye,
-  Trash2,
-  Sprout,
+  MapPin,
+  MoreHorizontal,
+  Plus,
   Ruler,
-  Calendar,
-  Activity
+  Sprout,
+  Trash2,
 } from "lucide-react";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Label } from "@/components/ui/label";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import {
   Table,
   TableBody,
@@ -24,20 +43,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import { Label } from "@/components/ui/label";
 
 type FarmsCardProps = {
   farmerId: string;
@@ -137,8 +142,8 @@ export function FarmsCard({ farmerId, orgId }: FarmsCardProps) {
     },
     {
       id: "2",
-      latitude: 6.6890,
-      longitude: -1.6250,
+      latitude: 6.689,
+      longitude: -1.625,
       capturedAt: "2024-02-10T14:15:00Z",
     },
   ];
@@ -182,7 +187,7 @@ export function FarmsCard({ farmerId, orgId }: FarmsCardProps) {
     if (farm.latitude && farm.longitude) {
       return (
         <div className="flex items-center gap-1">
-          <Badge variant="outline" className="text-xs">
+          <Badge className="text-xs" variant="outline">
             {farm.latitude.toFixed(4)}, {farm.longitude.toFixed(4)}
           </Badge>
         </div>
@@ -265,8 +270,8 @@ export function FarmsCard({ farmerId, orgId }: FarmsCardProps) {
             <TableBody>
               {farms.map((farm) => (
                 <TableRow
-                  key={farm.id}
                   className="cursor-pointer hover:bg-muted/50"
+                  key={farm.id}
                   onClick={() => handleFarmClick(farm)}
                 >
                   <TableCell>
@@ -286,7 +291,9 @@ export function FarmsCard({ farmerId, orgId }: FarmsCardProps) {
                   <TableCell>{formatLocation(farm)}</TableCell>
                   <TableCell>
                     <Badge
-                      variant={farm.status === "active" ? "default" : "secondary"}
+                      variant={
+                        farm.status === "active" ? "default" : "secondary"
+                      }
                     >
                       {farm.status}
                     </Badge>
@@ -302,12 +309,17 @@ export function FarmsCard({ farmerId, orgId }: FarmsCardProps) {
                         </p>
                       </div>
                     ) : (
-                      <span className="text-muted-foreground text-sm">No yields</span>
+                      <span className="text-muted-foreground text-sm">
+                        No yields
+                      </span>
                     )}
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenuTrigger
+                        asChild
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <Button size="sm" variant="ghost">
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
@@ -336,7 +348,7 @@ export function FarmsCard({ farmerId, orgId }: FarmsCardProps) {
       </Card>
 
       {/* Farm Details Drawer */}
-      <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+      <Sheet onOpenChange={setIsDrawerOpen} open={isDrawerOpen}>
         <SheetContent className="w-[400px] sm:w-[540px]">
           <SheetHeader>
             <SheetTitle>
@@ -354,20 +366,36 @@ export function FarmsCard({ farmerId, orgId }: FarmsCardProps) {
                 <h4 className="font-medium">Overview</h4>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <Label className="text-muted-foreground text-xs">Acreage</Label>
-                    <p>{selectedFarm.acreage} {selectedFarm.uom}</p>
+                    <Label className="text-muted-foreground text-xs">
+                      Acreage
+                    </Label>
+                    <p>
+                      {selectedFarm.acreage} {selectedFarm.uom}
+                    </p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground text-xs">Crop Type</Label>
+                    <Label className="text-muted-foreground text-xs">
+                      Crop Type
+                    </Label>
                     <p>{selectedFarm.cropType}</p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground text-xs">Soil Type</Label>
+                    <Label className="text-muted-foreground text-xs">
+                      Soil Type
+                    </Label>
                     <p>{selectedFarm.soilType}</p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground text-xs">Status</Label>
-                    <Badge variant={selectedFarm.status === "active" ? "default" : "secondary"}>
+                    <Label className="text-muted-foreground text-xs">
+                      Status
+                    </Label>
+                    <Badge
+                      variant={
+                        selectedFarm.status === "active"
+                          ? "default"
+                          : "secondary"
+                      }
+                    >
                       {selectedFarm.status}
                     </Badge>
                   </div>
@@ -383,9 +411,12 @@ export function FarmsCard({ farmerId, orgId }: FarmsCardProps) {
                 <div className="space-y-2">
                   {selectedFarm.latitude && selectedFarm.longitude ? (
                     <div>
-                      <Label className="text-muted-foreground text-xs">Coordinates</Label>
+                      <Label className="text-muted-foreground text-xs">
+                        Coordinates
+                      </Label>
                       <p className="font-mono text-sm">
-                        {selectedFarm.latitude.toFixed(6)}, {selectedFarm.longitude.toFixed(6)}
+                        {selectedFarm.latitude.toFixed(6)},{" "}
+                        {selectedFarm.longitude.toFixed(6)}
                       </p>
                     </div>
                   ) : null}
@@ -395,9 +426,13 @@ export function FarmsCard({ farmerId, orgId }: FarmsCardProps) {
                     </Label>
                     <div className="space-y-1">
                       {farmCoordinates.slice(0, 3).map((coord) => (
-                        <div key={coord.id} className="flex items-center justify-between text-sm">
+                        <div
+                          className="flex items-center justify-between text-sm"
+                          key={coord.id}
+                        >
                           <span className="font-mono">
-                            {coord.latitude.toFixed(4)}, {coord.longitude.toFixed(4)}
+                            {coord.latitude.toFixed(4)},{" "}
+                            {coord.longitude.toFixed(4)}
                           </span>
                           <span className="text-muted-foreground text-xs">
                             {formatDate(coord.capturedAt)}
@@ -417,10 +452,15 @@ export function FarmsCard({ farmerId, orgId }: FarmsCardProps) {
                 </h4>
                 <div className="space-y-2">
                   {farmYields.slice(0, 3).map((yield_) => (
-                    <div key={yield_.id} className="flex items-center justify-between rounded-lg border p-3">
+                    <div
+                      className="flex items-center justify-between rounded-lg border p-3"
+                      key={yield_.id}
+                    >
                       <div>
                         <p className="font-medium text-sm">{yield_.season}</p>
-                        <p className="text-muted-foreground text-xs">{yield_.variety}</p>
+                        <p className="text-muted-foreground text-xs">
+                          {yield_.variety}
+                        </p>
                       </div>
                       <div className="text-right">
                         <p className="font-medium text-sm">

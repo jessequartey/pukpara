@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, Upload, AlertCircle, CheckCircle2, XCircle } from "lucide-react";
+import { CheckCircle2, Download, Upload, XCircle } from "lucide-react";
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
@@ -32,7 +32,9 @@ type BulkUploadStepProps = {
 };
 
 const acceptedFileTypes = {
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [
+    ".xlsx",
+  ],
   "application/vnd.ms-excel": [".xls"],
   "text/csv": [".csv"],
 };
@@ -41,7 +43,9 @@ const maxFileSize = 10 * 1024 * 1024; // 10MB
 
 export const BulkUploadStep = ({ onBack, onNext }: BulkUploadStepProps) => {
   const bulkUpload = useFarmerCreateStore((state) => state.bulkUpload);
-  const setBulkUploadData = useFarmerCreateStore((state) => state.setBulkUploadData);
+  const setBulkUploadData = useFarmerCreateStore(
+    (state) => state.setBulkUploadData
+  );
   const [isDragActive, setIsDragActive] = useState(false);
 
   const onDrop = useCallback(
@@ -121,7 +125,11 @@ export const BulkUploadStep = ({ onBack, onNext }: BulkUploadStepProps) => {
           {
             row: 18,
             message: "Invalid email format",
-            data: { firstName: "Alice", lastName: "Brown", email: "invalid-email" },
+            data: {
+              firstName: "Alice",
+              lastName: "Brown",
+              email: "invalid-email",
+            },
           },
           {
             row: 25,
@@ -140,7 +148,7 @@ export const BulkUploadStep = ({ onBack, onNext }: BulkUploadStepProps) => {
       toast.success(
         `Upload completed: ${mockResults.successful} farmers created, ${mockResults.failed} failed`
       );
-    } catch (error) {
+    } catch (_error) {
       setBulkUploadData({ isUploading: false });
       toast.error("Upload failed. Please try again.");
     }
@@ -161,11 +169,13 @@ export const BulkUploadStep = ({ onBack, onNext }: BulkUploadStepProps) => {
   };
 
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes";
+    if (bytes === 0) {
+      return "0 Bytes";
+    }
     const k = 1024;
     const sizes = ["Bytes", "KB", "MB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
+    return `${Math.round((bytes / k ** i) * 100) / 100} ${sizes[i]}`;
   };
 
   return (
@@ -200,7 +210,7 @@ export const BulkUploadStep = ({ onBack, onNext }: BulkUploadStepProps) => {
           <div
             {...getRootProps()}
             className={cn(
-              "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
+              "cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-colors",
               isDragActive
                 ? "border-primary bg-primary/5"
                 : "border-border hover:border-primary/60 hover:bg-primary/5",
@@ -208,7 +218,7 @@ export const BulkUploadStep = ({ onBack, onNext }: BulkUploadStepProps) => {
             )}
           >
             <input {...getInputProps()} />
-            <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+            <Upload className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
             {bulkUpload.file ? (
               <div className="space-y-2">
                 <p className="font-medium">{bulkUpload.file.name}</p>
@@ -245,8 +255,8 @@ export const BulkUploadStep = ({ onBack, onNext }: BulkUploadStepProps) => {
         {bulkUpload.isUploading && (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Uploading...</span>
-              <span className="text-sm text-muted-foreground">
+              <span className="font-medium text-sm">Uploading...</span>
+              <span className="text-muted-foreground text-sm">
                 {bulkUpload.uploadProgress}%
               </span>
             </div>
@@ -283,7 +293,7 @@ export const BulkUploadStep = ({ onBack, onNext }: BulkUploadStepProps) => {
             {bulkUpload.uploadResults.errors.length > 0 && (
               <div className="space-y-2">
                 <h5 className="font-medium text-sm">Error Details</h5>
-                <div className="border rounded-lg">
+                <div className="rounded-lg border">
                   <Table>
                     <TableHeader>
                       <TableRow>

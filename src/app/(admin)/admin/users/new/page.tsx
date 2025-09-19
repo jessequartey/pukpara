@@ -1,3 +1,1 @@
-import { UserCreatePage } from "@/features/admin/users/pages/user-create-page";
-
-export default UserCreatePage;
+export { UserCreatePage as default } from "@/features/admin/users/pages/user-create-page";

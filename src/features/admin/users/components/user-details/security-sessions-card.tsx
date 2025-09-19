@@ -1,8 +1,16 @@
 "use client";
 
-import { Shield, Smartphone, Monitor, Key, AlertTriangle, Trash2, Plus } from "lucide-react";
+import {
+  AlertTriangle,
+  Key,
+  Monitor,
+  Plus,
+  Shield,
+  Smartphone,
+  Trash2,
+} from "lucide-react";
 import { useState } from "react";
-
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +20,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import {
   Table,
   TableBody,
@@ -20,8 +29,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Separator } from "@/components/ui/separator";
-import { toast } from "sonner";
 
 type SecuritySessionsCardProps = {
   userId: string;
@@ -92,7 +99,7 @@ export function SecuritySessionsCard({ userId }: SecuritySessionsCardProps) {
   const handleRevokeSession = async (sessionId: string) => {
     setIsRevoking(sessionId);
     try {
-      await new Promise(resolve => setTimeout(resolve, SESSION_REVOKE_DELAY));
+      await new Promise((resolve) => setTimeout(resolve, SESSION_REVOKE_DELAY));
       toast.success("Session revoked successfully");
     } catch {
       toast.error("Failed to revoke session");
@@ -104,7 +111,9 @@ export function SecuritySessionsCard({ userId }: SecuritySessionsCardProps) {
   const handleRevokeAllSessions = async () => {
     setIsRevoking("all");
     try {
-      await new Promise(resolve => setTimeout(resolve, ALL_SESSIONS_REVOKE_DELAY));
+      await new Promise((resolve) =>
+        setTimeout(resolve, ALL_SESSIONS_REVOKE_DELAY)
+      );
       toast.success("All sessions revoked successfully");
     } catch {
       toast.error("Failed to revoke all sessions");
@@ -113,7 +122,7 @@ export function SecuritySessionsCard({ userId }: SecuritySessionsCardProps) {
     }
   };
 
-  const handleRevokeApiKey = (keyId: string) => {
+  const handleRevokeApiKey = (_keyId: string) => {
     toast.success("API key revoked");
   };
 
@@ -182,7 +191,9 @@ export function SecuritySessionsCard({ userId }: SecuritySessionsCardProps) {
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm">Phone Verified</span>
-              <Badge variant={user.phoneNumberVerified ? "default" : "secondary"}>
+              <Badge
+                variant={user.phoneNumberVerified ? "default" : "secondary"}
+              >
                 {user.phoneNumberVerified ? "Verified" : "Pending"}
               </Badge>
             </div>
@@ -199,13 +210,20 @@ export function SecuritySessionsCard({ userId }: SecuritySessionsCardProps) {
                 <div className="flex items-start gap-2">
                   <AlertTriangle className="mt-0.5 h-4 w-4 text-orange-600" />
                   <div className="text-sm">
-                    <p className="font-medium text-orange-800">Impersonation Active</p>
+                    <p className="font-medium text-orange-800">
+                      Impersonation Active
+                    </p>
                     <p className="text-orange-700">
-                      This session is being impersonated by admin user ID: {user.impersonatedBy}
+                      This session is being impersonated by admin user ID:{" "}
+                      {user.impersonatedBy}
                     </p>
                   </div>
                 </div>
-                <Button size="sm" variant="outline" onClick={handleStopImpersonating}>
+                <Button
+                  onClick={handleStopImpersonating}
+                  size="sm"
+                  variant="outline"
+                >
                   Stop Impersonating
                 </Button>
               </div>
@@ -218,11 +236,11 @@ export function SecuritySessionsCard({ userId }: SecuritySessionsCardProps) {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="font-medium">Active Sessions</h4>
-            <Button 
-              size="sm" 
-              variant="destructive" 
-              onClick={handleRevokeAllSessions}
+            <Button
               disabled={isRevoking === "all"}
+              onClick={handleRevokeAllSessions}
+              size="sm"
+              variant="destructive"
             >
               {isRevoking === "all" ? "Revoking..." : "Revoke All"}
             </Button>
@@ -245,13 +263,15 @@ export function SecuritySessionsCard({ userId }: SecuritySessionsCardProps) {
                       <div className="flex items-center gap-2">
                         {getDeviceIcon(session.userAgent)}
                         <div>
-                          <p className="font-medium text-sm">{session.device}</p>
+                          <p className="font-medium text-sm">
+                            {session.device}
+                          </p>
                           <p className="text-muted-foreground text-xs">
                             {shortenUserAgent(session.userAgent)}
                           </p>
                         </div>
                         {session.isCurrent && (
-                          <Badge variant="outline" className="text-xs">
+                          <Badge className="text-xs" variant="outline">
                             Current
                           </Badge>
                         )}
@@ -268,10 +288,10 @@ export function SecuritySessionsCard({ userId }: SecuritySessionsCardProps) {
                     </TableCell>
                     <TableCell>
                       <Button
+                        disabled={isRevoking === session.id}
+                        onClick={() => handleRevokeSession(session.id)}
                         size="sm"
                         variant="ghost"
-                        onClick={() => handleRevokeSession(session.id)}
-                        disabled={isRevoking === session.id}
                       >
                         {isRevoking === session.id ? (
                           "Revoking..."
@@ -293,7 +313,7 @@ export function SecuritySessionsCard({ userId }: SecuritySessionsCardProps) {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="font-medium">API Keys</h4>
-            <Button size="sm" onClick={handleCreateApiKey}>
+            <Button onClick={handleCreateApiKey} size="sm">
               <Plus className="mr-2 h-4 w-4" />
               Create New
             </Button>
@@ -327,16 +347,18 @@ export function SecuritySessionsCard({ userId }: SecuritySessionsCardProps) {
                         {apiKey.maskedValue}
                       </TableCell>
                       <TableCell className="text-muted-foreground text-sm">
-                        {apiKey.lastUsed ? formatDate(apiKey.lastUsed) : "Never"}
+                        {apiKey.lastUsed
+                          ? formatDate(apiKey.lastUsed)
+                          : "Never"}
                       </TableCell>
                       <TableCell className="text-muted-foreground text-sm">
                         {formatDate(apiKey.createdAt)}
                       </TableCell>
                       <TableCell>
                         <Button
+                          onClick={() => handleRevokeApiKey(apiKey.id)}
                           size="sm"
                           variant="ghost"
-                          onClick={() => handleRevokeApiKey(apiKey.id)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

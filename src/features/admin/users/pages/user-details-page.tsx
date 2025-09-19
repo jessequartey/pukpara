@@ -1,10 +1,9 @@
 "use client";
 
 import { ArrowLeft, Copy } from "lucide-react";
-
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 import { UserDetailsContent } from "@/features/admin/users/components/user-details-content";
 import { UserPageTitle } from "@/features/admin/users/components/user-page-title";
 
@@ -50,11 +49,11 @@ export function UserDetailsPage({ userId }: UserDetailsPageProps) {
       </h2>
       <div className="flex items-center gap-2">
         <span className="text-muted-foreground text-sm">{user.email}</span>
-        <Button 
-          size="sm" 
-          variant="ghost" 
-          onClick={copyEmail}
+        <Button
           className="h-auto p-1"
+          onClick={copyEmail}
+          size="sm"
+          variant="ghost"
         >
           <Copy className="h-3 w-3" />
         </Button>
@@ -65,31 +64,39 @@ export function UserDetailsPage({ userId }: UserDetailsPageProps) {
   const badgeDescription = (
     <div className="flex flex-wrap items-center gap-2">
       <Badge
-        variant={user.status === "approved" ? "default" : 
-                user.status === "pending" ? "secondary" : 
-                user.status === "suspended" ? "destructive" : "outline"}
+        variant={
+          user.status === "approved"
+            ? "default"
+            : user.status === "pending"
+              ? "secondary"
+              : user.status === "suspended"
+                ? "destructive"
+                : "outline"
+        }
       >
         {user.status}
       </Badge>
       <Badge
-        variant={user.kycStatus === "verified" ? "default" : 
-                user.kycStatus === "pending" ? "secondary" : 
-                user.kycStatus === "rejected" ? "destructive" : "outline"}
+        variant={
+          user.kycStatus === "verified"
+            ? "default"
+            : user.kycStatus === "pending"
+              ? "secondary"
+              : user.kycStatus === "rejected"
+                ? "destructive"
+                : "outline"
+        }
       >
         KYC: {user.kycStatus}
       </Badge>
-      {user.emailVerified && (
-        <Badge variant="outline">Email verified</Badge>
-      )}
+      {user.emailVerified && <Badge variant="outline">Email verified</Badge>}
       {user.phoneNumberVerified && (
         <Badge variant="outline">Phone verified</Badge>
       )}
       {user.role && user.role !== "user" && (
         <Badge variant="outline">{user.role}</Badge>
       )}
-      {user.banned && (
-        <Badge variant="destructive">Banned</Badge>
-      )}
+      {user.banned && <Badge variant="destructive">Banned</Badge>}
     </div>
   );
 

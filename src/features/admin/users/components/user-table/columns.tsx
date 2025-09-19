@@ -54,7 +54,7 @@ const statusLabels: Record<string, string> = {
   [USER_STATUS.REJECTED]: "Rejected",
 };
 
-const kycLabels: Record<string, string> = {
+const _kycLabels: Record<string, string> = {
   [USER_KYC_STATUS.PENDING]: "Pending",
   [USER_KYC_STATUS.VERIFIED]: "Verified",
   [USER_KYC_STATUS.REJECTED]: "Rejected",

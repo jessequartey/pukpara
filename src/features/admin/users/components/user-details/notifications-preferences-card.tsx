@@ -1,8 +1,15 @@
 "use client";
 
-import { Bell, Mail, MessageSquare, Send, AlertCircle, CheckCircle } from "lucide-react";
+import {
+  AlertCircle,
+  Bell,
+  CheckCircle,
+  Mail,
+  MessageSquare,
+  Send,
+} from "lucide-react";
 import { useState } from "react";
-
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +19,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -20,9 +29,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
-import { toast } from "sonner";
 
 type NotificationsPreferencesCardProps = {
   userId: string;
@@ -55,7 +61,9 @@ type NotificationHistory = {
 const RECENT_NOTIFICATIONS_LIMIT = 10;
 const TEST_NOTIFICATION_DELAY = 1500;
 
-export function NotificationsPreferencesCard({ userId: _ }: NotificationsPreferencesCardProps) {
+export function NotificationsPreferencesCard({
+  userId: _,
+}: NotificationsPreferencesCardProps) {
   const [isSending, setIsSending] = useState<string | null>(null);
   const [preferences, setPreferences] = useState<NotificationPreferences>({
     email: {
@@ -115,7 +123,9 @@ export function NotificationsPreferencesCard({ userId: _ }: NotificationsPrefere
   const handleSendTestEmail = async () => {
     setIsSending("email");
     try {
-      await new Promise(resolve => setTimeout(resolve, TEST_NOTIFICATION_DELAY));
+      await new Promise((resolve) =>
+        setTimeout(resolve, TEST_NOTIFICATION_DELAY)
+      );
       toast.success("Test email sent successfully");
     } catch {
       toast.error("Failed to send test email");
@@ -127,7 +137,9 @@ export function NotificationsPreferencesCard({ userId: _ }: NotificationsPrefere
   const handleSendTestSms = async () => {
     setIsSending("sms");
     try {
-      await new Promise(resolve => setTimeout(resolve, TEST_NOTIFICATION_DELAY));
+      await new Promise((resolve) =>
+        setTimeout(resolve, TEST_NOTIFICATION_DELAY)
+      );
       toast.success("Test SMS sent successfully");
     } catch {
       toast.error("Failed to send test SMS");
@@ -141,7 +153,7 @@ export function NotificationsPreferencesCard({ userId: _ }: NotificationsPrefere
     key: string,
     value: boolean
   ) => {
-    setPreferences(prev => ({
+    setPreferences((prev) => ({
       ...prev,
       [channel]: {
         ...prev[channel],
@@ -233,7 +245,7 @@ export function NotificationsPreferencesCard({ userId: _ }: NotificationsPrefere
         {/* Delivery Preferences */}
         <div className="space-y-4">
           <h4 className="font-medium">Delivery Preferences</h4>
-          
+
           {/* Email Preferences */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
@@ -245,7 +257,7 @@ export function NotificationsPreferencesCard({ userId: _ }: NotificationsPrefere
                 <span className="text-sm">Enable email notifications</span>
                 <Switch
                   checked={preferences.email.enabled}
-                  onCheckedChange={(checked) => 
+                  onCheckedChange={(checked) =>
                     handlePreferenceChange("email", "enabled", checked)
                   }
                 />
@@ -254,30 +266,34 @@ export function NotificationsPreferencesCard({ userId: _ }: NotificationsPrefere
                 <span className="text-sm">Newsletters & updates</span>
                 <Switch
                   checked={preferences.email.newsletters}
-                  onCheckedChange={(checked) => 
+                  disabled={!preferences.email.enabled}
+                  onCheckedChange={(checked) =>
                     handlePreferenceChange("email", "newsletters", checked)
                   }
-                  disabled={!preferences.email.enabled}
                 />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm">Transaction alerts</span>
                 <Switch
                   checked={preferences.email.transactionAlerts}
-                  onCheckedChange={(checked) => 
-                    handlePreferenceChange("email", "transactionAlerts", checked)
-                  }
                   disabled={!preferences.email.enabled}
+                  onCheckedChange={(checked) =>
+                    handlePreferenceChange(
+                      "email",
+                      "transactionAlerts",
+                      checked
+                    )
+                  }
                 />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm">Security alerts</span>
                 <Switch
                   checked={preferences.email.securityAlerts}
-                  onCheckedChange={(checked) => 
+                  disabled={!preferences.email.enabled}
+                  onCheckedChange={(checked) =>
                     handlePreferenceChange("email", "securityAlerts", checked)
                   }
-                  disabled={!preferences.email.enabled}
                 />
               </div>
             </div>
@@ -294,7 +310,7 @@ export function NotificationsPreferencesCard({ userId: _ }: NotificationsPrefere
                 <span className="text-sm">Enable SMS notifications</span>
                 <Switch
                   checked={preferences.sms.enabled}
-                  onCheckedChange={(checked) => 
+                  onCheckedChange={(checked) =>
                     handlePreferenceChange("sms", "enabled", checked)
                   }
                 />
@@ -303,30 +319,30 @@ export function NotificationsPreferencesCard({ userId: _ }: NotificationsPrefere
                 <span className="text-sm">Transaction alerts</span>
                 <Switch
                   checked={preferences.sms.transactionAlerts}
-                  onCheckedChange={(checked) => 
+                  disabled={!preferences.sms.enabled}
+                  onCheckedChange={(checked) =>
                     handlePreferenceChange("sms", "transactionAlerts", checked)
                   }
-                  disabled={!preferences.sms.enabled}
                 />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm">Security alerts</span>
                 <Switch
                   checked={preferences.sms.securityAlerts}
-                  onCheckedChange={(checked) => 
+                  disabled={!preferences.sms.enabled}
+                  onCheckedChange={(checked) =>
                     handlePreferenceChange("sms", "securityAlerts", checked)
                   }
-                  disabled={!preferences.sms.enabled}
                 />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm">Marketing messages</span>
                 <Switch
                   checked={preferences.sms.marketingMessages}
-                  onCheckedChange={(checked) => 
+                  disabled={!preferences.sms.enabled}
+                  onCheckedChange={(checked) =>
                     handlePreferenceChange("sms", "marketingMessages", checked)
                   }
-                  disabled={!preferences.sms.enabled}
                 />
               </div>
             </div>
@@ -340,19 +356,19 @@ export function NotificationsPreferencesCard({ userId: _ }: NotificationsPrefere
           <h4 className="font-medium">Test Notifications</h4>
           <div className="flex gap-2">
             <Button
+              disabled={isSending === "email"}
+              onClick={handleSendTestEmail}
               size="sm"
               variant="outline"
-              onClick={handleSendTestEmail}
-              disabled={isSending === "email"}
             >
               <Mail className="mr-2 h-4 w-4" />
               {isSending === "email" ? "Sending..." : "Send Test Email"}
             </Button>
             <Button
+              disabled={isSending === "sms"}
+              onClick={handleSendTestSms}
               size="sm"
               variant="outline"
-              onClick={handleSendTestSms}
-              disabled={isSending === "sms"}
             >
               <MessageSquare className="mr-2 h-4 w-4" />
               {isSending === "sms" ? "Sending..." : "Send Test SMS"}
@@ -382,33 +398,39 @@ export function NotificationsPreferencesCard({ userId: _ }: NotificationsPrefere
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {notificationHistory.slice(0, RECENT_NOTIFICATIONS_LIMIT).map((notification) => (
-                    <TableRow key={notification.id}>
-                      <TableCell className="text-muted-foreground text-sm">
-                        {formatDate(notification.time)}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {getChannelIcon(notification.channel)}
-                          <span className="capitalize">{notification.channel}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {getTemplateDisplayName(notification.templateKey)}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {getStatusIcon(notification.status)}
-                          <Badge variant={getStatusVariant(notification.status)}>
-                            {notification.status}
-                          </Badge>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
-                        {notification.error || "—"}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {notificationHistory
+                    .slice(0, RECENT_NOTIFICATIONS_LIMIT)
+                    .map((notification) => (
+                      <TableRow key={notification.id}>
+                        <TableCell className="text-muted-foreground text-sm">
+                          {formatDate(notification.time)}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {getChannelIcon(notification.channel)}
+                            <span className="capitalize">
+                              {notification.channel}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {getTemplateDisplayName(notification.templateKey)}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {getStatusIcon(notification.status)}
+                            <Badge
+                              variant={getStatusVariant(notification.status)}
+                            >
+                              {notification.status}
+                            </Badge>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground text-sm">
+                          {notification.error || "—"}
+                        </TableCell>
+                      </TableRow>
+                    ))}
                 </TableBody>
               </Table>
             </div>

@@ -360,10 +360,7 @@ export const DataTable = ({
     }
 
     // Only allow sorting on fields that the API supports
-    const validSortFields = [
-      "name",
-      "createdAt",
-    ] as const;
+    const validSortFields = ["name", "createdAt"] as const;
     if (!validSortFields.includes(key as (typeof validSortFields)[number])) {
       return;
     }

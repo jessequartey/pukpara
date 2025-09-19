@@ -1,8 +1,23 @@
 "use client";
 
-import { Activity, Calendar, User, Edit, DollarSign, Users, Sprout, CreditCard, FileText } from "lucide-react";
+import {
+  Activity,
+  Calendar,
+  CreditCard,
+  DollarSign,
+  FileText,
+  Sprout,
+  User,
+  Users,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 type ActivityAuditCardProps = {
   farmerId: string;
@@ -45,7 +60,7 @@ export function ActivityAuditCard({ farmerId }: ActivityAuditCardProps) {
       performedAt: "2024-03-15T09:15:00Z",
       category: "savings",
       metadata: {
-        amount: 150.00,
+        amount: 150.0,
         currency: "GHS",
         type: "contribution",
         accountId: "VSLA-001-2024",
@@ -61,7 +76,7 @@ export function ActivityAuditCard({ farmerId }: ActivityAuditCardProps) {
       category: "loan",
       metadata: {
         loanId: "LOAN-2024-002",
-        amount: 2500.00,
+        amount: 2500.0,
         currency: "GHS",
         purpose: "Agricultural inputs",
       },
@@ -84,7 +99,8 @@ export function ActivityAuditCard({ farmerId }: ActivityAuditCardProps) {
       id: "5",
       action: "farm_registered",
       entity: `farm:${farmerId}`,
-      details: "New farm registered: Secondary Plantation (3.8 acres, Oil Palm)",
+      details:
+        "New farm registered: Secondary Plantation (3.8 acres, Oil Palm)",
       performedBy: "Field Officer",
       performedAt: "2024-01-20T16:30:00Z",
       category: "farm",
@@ -119,7 +135,7 @@ export function ActivityAuditCard({ farmerId }: ActivityAuditCardProps) {
       category: "loan",
       metadata: {
         loanId: "LOAN-2023-015",
-        amount: 500.00,
+        amount: 500.0,
         currency: "GHS",
         paymentMethod: "mobile_money",
       },
@@ -222,16 +238,18 @@ export function ActivityAuditCard({ farmerId }: ActivityAuditCardProps) {
           Activity & Audit
         </CardTitle>
         <CardDescription>
-          Recent activities and system audit trail ({auditEntries.length} entries)
+          Recent activities and system audit trail ({auditEntries.length}{" "}
+          entries)
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           {auditEntries.map((entry) => (
-            <div key={entry.id} className="flex items-start gap-4 rounded-lg border p-4">
-              <div className="mt-1">
-                {getCategoryIcon(entry.category)}
-              </div>
+            <div
+              className="flex items-start gap-4 rounded-lg border p-4"
+              key={entry.id}
+            >
+              <div className="mt-1">{getCategoryIcon(entry.category)}</div>
               <div className="flex-1 space-y-2">
                 <div className="flex items-center gap-2">
                   <Badge variant={getCategoryVariant(entry.category)}>

@@ -44,7 +44,6 @@ export type FarmerColumn = {
   render?: (row: FarmerTableRow) => ReactNode;
 };
 
-
 const dateFormatter = new Intl.DateTimeFormat("en", {
   dateStyle: "medium",
   timeStyle: "short",
@@ -64,16 +63,13 @@ const formatMaybeDate = (value: Date | string | null) => {
   return dateFormatter.format(parsed);
 };
 
-
 export const farmerColumns: FarmerColumn[] = [
   {
     key: "name",
     header: "Farmer",
     sortable: true,
     render: (row) => (
-      <span className="truncate font-medium text-foreground">
-        {row.name}
-      </span>
+      <span className="truncate font-medium text-foreground">{row.name}</span>
     ),
   },
   {

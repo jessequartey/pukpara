@@ -1,13 +1,26 @@
 "use client";
 
+import {
+  Calendar,
+  Download,
+  Eye,
+  File,
+  FileText,
+  Image,
+  Plus,
+  Trash2,
+  User,
+} from "lucide-react";
 import { useState } from "react";
-import { FileText, Plus, Calendar, User, Image, File, Download, Eye, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -16,6 +29,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 
 type NotesDocumentsCardProps = {
   farmerId: string;
@@ -43,7 +59,7 @@ type Document = {
   url: string;
 };
 
-export function NotesDocumentsCard({ farmerId }: NotesDocumentsCardProps) {
+export function NotesDocumentsCard(_: NotesDocumentsCardProps) {
   const [newNote, setNewNote] = useState("");
   const [isAddingNote, setIsAddingNote] = useState(false);
 
@@ -51,7 +67,8 @@ export function NotesDocumentsCard({ farmerId }: NotesDocumentsCardProps) {
   const notes: Note[] = [
     {
       id: "1",
-      content: "Farmer completed KYC verification successfully. All documents are in order and identity has been confirmed.",
+      content:
+        "Farmer completed KYC verification successfully. All documents are in order and identity has been confirmed.",
       author: "Sarah Johnson",
       authorRole: "KYC Officer",
       createdAt: "2024-03-15T10:30:00Z",
@@ -60,7 +77,8 @@ export function NotesDocumentsCard({ farmerId }: NotesDocumentsCardProps) {
     },
     {
       id: "2",
-      content: "Farm inspection completed. Cocoa trees are in good condition, estimated yield for this season is 400-500kg.",
+      content:
+        "Farm inspection completed. Cocoa trees are in good condition, estimated yield for this season is 400-500kg.",
       author: "Michael Asante",
       authorRole: "Field Officer",
       createdAt: "2024-03-10T14:45:00Z",
@@ -69,7 +87,8 @@ export function NotesDocumentsCard({ farmerId }: NotesDocumentsCardProps) {
     },
     {
       id: "3",
-      content: "Loan application submitted for agricultural inputs. Supporting documents attached.",
+      content:
+        "Loan application submitted for agricultural inputs. Supporting documents attached.",
       author: "Grace Owusu",
       authorRole: "Loan Officer",
       createdAt: "2024-02-28T09:15:00Z",
@@ -84,7 +103,7 @@ export function NotesDocumentsCard({ farmerId }: NotesDocumentsCardProps) {
       id: "1",
       name: "Ghana_Card_Front.jpg",
       type: "id_scan",
-      fileSize: 245760,
+      fileSize: 245_760,
       mimeType: "image/jpeg",
       uploadedBy: "System",
       uploadedAt: "2024-01-15T10:30:00Z",
@@ -95,7 +114,7 @@ export function NotesDocumentsCard({ farmerId }: NotesDocumentsCardProps) {
       id: "2",
       name: "Ghana_Card_Back.jpg",
       type: "id_scan",
-      fileSize: 198432,
+      fileSize: 198_432,
       mimeType: "image/jpeg",
       uploadedBy: "System",
       uploadedAt: "2024-01-15T10:31:00Z",
@@ -106,7 +125,7 @@ export function NotesDocumentsCard({ farmerId }: NotesDocumentsCardProps) {
       id: "3",
       name: "Farm_Aerial_View.jpg",
       type: "farm_photo",
-      fileSize: 512000,
+      fileSize: 512_000,
       mimeType: "image/jpeg",
       uploadedBy: "Michael Asante",
       uploadedAt: "2024-02-10T14:20:00Z",
@@ -117,7 +136,7 @@ export function NotesDocumentsCard({ farmerId }: NotesDocumentsCardProps) {
       id: "4",
       name: "Organic_Certificate.pdf",
       type: "certificate",
-      fileSize: 156789,
+      fileSize: 156_789,
       mimeType: "application/pdf",
       uploadedBy: "Grace Owusu",
       uploadedAt: "2024-01-20T11:45:00Z",
@@ -137,7 +156,9 @@ export function NotesDocumentsCard({ farmerId }: NotesDocumentsCardProps) {
   };
 
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes";
+    if (bytes === 0) {
+      return "0 Bytes";
+    }
     const k = 1024;
     const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -176,8 +197,6 @@ export function NotesDocumentsCard({ farmerId }: NotesDocumentsCardProps) {
 
   const handleAddNote = () => {
     if (newNote.trim()) {
-      // TODO: Implement actual API call to add note
-      console.log("Adding note:", newNote);
       setNewNote("");
       setIsAddingNote(false);
     }
@@ -190,27 +209,25 @@ export function NotesDocumentsCard({ farmerId }: NotesDocumentsCardProps) {
           <FileText className="h-5 w-5" />
           Notes & Documents
         </CardTitle>
-        <CardDescription>
-          Internal notes and uploaded documents
-        </CardDescription>
+        <CardDescription>Internal notes and uploaded documents</CardDescription>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="notes" className="w-full">
+        <Tabs className="w-full" defaultValue="notes">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="notes" className="flex items-center gap-2">
+            <TabsTrigger className="flex items-center gap-2" value="notes">
               <FileText className="h-4 w-4" />
               Notes ({notes.length})
             </TabsTrigger>
-            <TabsTrigger value="documents" className="flex items-center gap-2">
+            <TabsTrigger className="flex items-center gap-2" value="documents">
               <File className="h-4 w-4" />
               Documents ({documents.length})
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="notes" className="space-y-4">
+          <TabsContent className="space-y-4" value="notes">
             <div className="flex justify-between">
               <h4 className="font-medium text-sm">Recent Notes</h4>
-              <Dialog open={isAddingNote} onOpenChange={setIsAddingNote}>
+              <Dialog onOpenChange={setIsAddingNote} open={isAddingNote}>
                 <DialogTrigger asChild>
                   <Button size="sm">
                     <Plus className="mr-2 h-4 w-4" />
@@ -229,19 +246,20 @@ export function NotesDocumentsCard({ farmerId }: NotesDocumentsCardProps) {
                       <Label htmlFor="note-content">Note Content</Label>
                       <Textarea
                         id="note-content"
-                        placeholder="Enter your note here..."
-                        value={newNote}
                         onChange={(e) => setNewNote(e.target.value)}
+                        placeholder="Enter your note here..."
                         rows={4}
+                        value={newNote}
                       />
                     </div>
                     <div className="flex justify-end gap-2">
-                      <Button variant="outline" onClick={() => setIsAddingNote(false)}>
+                      <Button
+                        onClick={() => setIsAddingNote(false)}
+                        variant="outline"
+                      >
                         Cancel
                       </Button>
-                      <Button onClick={handleAddNote}>
-                        Add Note
-                      </Button>
+                      <Button onClick={handleAddNote}>Add Note</Button>
                     </div>
                   </div>
                 </DialogContent>
@@ -263,7 +281,10 @@ export function NotesDocumentsCard({ farmerId }: NotesDocumentsCardProps) {
             ) : (
               <div className="space-y-3">
                 {notes.map((note) => (
-                  <div key={note.id} className="rounded-lg border p-4 space-y-2">
+                  <div
+                    className="space-y-2 rounded-lg border p-4"
+                    key={note.id}
+                  >
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-2">
                         <Badge variant={getCategoryVariant(note.category)}>
@@ -281,7 +302,9 @@ export function NotesDocumentsCard({ farmerId }: NotesDocumentsCardProps) {
                     <div className="flex items-center gap-4 text-muted-foreground text-xs">
                       <div className="flex items-center gap-1">
                         <User className="h-3 w-3" />
-                        <span>{note.author} ({note.authorRole})</span>
+                        <span>
+                          {note.author} ({note.authorRole})
+                        </span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
@@ -294,7 +317,7 @@ export function NotesDocumentsCard({ farmerId }: NotesDocumentsCardProps) {
             )}
           </TabsContent>
 
-          <TabsContent value="documents" className="space-y-4">
+          <TabsContent className="space-y-4" value="documents">
             <div className="flex justify-between">
               <h4 className="font-medium text-sm">Uploaded Documents</h4>
               <Button size="sm">
@@ -318,7 +341,10 @@ export function NotesDocumentsCard({ farmerId }: NotesDocumentsCardProps) {
             ) : (
               <div className="space-y-3">
                 {documents.map((document) => (
-                  <div key={document.id} className="flex items-center justify-between rounded-lg border p-4">
+                  <div
+                    className="flex items-center justify-between rounded-lg border p-4"
+                    key={document.id}
+                  >
                     <div className="flex items-center gap-3">
                       {getDocumentIcon(document.type)}
                       <div>

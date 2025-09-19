@@ -1,9 +1,23 @@
 "use client";
 
-import { Wallet, Eye, TrendingUp, TrendingDown, Calendar, DollarSign, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import {
+  ArrowDownRight,
+  ArrowUpRight,
+  Calendar,
+  DollarSign,
+  Eye,
+  TrendingUp,
+  Wallet,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -38,13 +52,13 @@ type SavingsEntry = {
   description?: string;
 };
 
-export function SavingsSnapshotCard({ farmerId }: SavingsSnapshotCardProps) {
+export function SavingsSnapshotCard(_: SavingsSnapshotCardProps) {
   // Mock savings accounts data - replace with actual API call
   const accounts: SavingsAccount[] = [
     {
       id: "1",
       accountId: "VSLA-001-2024",
-      balance: 2450.50,
+      balance: 2450.5,
       currency: "GHS",
       status: "active",
       type: "vsla",
@@ -68,7 +82,7 @@ export function SavingsSnapshotCard({ farmerId }: SavingsSnapshotCardProps) {
     {
       id: "1",
       type: "contribution",
-      amount: 150.00,
+      amount: 150.0,
       currency: "GHS",
       reference: "CONT-2024-001",
       date: "2024-03-15T10:30:00Z",
@@ -77,7 +91,7 @@ export function SavingsSnapshotCard({ farmerId }: SavingsSnapshotCardProps) {
     {
       id: "2",
       type: "withdrawal",
-      amount: -50.00,
+      amount: -50.0,
       currency: "GHS",
       reference: "WTH-2024-002",
       date: "2024-03-10T14:45:00Z",
@@ -95,7 +109,7 @@ export function SavingsSnapshotCard({ farmerId }: SavingsSnapshotCardProps) {
     {
       id: "4",
       type: "contribution",
-      amount: 150.00,
+      amount: 150.0,
       currency: "GHS",
       reference: "CONT-2024-002",
       date: "2024-02-15T10:30:00Z",
@@ -104,7 +118,7 @@ export function SavingsSnapshotCard({ farmerId }: SavingsSnapshotCardProps) {
     {
       id: "5",
       type: "interest",
-      amount: 25.50,
+      amount: 25.5,
       currency: "GHS",
       reference: "INT-2024-001",
       date: "2024-01-31T23:59:00Z",
@@ -123,7 +137,7 @@ export function SavingsSnapshotCard({ farmerId }: SavingsSnapshotCardProps) {
   const formatCurrency = (amount: number, currency: string) => {
     return new Intl.NumberFormat("en-GH", {
       style: "currency",
-      currency: currency,
+      currency,
       minimumFractionDigits: 2,
     }).format(Math.abs(amount));
   };
@@ -171,7 +185,10 @@ export function SavingsSnapshotCard({ farmerId }: SavingsSnapshotCardProps) {
     }
   };
 
-  const totalBalance = accounts.reduce((sum, account) => sum + account.balance, 0);
+  const totalBalance = accounts.reduce(
+    (sum, account) => sum + account.balance,
+    0
+  );
   const mainCurrency = accounts.length > 0 ? accounts[0].currency : "GHS";
 
   if (accounts.length === 0) {
@@ -207,7 +224,8 @@ export function SavingsSnapshotCard({ farmerId }: SavingsSnapshotCardProps) {
           Savings Snapshot (VSLA)
         </CardTitle>
         <CardDescription>
-          Total Balance: {formatCurrency(totalBalance, mainCurrency)} across {accounts.length} accounts
+          Total Balance: {formatCurrency(totalBalance, mainCurrency)} across{" "}
+          {accounts.length} accounts
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -229,8 +247,12 @@ export function SavingsSnapshotCard({ farmerId }: SavingsSnapshotCardProps) {
                 <TableRow key={account.id}>
                   <TableCell>
                     <div>
-                      <p className="font-medium font-mono text-sm">{account.accountId}</p>
-                      <p className="text-muted-foreground text-xs">{account.organizationName}</p>
+                      <p className="font-medium font-mono text-sm">
+                        {account.accountId}
+                      </p>
+                      <p className="text-muted-foreground text-xs">
+                        {account.organizationName}
+                      </p>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -263,26 +285,39 @@ export function SavingsSnapshotCard({ farmerId }: SavingsSnapshotCardProps) {
           <h4 className="font-medium text-sm">Recent Entries (Last 5)</h4>
           <div className="space-y-2">
             {recentEntries.map((entry) => (
-              <div key={entry.id} className="flex items-center justify-between rounded-lg border p-3">
+              <div
+                className="flex items-center justify-between rounded-lg border p-3"
+                key={entry.id}
+              >
                 <div className="flex items-center gap-3">
                   {getTypeIcon(entry.type)}
                   <div>
                     <div className="flex items-center gap-2">
-                      <Badge variant={getTypeVariant(entry.type)} className="text-xs">
+                      <Badge
+                        className="text-xs"
+                        variant={getTypeVariant(entry.type)}
+                      >
                         {entry.type}
                       </Badge>
-                      <span className="font-mono text-sm">{entry.reference}</span>
+                      <span className="font-mono text-sm">
+                        {entry.reference}
+                      </span>
                     </div>
                     {entry.description && (
-                      <p className="text-muted-foreground text-xs">{entry.description}</p>
+                      <p className="text-muted-foreground text-xs">
+                        {entry.description}
+                      </p>
                     )}
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className={`font-medium text-sm ${
-                    entry.amount > 0 ? "text-green-600" : "text-red-600"
-                  }`}>
-                    {entry.amount > 0 ? "+" : ""}{formatCurrency(entry.amount, entry.currency)}
+                  <p
+                    className={`font-medium text-sm ${
+                      entry.amount > 0 ? "text-green-600" : "text-red-600"
+                    }`}
+                  >
+                    {entry.amount > 0 ? "+" : ""}
+                    {formatCurrency(entry.amount, entry.currency)}
                   </p>
                   <div className="flex items-center gap-1 text-muted-foreground text-xs">
                     <Calendar className="h-3 w-3" />

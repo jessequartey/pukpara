@@ -1,8 +1,16 @@
 "use client";
 
-import { Building2, Users, Plus, Settings, UserMinus, Mail } from "lucide-react";
+import {
+  Building2,
+  Mail,
+  Plus,
+  Settings,
+  UserMinus,
+  Users,
+} from "lucide-react";
 import { useState } from "react";
-
+import { toast } from "sonner";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +21,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Table,
   TableBody,
   TableCell,
@@ -20,15 +35,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { toast } from "sonner";
 
 type OrganizationMembershipsCardProps = {
   userId: string;
@@ -74,26 +80,26 @@ export function OrganizationMembershipsCard({
     },
   ];
 
-  const handleSetRole = (membershipId: string, newRole: string) => {
+  const handleSetRole = (_membershipId: string, newRole: string) => {
     toast.success(`Role updated to ${newRole}`);
   };
 
-  const handleAddToTeam = (membershipId: string) => {
+  const handleAddToTeam = (_membershipId: string) => {
     toast.success("Add to team dialog would open");
   };
 
-  const handleRemoveFromTeam = (membershipId: string, teamName: string) => {
+  const handleRemoveFromTeam = (_membershipId: string, teamName: string) => {
     toast.success(`Removed from ${teamName}`);
   };
 
-  const handleRemoveFromOrganization = (membershipId: string) => {
+  const handleRemoveFromOrganization = (_membershipId: string) => {
     toast.success("User removed from organization");
   };
 
   const handleInviteToOrganization = async () => {
     setIsInviting(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       toast.success("Invitation sent successfully");
     } catch {
       toast.error("Failed to send invitation");
@@ -102,7 +108,7 @@ export function OrganizationMembershipsCard({
     }
   };
 
-  const handleSetActiveOrganization = (organizationId: string) => {
+  const handleSetActiveOrganization = (_organizationId: string) => {
     toast.success("Active organization updated");
   };
 
@@ -165,14 +171,15 @@ export function OrganizationMembershipsCard({
               Organization Memberships
             </CardTitle>
             <CardDescription>
-              Organizations this user belongs to, their roles, and team assignments
+              Organizations this user belongs to, their roles, and team
+              assignments
             </CardDescription>
           </div>
           <div className="flex gap-2">
-            <Button 
-              size="sm" 
-              onClick={handleInviteToOrganization}
+            <Button
               disabled={isInviting}
+              onClick={handleInviteToOrganization}
+              size="sm"
             >
               <Mail className="mr-2 h-4 w-4" />
               {isInviting ? "Inviting..." : "Invite to Organization"}
@@ -182,16 +189,16 @@ export function OrganizationMembershipsCard({
       </CardHeader>
       <CardContent>
         {memberships.length === 0 ? (
-          <div className="text-center py-8">
+          <div className="py-8 text-center">
             <Building2 className="mx-auto h-12 w-12 text-muted-foreground/50" />
-            <h3 className="mt-4 text-lg font-semibold">No organizations</h3>
+            <h3 className="mt-4 font-semibold text-lg">No organizations</h3>
             <p className="mt-2 text-muted-foreground">
               This user is not a member of any organizations yet.
             </p>
-            <Button 
-              className="mt-4" 
-              onClick={handleInviteToOrganization}
+            <Button
+              className="mt-4"
               disabled={isInviting}
+              onClick={handleInviteToOrganization}
             >
               <Plus className="mr-2 h-4 w-4" />
               Invite to Organization
@@ -207,7 +214,7 @@ export function OrganizationMembershipsCard({
                   <TableHead>Teams</TableHead>
                   <TableHead>Joined</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="w-[50px]"></TableHead>
+                  <TableHead className="w-[50px]" />
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -226,9 +233,13 @@ export function OrganizationMembershipsCard({
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-medium">{membership.organizationName}</p>
+                          <p className="font-medium">
+                            {membership.organizationName}
+                          </p>
                           <p className="text-muted-foreground text-sm">
-                            {getOrganizationTypeLabel(membership.organizationType)}
+                            {getOrganizationTypeLabel(
+                              membership.organizationType
+                            )}
                           </p>
                         </div>
                       </div>
@@ -241,10 +252,10 @@ export function OrganizationMembershipsCard({
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
                         {membership.teams.map((team, index) => (
-                          <Badge 
-                            key={index} 
-                            variant="outline" 
+                          <Badge
                             className="text-xs"
+                            key={index}
+                            variant="outline"
                           >
                             {team}
                           </Badge>
@@ -262,23 +273,29 @@ export function OrganizationMembershipsCard({
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
+                          <Button size="sm" variant="ghost">
                             <Settings className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
-                            onClick={() => handleSetRole(membership.id, "admin")}
+                            onClick={() =>
+                              handleSetRole(membership.id, "admin")
+                            }
                           >
                             Set as Admin
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => handleSetRole(membership.id, "manager")}
+                            onClick={() =>
+                              handleSetRole(membership.id, "manager")
+                            }
                           >
                             Set as Manager
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => handleSetRole(membership.id, "member")}
+                            onClick={() =>
+                              handleSetRole(membership.id, "member")
+                            }
                           >
                             Set as Member
                           </DropdownMenuItem>
@@ -294,9 +311,11 @@ export function OrganizationMembershipsCard({
                               <DropdownMenuSeparator />
                               {membership.teams.map((team, index) => (
                                 <DropdownMenuItem
-                                  key={index}
-                                  onClick={() => handleRemoveFromTeam(membership.id, team)}
                                   className="text-muted-foreground"
+                                  key={index}
+                                  onClick={() =>
+                                    handleRemoveFromTeam(membership.id, team)
+                                  }
                                 >
                                   Remove from {team}
                                 </DropdownMenuItem>
@@ -305,14 +324,20 @@ export function OrganizationMembershipsCard({
                           )}
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
-                            onClick={() => handleSetActiveOrganization(membership.organizationId)}
+                            onClick={() =>
+                              handleSetActiveOrganization(
+                                membership.organizationId
+                              )
+                            }
                           >
                             Set as Active
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
-                            onClick={() => handleRemoveFromOrganization(membership.id)}
                             className="text-destructive"
+                            onClick={() =>
+                              handleRemoveFromOrganization(membership.id)
+                            }
                           >
                             <UserMinus className="mr-2 h-4 w-4" />
                             Remove from Organization

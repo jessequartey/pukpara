@@ -1,8 +1,8 @@
 "use client";
 
-import { Key, Settings, CheckCircle, XCircle } from "lucide-react";
+import { CheckCircle, Key, Settings, XCircle } from "lucide-react";
 import { useState } from "react";
-
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,7 +20,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { toast } from "sonner";
 
 type EffectivePermissionsCardProps = {
   userId: string;
@@ -161,22 +160,25 @@ export function EffectivePermissionsCard({
     ],
   };
 
-  const selectedOrg = organizations.find(org => org.id === selectedOrgId);
+  const selectedOrg = organizations.find((org) => org.id === selectedOrgId);
   const selectedPermissions = permissions[selectedOrgId] || [];
 
   const handleChangeRole = () => {
     toast.success("Change role dialog would open");
   };
 
-  const groupedPermissions = selectedPermissions.reduce((acc, permission) => {
-    if (!acc[permission.resource]) {
-      acc[permission.resource] = [];
-    }
-    acc[permission.resource].push(permission);
-    return acc;
-  }, {} as Record<string, Permission[]>);
+  const groupedPermissions = selectedPermissions.reduce(
+    (acc, permission) => {
+      if (!acc[permission.resource]) {
+        acc[permission.resource] = [];
+      }
+      acc[permission.resource].push(permission);
+      return acc;
+    },
+    {} as Record<string, Permission[]>
+  );
 
-  const getResourceIcon = (resource: string) => {
+  const getResourceIcon = (_resource: string) => {
     // You can customize icons based on resource type
     return <Key className="h-4 w-4" />;
   };
@@ -212,8 +214,8 @@ export function EffectivePermissionsCard({
       <CardContent className="space-y-6">
         {/* Organization Selector */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">Organization</label>
-          <Select value={selectedOrgId} onValueChange={setSelectedOrgId}>
+          <label className="font-medium text-sm">Organization</label>
+          <Select onValueChange={setSelectedOrgId} value={selectedOrgId}>
             <SelectTrigger>
               <SelectValue placeholder="Select organization" />
             </SelectTrigger>
@@ -232,10 +234,10 @@ export function EffectivePermissionsCard({
             {/* Current Role */}
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <p className="text-sm font-medium">Current Role</p>
+                <p className="font-medium text-sm">Current Role</p>
                 <Badge variant="outline">{selectedOrg.userRole}</Badge>
               </div>
-              <Button size="sm" variant="outline" onClick={handleChangeRole}>
+              <Button onClick={handleChangeRole} size="sm" variant="outline">
                 <Settings className="mr-2 h-4 w-4" />
                 Change Role
               </Button>
@@ -245,9 +247,9 @@ export function EffectivePermissionsCard({
 
             {/* Permissions Grid */}
             <div className="space-y-4">
-              <h4 className="text-sm font-medium">Allowed Actions</h4>
+              <h4 className="font-medium text-sm">Allowed Actions</h4>
               {Object.entries(groupedPermissions).map(([resource, perms]) => (
-                <div key={resource} className="space-y-3">
+                <div className="space-y-3" key={resource}>
                   <div className="flex items-center gap-2">
                     {getResourceIcon(resource)}
                     <h5 className="font-medium text-sm">
@@ -257,8 +259,8 @@ export function EffectivePermissionsCard({
                   <div className="grid gap-2 pl-6">
                     {perms.map((permission, index) => (
                       <div
+                        className="flex items-center justify-between rounded-lg bg-muted/50 p-2"
                         key={index}
-                        className="flex items-center justify-between p-2 rounded-lg bg-muted/50"
                       >
                         <div className="flex items-center gap-2">
                           {permission.allowed ? (
@@ -266,9 +268,11 @@ export function EffectivePermissionsCard({
                           ) : (
                             <XCircle className="h-4 w-4 text-red-600" />
                           )}
-                          <span className="text-sm">{permission.description}</span>
+                          <span className="text-sm">
+                            {permission.description}
+                          </span>
                         </div>
-                        <code className="text-xs bg-background px-2 py-1 rounded">
+                        <code className="rounded bg-background px-2 py-1 text-xs">
                           {permission.action}
                         </code>
                       </div>
@@ -279,19 +283,20 @@ export function EffectivePermissionsCard({
             </div>
 
             {/* Debug Info */}
-            <div className="mt-6 p-3 rounded-lg bg-muted/30">
-              <p className="text-xs text-muted-foreground">
-                💡 Tip: Permissions are computed based on the user's role in this organization. 
-                Use "Change Role" to update permissions or check hasPermission() API for debugging.
+            <div className="mt-6 rounded-lg bg-muted/30 p-3">
+              <p className="text-muted-foreground text-xs">
+                💡 Tip: Permissions are computed based on the user's role in
+                this organization. Use "Change Role" to update permissions or
+                check hasPermission() API for debugging.
               </p>
             </div>
           </>
         )}
 
         {organizations.length === 0 && (
-          <div className="text-center py-6">
+          <div className="py-6 text-center">
             <Key className="mx-auto h-8 w-8 text-muted-foreground/50" />
-            <p className="mt-2 text-sm text-muted-foreground">
+            <p className="mt-2 text-muted-foreground text-sm">
               No organization memberships found
             </p>
           </div>

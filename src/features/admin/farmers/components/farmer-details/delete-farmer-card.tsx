@@ -45,8 +45,8 @@ export function DeleteFarmerCard({
           <div>
             <h4 className="font-medium text-sm">Delete Farmer</h4>
             <p className="text-muted-foreground text-sm">
-              Permanently delete this farmer profile and all associated data. This
-              action cannot be undone.
+              Permanently delete this farmer profile and all associated data.
+              This action cannot be undone.
             </p>
           </div>
 
@@ -56,9 +56,8 @@ export function DeleteFarmerCard({
               <div className="text-sm">
                 <p className="font-medium text-destructive">Warning</p>
                 <p className="text-destructive/80">
-                  This will permanently delete{" "}
-                  <strong>{farmerName}</strong> and all related data
-                  including:
+                  This will permanently delete <strong>{farmerName}</strong> and
+                  all related data including:
                 </p>
                 <ul className="mt-2 list-inside list-disc space-y-1 text-destructive/80">
                   <li>Farmer profile and identity information</li>

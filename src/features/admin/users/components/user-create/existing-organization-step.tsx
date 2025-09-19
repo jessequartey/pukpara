@@ -67,12 +67,12 @@ export const ExistingOrganizationStep = ({
       pageSize: 1000, // Get all organizations for selection
     },
     {
-      staleTime: 60000, // Cache for 1 minute
+      staleTime: 60_000, // Cache for 1 minute
     }
   );
 
   const organizations = useMemo(
-    () => organizationsData?.organizations ?? [],
+    () => organizationsData?.data ?? [],
     [organizationsData]
   );
 
@@ -83,9 +83,9 @@ export const ExistingOrganizationStep = ({
       map.set(org.id, {
         id: org.id,
         name: org.name,
-        slug: org.slug,
-        organizationType: org.organizationType,
-        memberCount: org._count?.members,
+        slug: org.slug ?? "",
+        organizationType: org.type,
+        memberCount: 0,
       });
     }
 

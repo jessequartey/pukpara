@@ -1,9 +1,28 @@
 "use client";
 
-import { Users, Plus, MoreHorizontal, Crown, UserCheck, Calendar } from "lucide-react";
+import {
+  Calendar,
+  Crown,
+  MoreHorizontal,
+  Plus,
+  UserCheck,
+  Users,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -12,12 +31,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 type GroupMembershipsCardProps = {
   farmerId: string;
@@ -31,7 +44,7 @@ type TeamMembership = {
   status: "active" | "inactive";
 };
 
-export function GroupMembershipsCard({ farmerId }: GroupMembershipsCardProps) {
+export function GroupMembershipsCard(_: GroupMembershipsCardProps) {
   // Mock team memberships data - replace with actual API call
   const memberships: TeamMembership[] = [
     {

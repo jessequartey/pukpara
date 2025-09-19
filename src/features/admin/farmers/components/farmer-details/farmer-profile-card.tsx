@@ -1,12 +1,18 @@
 "use client";
 
-import { Edit, User, MapPin, CreditCard, Calendar, Clock } from "lucide-react";
+import { Calendar, CreditCard, Edit, MapPin, User } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Switch } from "@/components/ui/switch";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 
 type FarmerProfileCardProps = {
   farmer: {
@@ -43,8 +49,12 @@ export function FarmerProfileCard({ farmer }: FarmerProfileCardProps) {
   };
 
   const getKycStatusVariant = (status: string) => {
-    if (status === "verified") return "default";
-    if (status === "pending") return "secondary";
+    if (status === "verified") {
+      return "default";
+    }
+    if (status === "pending") {
+      return "secondary";
+    }
     return "destructive";
   };
 
@@ -75,27 +85,38 @@ export function FarmerProfileCard({ farmer }: FarmerProfileCardProps) {
           <h4 className="font-medium text-sm">Identity</h4>
           <div className="flex items-start gap-4">
             <Avatar className="h-16 w-16">
-              <AvatarImage alt={`${farmer.firstName} ${farmer.lastName}`} src={farmer.photoUrl} />
+              <AvatarImage
+                alt={`${farmer.firstName} ${farmer.lastName}`}
+                src={farmer.photoUrl}
+              />
               <AvatarFallback className="text-lg">
                 {getInitials(farmer.firstName, farmer.lastName)}
               </AvatarFallback>
             </Avatar>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               <div>
-                <Label className="text-muted-foreground text-xs">Full Name</Label>
-                <p className="font-medium">{farmer.firstName} {farmer.lastName}</p>
+                <Label className="text-muted-foreground text-xs">
+                  Full Name
+                </Label>
+                <p className="font-medium">
+                  {farmer.firstName} {farmer.lastName}
+                </p>
               </div>
               <div>
                 <Label className="text-muted-foreground text-xs">Gender</Label>
                 <p className="capitalize">{farmer.gender}</p>
               </div>
               <div>
-                <Label className="text-muted-foreground text-xs">Date of Birth</Label>
+                <Label className="text-muted-foreground text-xs">
+                  Date of Birth
+                </Label>
                 <p>{formatDate(farmer.dateOfBirth)}</p>
               </div>
               {farmer.pukparaId && (
                 <div>
-                  <Label className="text-muted-foreground text-xs">Pukpara ID</Label>
+                  <Label className="text-muted-foreground text-xs">
+                    Pukpara ID
+                  </Label>
                   <Badge variant="outline">{farmer.pukparaId}</Badge>
                 </div>
               )}
@@ -159,16 +180,22 @@ export function FarmerProfileCard({ farmer }: FarmerProfileCardProps) {
           </h4>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <div>
-              <Label className="text-muted-foreground text-xs">Created At</Label>
+              <Label className="text-muted-foreground text-xs">
+                Created At
+              </Label>
               <p>{formatDate(farmer.createdAt)}</p>
             </div>
             <div>
-              <Label className="text-muted-foreground text-xs">Updated At</Label>
+              <Label className="text-muted-foreground text-xs">
+                Updated At
+              </Label>
               <p>{formatDate(farmer.updatedAt)}</p>
             </div>
             {farmer.legacyFarmerId && (
               <div>
-                <Label className="text-muted-foreground text-xs">Legacy Farmer ID</Label>
+                <Label className="text-muted-foreground text-xs">
+                  Legacy Farmer ID
+                </Label>
                 <p className="font-mono">{farmer.legacyFarmerId}</p>
               </div>
             )}
@@ -180,7 +207,9 @@ export function FarmerProfileCard({ farmer }: FarmerProfileCardProps) {
           <h4 className="font-medium text-sm">KYC Verification</h4>
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <Label className="text-muted-foreground text-xs">KYC Status</Label>
+              <Label className="text-muted-foreground text-xs">
+                KYC Status
+              </Label>
               <div className="flex items-center gap-2">
                 <Badge variant={getKycStatusVariant(farmer.kycStatus)}>
                   {farmer.kycStatus}

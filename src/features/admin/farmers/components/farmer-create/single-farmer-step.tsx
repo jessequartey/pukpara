@@ -57,13 +57,13 @@ const farmerSchema = z.object({
   email: z.string().email("Enter a valid email").optional().or(z.literal("")),
   dateOfBirth: z.string().min(1, "Date of birth is required"),
   gender: z.enum(["male", "female", "other"], {
-    required_error: "Select a gender",
+    message: "Select a gender",
   }),
   community: z.string().min(1, "Community is required"),
   address: z.string().min(ADDRESS_MIN_LENGTH, "Address is required"),
   districtId: z.string().min(1, "Select a district"),
   idType: z.enum(["national_id", "passport", "drivers_license", "voter_id"], {
-    required_error: "Select an ID type",
+    message: "Select an ID type",
   }),
   idNumber: z.string().min(ID_NUMBER_MIN_LENGTH, "ID number is required"),
   isLeader: z.boolean().default(false),
@@ -157,7 +157,7 @@ export const SingleFarmerStep = ({ onBack, onNext }: SingleFarmerStepProps) => {
   );
 
   const form = useForm<FarmerSchema>({
-    resolver: zodResolver(farmerSchema),
+    resolver: zodResolver(farmerSchema) as any,
     defaultValues: {
       firstName: storedFarmer.firstName,
       lastName: storedFarmer.lastName,
@@ -285,8 +285,8 @@ export const SingleFarmerStep = ({ onBack, onNext }: SingleFarmerStepProps) => {
                     <FormItem>
                       <FormLabel>Gender *</FormLabel>
                       <Select
-                        value={field.value}
                         onValueChange={field.onChange}
+                        value={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -484,8 +484,8 @@ export const SingleFarmerStep = ({ onBack, onNext }: SingleFarmerStepProps) => {
                     <FormItem>
                       <FormLabel>ID type *</FormLabel>
                       <Select
-                        value={field.value}
                         onValueChange={field.onChange}
+                        value={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -511,10 +511,7 @@ export const SingleFarmerStep = ({ onBack, onNext }: SingleFarmerStepProps) => {
                     <FormItem>
                       <FormLabel>ID number *</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="GHA-123456789-0"
-                          {...field}
-                        />
+                        <Input placeholder="GHA-123456789-0" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -574,10 +571,7 @@ export const SingleFarmerStep = ({ onBack, onNext }: SingleFarmerStepProps) => {
                     <FormItem>
                       <FormLabel>Legacy farmer ID (optional)</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="Previous system ID"
-                          {...field}
-                        />
+                        <Input placeholder="Previous system ID" {...field} />
                       </FormControl>
                       <FormDescription>
                         Reference ID from previous farmer management system

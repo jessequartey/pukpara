@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -20,7 +20,7 @@ import {
 } from "@/lib/auth-admin-client";
 
 import { UserTable } from "../user-table";
-import type { UserTableRow, UserColumnKey } from "../user-table/columns";
+import type { UserColumnKey, UserTableRow } from "../user-table/columns";
 import { userColumns } from "../user-table/columns";
 import type { UserTableSortState } from "../user-table/index";
 
@@ -98,9 +98,9 @@ export function UserDirectoryCard({ controller }: UserDirectoryCardProps) {
     []
   );
 
-  const [visibleColumnKeys, setVisibleColumnKeys] = useState<Set<UserColumnKey>>(
-    () => new Set(allColumnKeys)
-  );
+  const [visibleColumnKeys, setVisibleColumnKeys] = useState<
+    Set<UserColumnKey>
+  >(() => new Set(allColumnKeys));
 
   useEffect(() => {
     if (visibleColumnKeys.size === 0 && allColumnKeys.length > 0) {

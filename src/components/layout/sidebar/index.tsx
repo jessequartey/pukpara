@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/sidebar";
 import { SidebarFooterComponent } from "./footer";
 import { SidebarHeaderComponent } from "./header";
-import { type SidebarNavGroup, SidebarNavigationComponent } from "./navigation";
+import { SidebarNavigationComponent, type SidebarNavGroup } from "./navigation";
 
 export type { SidebarNavGroup };
 

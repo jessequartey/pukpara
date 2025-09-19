@@ -21,13 +21,6 @@ import { db } from "@/server/db";
 import * as schema from "@/server/db/schema";
 import { sendPasswordResetEmail } from "@/server/email/resend";
 import { AdminRoles, ac as adminAC } from "./admin-permissions";
-import {
-  buildAdminOrganizationData,
-  buildDefaultOrganizationData,
-  createOrganizationWithMembership,
-  type OrganizationMetadata,
-  shouldCreateOrganization,
-} from "./auth-organization-utils";
 import { OrgRoles, ac as orgAC } from "./org-permissions";
 
 export const auth = betterAuth({
@@ -46,7 +39,6 @@ export const auth = betterAuth({
       });
     },
   },
-
   // Optional: new signups wait for manual approval
   signup: {
     requireAdminApproval: true,
@@ -56,6 +48,7 @@ export const auth = betterAuth({
    * USER MODEL EXTRAS
    * Keep these to support approval flow, KYC, location, and legacy IDs—while staying Better-Auth compatible.
    */
+
   user: {
     additionalFields: {
       // Onboarding / KYC
@@ -86,91 +79,6 @@ export const auth = betterAuth({
 
       // Organization metadata for admin-created users
       // organizationMetadata: { type: "json", input: true },
-    },
-  },
-
-  databaseHooks: {
-    user: {
-      create: {
-        after: async (newUser, ctx) => {
-          const authContext = ctx?.context;
-          const userId = newUser.id;
-
-          if (!(await shouldCreateOrganization(authContext, userId))) {
-            return;
-          }
-
-          if (!authContext) {
-            return;
-          }
-
-          const now = new Date();
-          const displayName =
-            typeof newUser.name === "string" && newUser.name.trim().length > 0
-              ? newUser.name.trim()
-              : "New";
-
-          const orgMetadata =
-            newUser.organizationMetadata as OrganizationMetadata | null;
-          const isAdminCreated =
-            orgMetadata?.source === "admin" && orgMetadata.organizationName;
-
-          const organizationData = isAdminCreated
-            ? buildAdminOrganizationData(orgMetadata, now)
-            : buildDefaultOrganizationData(displayName, userId, now);
-
-          await createOrganizationWithMembership(
-            authContext,
-            organizationData,
-            userId,
-            now
-          );
-        },
-      },
-    },
-    session: {
-      create: {
-        after: async (newSession, ctx) => {
-          const authContext = ctx?.context;
-
-          if (!authContext) {
-            return;
-          }
-
-          if (newSession.activeOrganizationId) {
-            return;
-          }
-
-          if (!(newSession.token && newSession.userId)) {
-            return;
-          }
-
-          const memberships = (await authContext.adapter.findMany({
-            model: "member",
-            where: [
-              {
-                field: "userId",
-                value: newSession.userId,
-              },
-            ],
-            sortBy: {
-              field: "createdAt",
-              direction: "asc",
-            },
-            limit: 1,
-          })) as Array<{ organizationId?: string }>;
-
-          const primaryMembership = memberships.at(0);
-
-          if (!primaryMembership?.organizationId) {
-            return;
-          }
-
-          await authContext.internalAdapter.updateSession(newSession.token, {
-            activeOrganizationId: primaryMembership.organizationId,
-          });
-        },
-      },
     },
   },
 

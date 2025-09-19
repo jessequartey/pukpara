@@ -42,8 +42,12 @@ export default async function AdminFarmerDetailPage({
   );
 
   const getKycStatusVariant = (status: string) => {
-    if (status === "verified") return "default";
-    if (status === "pending") return "secondary";
+    if (status === "verified") {
+      return "default";
+    }
+    if (status === "pending") {
+      return "secondary";
+    }
     return "destructive";
   };
 
@@ -52,9 +56,7 @@ export default async function AdminFarmerDetailPage({
       <Badge variant={getKycStatusVariant(farmer.kycStatus)}>
         {farmer.kycStatus}
       </Badge>
-      {farmer.isLeader && (
-        <Badge variant="default">Leader</Badge>
-      )}
+      {farmer.isLeader && <Badge variant="default">Leader</Badge>}
       <Badge variant={farmer.isPhoneSmart ? "default" : "outline"}>
         {farmer.isPhoneSmart ? "Smart Phone" : "Basic Phone"}
       </Badge>

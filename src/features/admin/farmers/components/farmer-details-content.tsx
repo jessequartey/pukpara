@@ -49,8 +49,8 @@ export function FarmerDetailsContent({
       <GroupMembershipsCard farmerId={farmerId} />
       <FarmsCard farmerId={farmerId} orgId={orgId} />
       <DeleteFarmerCard
-        onDelete={handleDelete}
         farmerName={`${farmer.firstName} ${farmer.lastName}`}
+        onDelete={handleDelete}
       />
     </div>
   );

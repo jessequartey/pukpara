@@ -13,10 +13,7 @@ import { FarmerPageTitle } from "@/features/admin/farmers/components/farmer-page
 import { useFarmerCreateStore } from "@/features/admin/farmers/store/farmer-create-store";
 import { cn } from "@/lib/utils";
 
-const stepTitles = [
-  "Upload method",
-  "Farmer details",
-] as const;
+const stepTitles = ["Upload method", "Farmer details"] as const;
 
 const STEP_MODE = 1;
 const STEP_DETAILS = 2;
@@ -126,7 +123,7 @@ export function FarmerCreatePage() {
   const prevStep = useFarmerCreateStore((state) => state.prevStep);
   const resetStore = useFarmerCreateStore((state) => state.reset);
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [_isSubmitting, setIsSubmitting] = useState(false);
 
   const currentLabels = useMemo(() => {
     if (mode === "single") {
@@ -138,7 +135,7 @@ export function FarmerCreatePage() {
     return [...stepTitles];
   }, [mode]);
 
-  const validateFarmerData = () => {
+  const _validateFarmerData = () => {
     if (
       !(
         farmer.firstName &&
@@ -177,8 +174,7 @@ export function FarmerCreatePage() {
       resetStore();
       router.push("/admin/farmers");
     } catch (error) {
-      const message =
-        extractErrorMessage(error) ?? "Failed to create farmer";
+      const message = extractErrorMessage(error) ?? "Failed to create farmer";
       toast.error(message);
     } finally {
       setIsSubmitting(false);
@@ -218,10 +214,7 @@ export function FarmerCreatePage() {
             onNext={handleCreateSingleFarmer}
           />
         ) : mode === "bulk-upload" ? (
-          <BulkUploadStep
-            onBack={prevStep}
-            onNext={handleBulkUploadComplete}
-          />
+          <BulkUploadStep onBack={prevStep} onNext={handleBulkUploadComplete} />
         ) : (
           <Card className="p-6">Unexpected step.</Card>
         );

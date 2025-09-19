@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, ExternalLink, Clock, User, Activity } from "lucide-react";
+import { Activity, Clock, ExternalLink, FileText, User } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-
 type AuditTrailCardProps = {
   userId: string;
 };
@@ -37,7 +36,6 @@ type AuditLogEntry = {
 const RECENT_AUDIT_LIMIT = 20;
 
 export function AuditTrailCard({ userId: _ }: AuditTrailCardProps) {
-
   // Mock data - replace with actual API calls
   const auditLog: AuditLogEntry[] = [
     {
@@ -136,7 +134,7 @@ export function AuditTrailCard({ userId: _ }: AuditTrailCardProps) {
   const getActionDisplayName = (action: string) => {
     return action
       .split(".")
-      .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
       .join(" ");
   };
 
@@ -144,8 +142,6 @@ export function AuditTrailCard({ userId: _ }: AuditTrailCardProps) {
     const [type, id] = entity.split(":");
     return `${type.charAt(0).toUpperCase() + type.slice(1)}: ${id}`;
   };
-
-
 
   return (
     <Card>
@@ -175,12 +171,12 @@ export function AuditTrailCard({ userId: _ }: AuditTrailCardProps) {
             <h4 className="font-medium">
               Recent Activity ({auditLog.length} entries)
             </h4>
-            <Button size="sm" variant="outline" onClick={handleOpenFullAudit}>
+            <Button onClick={handleOpenFullAudit} size="sm" variant="outline">
               <ExternalLink className="mr-2 h-4 w-4" />
               Open Full Audit
             </Button>
           </div>
-          
+
           {auditLog.length === 0 ? (
             <div className="py-8 text-center">
               <Clock className="mx-auto h-12 w-12 text-muted-foreground/50" />

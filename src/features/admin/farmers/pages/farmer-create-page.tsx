@@ -6,7 +6,9 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { Card } from "@/components/ui/card";
+import { BulkReviewStep } from "@/features/admin/farmers/components/farmer-create/bulk-review-step";
 import { BulkUploadStep } from "@/features/admin/farmers/components/farmer-create/bulk-upload-step";
+import { FarmsStep } from "@/features/admin/farmers/components/farmer-create/farms-step";
 import { SingleFarmerStep } from "@/features/admin/farmers/components/farmer-create/single-farmer-step";
 import { UploadModeStep } from "@/features/admin/farmers/components/farmer-create/upload-mode-step";
 import { FarmerPageTitle } from "@/features/admin/farmers/components/farmer-page-title";
@@ -14,10 +16,12 @@ import { useFarmerCreateStore } from "@/features/admin/farmers/store/farmer-crea
 import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 
-const stepTitles = ["Upload method", "Farmer details"] as const;
+const stepTitles = ["Upload method", "Farmer details", "Farm details"] as const;
+const bulkStepTitles = ["Upload method", "Upload file", "Review farmers"] as const;
 
 const STEP_MODE = 1;
 const STEP_DETAILS = 2;
+const STEP_FARMS = 3;
 
 const extractErrorMessage = (error: unknown) => {
   if (!error) {
@@ -127,14 +131,14 @@ export function FarmerCreatePage() {
 
   const createFarmerMutation = api.admin.farmers.create.useMutation();
 
-  const [_isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const currentLabels = useMemo(() => {
     if (mode === "single") {
-      return [stepTitles[0], stepTitles[1]];
+      return [stepTitles[0], stepTitles[1], stepTitles[2]];
     }
     if (mode === "bulk-upload") {
-      return [stepTitles[0], "Upload file"];
+      return [bulkStepTitles[0], bulkStepTitles[1], bulkStepTitles[2]];
     }
     return [...stepTitles];
   }, [mode]);
@@ -207,26 +211,89 @@ export function FarmerCreatePage() {
     }
   };
 
-  const handleBulkUploadComplete = () => {
-    if (!bulkUpload.uploadResults) {
-      toast.error("No upload results found");
+  const handleBulkUploadComplete = async () => {
+    const validFarmers = bulkUpload.parsedFarmers.filter(farmer => farmer.isValid);
+
+    if (validFarmers.length === 0) {
+      toast.error("No valid farmers to create");
       return;
     }
 
-    const { successful, failed } = bulkUpload.uploadResults;
+    setIsSubmitting(true);
 
-    if (successful > 0) {
-      toast.success(
-        `Bulk upload completed: ${successful} farmers created${
-          failed > 0 ? `, ${failed} failed` : ""
-        }`
-      );
-    } else {
-      toast.error("No farmers were created successfully");
+    try {
+      let successful = 0;
+      let failed = 0;
+      const errors: Array<{ row: number; message: string; data?: Record<string, any> }> = [];
+
+      // Process each valid farmer
+      for (const farmer of validFarmers) {
+        try {
+          const farmerPayload = {
+            firstName: farmer.data.firstName,
+            lastName: farmer.data.lastName,
+            gender: farmer.data.gender,
+            dateOfBirth: farmer.data.dateOfBirth ? new Date(farmer.data.dateOfBirth) : undefined,
+            phone: farmer.data.phone || undefined,
+            isPhoneSmart: farmer.data.isPhoneSmart,
+            idNumber: farmer.data.idNumber || undefined,
+            idType: farmer.data.idType,
+            address: farmer.data.address || undefined,
+            districtId: undefined, // We'll need to map district names to IDs
+            community: farmer.data.community || undefined,
+            householdSize: farmer.data.householdSize || undefined,
+            isLeader: farmer.data.isLeader,
+            organizationId: undefined, // We'll need to map organization names to IDs
+            farms: farmer.farms.filter(f => f.isValid).map(farm => ({
+              name: farm.name,
+              acreage: farm.acreage || undefined,
+              cropType: farm.cropType || undefined,
+              soilType: farm.soilType || undefined,
+              locationLat: farm.locationLat,
+              locationLng: farm.locationLng,
+            })),
+          };
+
+          await createFarmerMutation.mutateAsync(farmerPayload);
+          successful++;
+        } catch (error) {
+          failed++;
+          errors.push({
+            row: farmer.rowNumber,
+            message: extractErrorMessage(error) || "Failed to create farmer",
+            data: {
+              firstName: farmer.data.firstName,
+              lastName: farmer.data.lastName,
+            },
+          });
+        }
+      }
+
+      setBulkUploadData({
+        uploadResults: {
+          successful,
+          failed,
+          errors,
+        },
+      });
+
+      if (successful > 0) {
+        toast.success(
+          `Bulk upload completed: ${successful} farmers created${
+            failed > 0 ? `, ${failed} failed` : ""
+          }`
+        );
+      } else {
+        toast.error("No farmers were created successfully");
+      }
+
+      resetStore();
+      router.push("/admin/farmers");
+    } catch (error) {
+      toast.error("Failed to process bulk upload");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    resetStore();
-    router.push("/admin/farmers");
   };
 
   const renderStep = () => {
@@ -237,10 +304,24 @@ export function FarmerCreatePage() {
         return mode === "single" ? (
           <SingleFarmerStep
             onBack={prevStep}
+            onNext={nextStep}
+          />
+        ) : mode === "bulk-upload" ? (
+          <BulkUploadStep onBack={prevStep} onNext={nextStep} />
+        ) : (
+          <Card className="p-6">Unexpected step.</Card>
+        );
+      case STEP_FARMS:
+        return mode === "single" ? (
+          <FarmsStep
+            onBack={prevStep}
             onNext={handleCreateSingleFarmer}
           />
         ) : mode === "bulk-upload" ? (
-          <BulkUploadStep onBack={prevStep} onNext={handleBulkUploadComplete} />
+          <BulkReviewStep
+            onBack={prevStep}
+            onNext={handleBulkUploadComplete}
+          />
         ) : (
           <Card className="p-6">Unexpected step.</Card>
         );

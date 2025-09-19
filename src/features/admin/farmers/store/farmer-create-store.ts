@@ -33,10 +33,53 @@ type FarmData = {
   locationLng?: number;
 };
 
+type ValidationError = {
+  field: string;
+  message: string;
+};
+
+type UploadedFarmer = {
+  id: string; // Temporary ID for tracking
+  rowNumber: number;
+  isValid: boolean;
+  errors: ValidationError[];
+  data: {
+    firstName: string;
+    lastName: string;
+    phone: string;
+    email: string;
+    dateOfBirth: string;
+    gender: "male" | "female" | "other";
+    community: string;
+    address: string;
+    districtName: string;
+    organizationName: string;
+    idType: "ghana_card" | "voters_id" | "passport" | "drivers_license";
+    idNumber: string;
+    householdSize: number | null;
+    isLeader: boolean;
+    isPhoneSmart: boolean;
+    legacyFarmerId?: string;
+  };
+  farms: Array<{
+    id: string; // Temporary ID for tracking
+    name: string;
+    acreage: number | null;
+    cropType: string;
+    soilType: "sandy" | "clay" | "loamy" | "silt" | "rocky" | "";
+    locationLat?: number;
+    locationLng?: number;
+    errors: ValidationError[];
+    isValid: boolean;
+  }>;
+};
+
 type BulkUploadData = {
   file: File | null;
   uploadProgress: number;
   isUploading: boolean;
+  isProcessing: boolean;
+  parsedFarmers: UploadedFarmer[];
   uploadResults: {
     successful: number;
     failed: number;
@@ -60,10 +103,15 @@ type FarmerCreateStoreState = {
   removeFarm: (index: number) => void;
   updateFarm: (index: number, farm: Partial<FarmData>) => void;
   setBulkUploadData: (data: Partial<BulkUploadData>) => void;
+  updateUploadedFarmer: (farmerId: string, data: Partial<UploadedFarmer["data"]>) => void;
+  updateUploadedFarm: (farmerId: string, farmId: string, data: Partial<UploadedFarmer["farms"][0]>) => void;
+  deleteUploadedFarmer: (farmerId: string) => void;
+  deleteUploadedFarm: (farmerId: string, farmId: string) => void;
+  validateUploadedFarmers: () => void;
   reset: () => void;
 };
 
-const TOTAL_STEPS = 2;
+const TOTAL_STEPS = 3;
 
 const initialFarmerState: FarmerFormData = {
   firstName: "",
@@ -90,6 +138,8 @@ const initialBulkUploadState: BulkUploadData = {
   file: null,
   uploadProgress: 0,
   isUploading: false,
+  isProcessing: false,
+  parsedFarmers: [],
   uploadResults: null,
 };
 
@@ -142,6 +192,136 @@ export const useFarmerCreateStore = create<FarmerCreateStoreState>((set) => ({
     set((state) => ({
       bulkUpload: { ...state.bulkUpload, ...data },
     })),
+  updateUploadedFarmer: (farmerId, data) =>
+    set((state) => ({
+      bulkUpload: {
+        ...state.bulkUpload,
+        parsedFarmers: state.bulkUpload.parsedFarmers.map((farmer) =>
+          farmer.id === farmerId
+            ? { ...farmer, data: { ...farmer.data, ...data } }
+            : farmer
+        ),
+      },
+    })),
+  updateUploadedFarm: (farmerId, farmId, data) =>
+    set((state) => ({
+      bulkUpload: {
+        ...state.bulkUpload,
+        parsedFarmers: state.bulkUpload.parsedFarmers.map((farmer) =>
+          farmer.id === farmerId
+            ? {
+                ...farmer,
+                farms: farmer.farms.map((farm) =>
+                  farm.id === farmId ? { ...farm, ...data } : farm
+                ),
+              }
+            : farmer
+        ),
+      },
+    })),
+  deleteUploadedFarmer: (farmerId) =>
+    set((state) => ({
+      bulkUpload: {
+        ...state.bulkUpload,
+        parsedFarmers: state.bulkUpload.parsedFarmers.filter(
+          (farmer) => farmer.id !== farmerId
+        ),
+      },
+    })),
+  deleteUploadedFarm: (farmerId, farmId) =>
+    set((state) => ({
+      bulkUpload: {
+        ...state.bulkUpload,
+        parsedFarmers: state.bulkUpload.parsedFarmers.map((farmer) =>
+          farmer.id === farmerId
+            ? {
+                ...farmer,
+                farms: farmer.farms.filter((farm) => farm.id !== farmId),
+              }
+            : farmer
+        ),
+      },
+    })),
+  validateUploadedFarmers: () =>
+    set((state) => {
+      const validateFarmer = (data: UploadedFarmer["data"]): ValidationError[] => {
+        const errors: ValidationError[] = [];
+
+        if (!data.firstName?.trim()) {
+          errors.push({ field: "firstName", message: "First name is required" });
+        }
+        if (!data.lastName?.trim()) {
+          errors.push({ field: "lastName", message: "Last name is required" });
+        }
+        if (!data.phone?.trim()) {
+          errors.push({ field: "phone", message: "Phone number is required" });
+        } else if (!/^\+233\d{9}$/.test(data.phone)) {
+          errors.push({ field: "phone", message: "Invalid phone format. Use +233XXXXXXXXX" });
+        }
+        if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+          errors.push({ field: "email", message: "Invalid email format" });
+        }
+        if (!data.dateOfBirth?.trim()) {
+          errors.push({ field: "dateOfBirth", message: "Date of birth is required" });
+        }
+        if (!data.community?.trim()) {
+          errors.push({ field: "community", message: "Community is required" });
+        }
+        if (!data.address?.trim() || data.address.length < 5) {
+          errors.push({ field: "address", message: "Address must be at least 5 characters" });
+        }
+        if (!data.districtName?.trim()) {
+          errors.push({ field: "districtName", message: "District name is required" });
+        }
+        if (!data.organizationName?.trim()) {
+          errors.push({ field: "organizationName", message: "Organization name is required" });
+        }
+        if (!data.idNumber?.trim() || data.idNumber.length < 5) {
+          errors.push({ field: "idNumber", message: "ID number must be at least 5 characters" });
+        }
+
+        return errors;
+      };
+
+      const validateFarm = (farm: UploadedFarmer["farms"][0]): ValidationError[] => {
+        const errors: ValidationError[] = [];
+
+        if (!farm.name?.trim()) {
+          errors.push({ field: "name", message: "Farm name is required" });
+        }
+        if (farm.acreage !== null && farm.acreage <= 0) {
+          errors.push({ field: "acreage", message: "Acreage must be greater than 0" });
+        }
+
+        return errors;
+      };
+
+      const updatedFarmers = state.bulkUpload.parsedFarmers.map((farmer) => {
+        const farmerErrors = validateFarmer(farmer.data);
+        const validatedFarms = farmer.farms.map((farm) => {
+          const farmErrors = validateFarm(farm);
+          return {
+            ...farm,
+            errors: farmErrors,
+            isValid: farmErrors.length === 0,
+          };
+        });
+
+        return {
+          ...farmer,
+          errors: farmerErrors,
+          isValid: farmerErrors.length === 0 && validatedFarms.every(f => f.isValid),
+          farms: validatedFarms,
+        };
+      });
+
+      return {
+        bulkUpload: {
+          ...state.bulkUpload,
+          parsedFarmers: updatedFarmers,
+        },
+      };
+    }),
   reset: () =>
     set({
       step: 1,
@@ -153,3 +333,5 @@ export const useFarmerCreateStore = create<FarmerCreateStoreState>((set) => ({
 }));
 
 export const farmerWizardTotalSteps = TOTAL_STEPS;
+
+export type { UploadedFarmer, ValidationError };

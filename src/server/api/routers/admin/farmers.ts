@@ -1,22 +1,23 @@
 import { TRPCError } from "@trpc/server";
-import { and, count, eq, inArray, sql } from "drizzle-orm";
+import { count, eq, inArray, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { z } from "zod";
 
 import { USER_STATUS } from "@/config/constants/auth";
 import {
   district,
-  farm,
+  farm as farmTable,
   farmer,
   member,
   organization,
   region,
   user,
 } from "@/server/db/schema";
-
 import { createTRPCRouter, protectedProcedure } from "../../trpc";
 
 const adminRoleSet = new Set(["admin", "supportAdmin", "userAc"]);
+
+const FARMER_ID_LENGTH = 8;
 
 const ensurePlatformAdmin = (sessionUser: unknown) => {
   if (!sessionUser || typeof sessionUser !== "object") {
@@ -67,7 +68,7 @@ export const adminFarmersRouter = createTRPCRouter({
         community: z.string().optional(),
         householdSize: z.number().int().positive().optional(),
         isLeader: z.boolean().default(false),
-        imgUrl: z.string().url().optional(),
+        imgUrl: z.string().url({ message: "Invalid URL format" }).optional(),
         organizationId: z.string().min(1, "Organization is required"),
         // Farms
         farms: z
@@ -94,7 +95,7 @@ export const adminFarmersRouter = createTRPCRouter({
       try {
         // Generate farmer ID
         const farmerId = nanoid();
-        const pukparaId = `FRM-${farmerId.slice(0, 8).toUpperCase()}`;
+        const pukparaId = `FRM-${farmerId.slice(0, FARMER_ID_LENGTH).toUpperCase()}`;
 
         // Create the farmer
         const [newFarmer] = await ctx.db
@@ -108,18 +109,23 @@ export const adminFarmersRouter = createTRPCRouter({
           .returning();
 
         // Create farms if provided
-        const createdFarms = [];
+        const createdFarms: typeof farmTable.$inferInsert[] = [];
         if (farms.length > 0) {
-          const farmRecords = farms.map((farm) => ({
+          const farmRecords = farms.map((farmData) => ({
             id: nanoid(),
             farmerId,
             organizationId: input.organizationId,
-            ...farm,
+            name: farmData.name,
+            acreage: farmData.acreage ? farmData.acreage.toString() : null,
+            cropType: farmData.cropType || null,
+            soilType: farmData.soilType || null,
+            locationLat: farmData.locationLat ? farmData.locationLat.toString() : null,
+            locationLng: farmData.locationLng ? farmData.locationLng.toString() : null,
             status: "active" as const,
           }));
 
           const insertedFarms = await ctx.db
-            .insert(farm)
+            .insert(farmTable)
             .values(farmRecords)
             .returning();
 

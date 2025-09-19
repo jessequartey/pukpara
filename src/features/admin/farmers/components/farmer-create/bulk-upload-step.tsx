@@ -4,6 +4,7 @@ import { CheckCircle2, Download, Upload, XCircle } from "lucide-react";
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
+import * as XLSX from "xlsx";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useFarmerCreateStore } from "@/features/admin/farmers/store/farmer-create-store";
+import { useFarmerCreateStore, type UploadedFarmer } from "@/features/admin/farmers/store/farmer-create-store";
+import { nanoid } from "nanoid";
 import { cn } from "@/lib/utils";
 
 type BulkUploadStepProps = {
@@ -87,76 +89,162 @@ export const BulkUploadStep = ({ onBack, onNext }: BulkUploadStepProps) => {
     multiple: false,
   });
 
+  const parseExcelFile = async (file: File): Promise<UploadedFarmer[]> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        try {
+          const data = e.target?.result;
+          const workbook = XLSX.read(data, { type: "binary" });
+
+          // Get Farmers sheet
+          const farmersSheetName = "Farmers";
+          const farmsSheetName = "Farms";
+
+          if (!workbook.SheetNames.includes(farmersSheetName)) {
+            reject(new Error("Farmers sheet not found. Please use the correct template."));
+            return;
+          }
+
+          const farmersSheet = workbook.Sheets[farmersSheetName];
+          const farmersData = XLSX.utils.sheet_to_json(farmersSheet, { header: 1 }) as any[][];
+
+          // Get Farms sheet (optional)
+          let farmsData: any[][] = [];
+          if (workbook.SheetNames.includes(farmsSheetName)) {
+            const farmsSheet = workbook.Sheets[farmsSheetName];
+            farmsData = XLSX.utils.sheet_to_json(farmsSheet, { header: 1 }) as any[][];
+          }
+
+          // Parse farmers (skip header row)
+          const farmers: UploadedFarmer[] = [];
+          const farmerHeaders = farmersData[0] || [];
+
+          for (let i = 1; i < farmersData.length; i++) {
+            const row = farmersData[i];
+            if (!row || row.every(cell => !cell)) continue; // Skip empty rows
+
+            const farmer: UploadedFarmer = {
+              id: nanoid(),
+              rowNumber: i + 1,
+              isValid: true,
+              errors: [],
+              data: {
+                firstName: String(row[0] || "").trim(),
+                lastName: String(row[1] || "").trim(),
+                phone: String(row[2] || "").trim(),
+                email: String(row[3] || "").trim(),
+                dateOfBirth: String(row[4] || "").trim(),
+                gender: String(row[5] || "male").toLowerCase() as "male" | "female" | "other",
+                community: String(row[6] || "").trim(),
+                address: String(row[7] || "").trim(),
+                districtName: String(row[8] || "").trim(),
+                organizationName: String(row[9] || "").trim(),
+                idType: String(row[10] || "ghana_card").toLowerCase() as "ghana_card" | "voters_id" | "passport" | "drivers_license",
+                idNumber: String(row[11] || "").trim(),
+                householdSize: row[12] ? Number(row[12]) : null,
+                isLeader: String(row[13] || "No").toLowerCase() === "yes",
+                isPhoneSmart: String(row[14] || "No").toLowerCase() === "yes",
+                legacyFarmerId: String(row[15] || "").trim(),
+              },
+              farms: [],
+            };
+
+            farmers.push(farmer);
+          }
+
+          // Parse farms if sheet exists
+          if (farmsData.length > 1) {
+            const farmHeaders = farmsData[0] || [];
+
+            for (let i = 1; i < farmsData.length; i++) {
+              const row = farmsData[i];
+              if (!row || row.every(cell => !cell)) continue; // Skip empty rows
+
+              const farmerRowNumber = Number(row[0]);
+              const farmerIndex = farmers.findIndex(f => f.rowNumber === farmerRowNumber);
+
+              if (farmerIndex !== -1) {
+                const farm = {
+                  id: nanoid(),
+                  name: String(row[1] || "").trim(),
+                  acreage: row[2] ? Number(row[2]) : null,
+                  cropType: String(row[3] || "").trim(),
+                  soilType: String(row[4] || "").toLowerCase() as "sandy" | "clay" | "loamy" | "silt" | "rocky" | "",
+                  locationLat: row[5] ? Number(row[5]) : undefined,
+                  locationLng: row[6] ? Number(row[6]) : undefined,
+                  errors: [],
+                  isValid: true,
+                };
+
+                farmers[farmerIndex].farms.push(farm);
+              }
+            }
+          }
+
+          resolve(farmers);
+        } catch (error) {
+          reject(error);
+        }
+      };
+
+      reader.onerror = () => reject(new Error("Failed to read file"));
+      reader.readAsBinaryString(file);
+    });
+  };
+
   const handleUpload = async () => {
     if (!bulkUpload.file) {
       toast.error("Please select a file first");
       return;
     }
 
-    setBulkUploadData({ isUploading: true, uploadProgress: 0 });
+    setBulkUploadData({ isUploading: true, isProcessing: true, uploadProgress: 0 });
 
     try {
       // Simulate upload progress
-      for (let i = 0; i <= 100; i += 10) {
-        setBulkUploadData({ uploadProgress: i });
-        await new Promise((resolve) => setTimeout(resolve, 200));
-      }
+      setBulkUploadData({ uploadProgress: 25 });
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
-      // Simulate processing results
-      const mockResults = {
-        successful: 45,
-        failed: 5,
-        errors: [
-          {
-            row: 3,
-            message: "Invalid phone number format",
-            data: { firstName: "John", lastName: "Doe", phone: "invalid" },
-          },
-          {
-            row: 7,
-            message: "Missing required field: district",
-            data: { firstName: "Jane", lastName: "Smith" },
-          },
-          {
-            row: 12,
-            message: "Duplicate ID number",
-            data: { firstName: "Bob", lastName: "Wilson", idNumber: "GHA-123" },
-          },
-          {
-            row: 18,
-            message: "Invalid email format",
-            data: {
-              firstName: "Alice",
-              lastName: "Brown",
-              email: "invalid-email",
-            },
-          },
-          {
-            row: 25,
-            message: "Date of birth is required",
-            data: { firstName: "Mike", lastName: "Johnson" },
-          },
-        ],
-      };
+      // Parse the Excel file
+      setBulkUploadData({ uploadProgress: 50 });
+      const parsedFarmers = await parseExcelFile(bulkUpload.file);
 
+      setBulkUploadData({ uploadProgress: 75 });
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // Store parsed farmers
       setBulkUploadData({
         isUploading: false,
+        isProcessing: false,
         uploadProgress: 100,
-        uploadResults: mockResults,
+        parsedFarmers,
       });
 
-      toast.success(
-        `Upload completed: ${mockResults.successful} farmers created, ${mockResults.failed} failed`
-      );
-    } catch (_error) {
-      setBulkUploadData({ isUploading: false });
-      toast.error("Upload failed. Please try again.");
+      toast.success(`Successfully parsed ${parsedFarmers.length} farmers from file`);
+    } catch (error) {
+      setBulkUploadData({
+        isUploading: false,
+        isProcessing: false,
+        uploadProgress: 0,
+        parsedFarmers: []
+      });
+
+      const message = error instanceof Error ? error.message : "Failed to parse file";
+      toast.error(message);
     }
   };
 
   const downloadTemplate = () => {
-    // In a real implementation, this would download a template file
-    toast.info("Template download would start here");
+    // Download the generated template
+    const link = document.createElement("a");
+    link.href = "/templates/farmer-bulk-upload-template-with-validation.xlsx";
+    link.download = "farmer-bulk-upload-template.xlsx";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("Template downloaded successfully");
   };
 
   const removeFile = () => {
@@ -164,6 +252,8 @@ export const BulkUploadStep = ({ onBack, onNext }: BulkUploadStepProps) => {
       file: null,
       uploadProgress: 0,
       isUploading: false,
+      isProcessing: false,
+      parsedFarmers: [],
       uploadResults: null,
     });
   };
@@ -252,10 +342,12 @@ export const BulkUploadStep = ({ onBack, onNext }: BulkUploadStepProps) => {
         </div>
 
         {/* Upload Progress */}
-        {bulkUpload.isUploading && (
+        {(bulkUpload.isUploading || bulkUpload.isProcessing) && (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="font-medium text-sm">Uploading...</span>
+              <span className="font-medium text-sm">
+                {bulkUpload.isProcessing ? "Processing file..." : "Uploading..."}
+              </span>
               <span className="text-muted-foreground text-sm">
                 {bulkUpload.uploadProgress}%
               </span>
@@ -328,24 +420,59 @@ export const BulkUploadStep = ({ onBack, onNext }: BulkUploadStepProps) => {
           </div>
         )}
 
+        {/* Parsed Results Summary */}
+        {bulkUpload.parsedFarmers.length > 0 && (
+          <div className="space-y-4">
+            <h4 className="font-medium text-sm">Parsed Results</h4>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="rounded-lg border p-3">
+                <div className="text-2xl font-bold text-blue-600">
+                  {bulkUpload.parsedFarmers.length}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Total farmers
+                </div>
+              </div>
+              <div className="rounded-lg border p-3">
+                <div className="text-2xl font-bold text-green-600">
+                  {bulkUpload.parsedFarmers.reduce((sum, farmer) => sum + farmer.farms.length, 0)}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Total farms
+                </div>
+              </div>
+              <div className="rounded-lg border p-3">
+                <div className="text-2xl font-bold text-amber-600">
+                  Ready for review
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Status
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Actions */}
         <div className="flex flex-col gap-3 md:flex-row md:justify-between">
           <Button onClick={onBack} type="button" variant="ghost">
             Back
           </Button>
           <div className="flex gap-2">
-            {bulkUpload.file && !bulkUpload.uploadResults && (
+            {bulkUpload.file && bulkUpload.parsedFarmers.length === 0 && (
               <Button
-                disabled={bulkUpload.isUploading}
+                disabled={bulkUpload.isUploading || bulkUpload.isProcessing}
                 onClick={handleUpload}
                 size="lg"
               >
-                {bulkUpload.isUploading ? "Uploading..." : "Upload Farmers"}
+                {bulkUpload.isUploading || bulkUpload.isProcessing
+                  ? "Processing..."
+                  : "Process File"}
               </Button>
             )}
-            {bulkUpload.uploadResults && (
+            {bulkUpload.parsedFarmers.length > 0 && (
               <Button onClick={onNext} size="lg">
-                Continue
+                Review Farmers ({bulkUpload.parsedFarmers.length})
               </Button>
             )}
           </div>

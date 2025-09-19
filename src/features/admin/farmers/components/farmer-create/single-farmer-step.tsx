@@ -74,14 +74,6 @@ const farmerSchema = z.object({
   legacyFarmerId: z.string().optional(),
 });
 
-const farmSchema = z.object({
-  name: z.string().min(1, "Farm name is required"),
-  acreage: z.number().positive("Acreage must be positive").optional(),
-  cropType: z.string().optional(),
-  soilType: z.enum(["sandy", "clay", "loamy", "silt", "rocky", ""], {
-    message: "Select a soil type",
-  }).optional(),
-});
 
 type FarmerSchema = z.infer<typeof farmerSchema>;
 
@@ -99,13 +91,6 @@ const idTypeOptions = [
   { value: "drivers_license", label: "Driver's License" },
 ];
 
-const soilTypeOptions = [
-  { value: "sandy", label: "Sandy" },
-  { value: "clay", label: "Clay" },
-  { value: "loamy", label: "Loamy" },
-  { value: "silt", label: "Silt" },
-  { value: "rocky", label: "Rocky" },
-];
 
 const genderOptions = [
   { value: "male", label: "Male" },
@@ -121,11 +106,6 @@ type SingleFarmerStepProps = {
 export const SingleFarmerStep = ({ onBack, onNext }: SingleFarmerStepProps) => {
   const setFarmerData = useFarmerCreateStore((state) => state.setFarmerData);
   const storedFarmer = useFarmerCreateStore((state) => state.farmer);
-  const farms = useFarmerCreateStore((state) => state.farms);
-  const setFarms = useFarmerCreateStore((state) => state.setFarms);
-  const addFarm = useFarmerCreateStore((state) => state.addFarm);
-  const removeFarm = useFarmerCreateStore((state) => state.removeFarm);
-  const updateFarm = useFarmerCreateStore((state) => state.updateFarm);
 
   const {
     data: districtData,
@@ -682,120 +662,6 @@ export const SingleFarmerStep = ({ onBack, onNext }: SingleFarmerStepProps) => {
               </div>
             </div>
 
-            {/* Farms Section */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h4 className="font-medium text-sm">Farms (Optional)</h4>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    addFarm({
-                      name: "",
-                      acreage: null,
-                      cropType: "",
-                      soilType: "",
-                    });
-                  }}
-                >
-                  Add Farm
-                </Button>
-              </div>
-              {farms.length === 0 ? (
-                <p className="text-muted-foreground text-sm">
-                  No farms added yet. You can add farms now or later.
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  {farms.map((farm, index) => (
-                    <Card key={index} className="p-4">
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <h5 className="font-medium text-sm">
-                            Farm #{index + 1}
-                          </h5>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeFarm(index)}
-                          >
-                            Remove
-                          </Button>
-                        </div>
-                        <div className="grid gap-4 md:grid-cols-2">
-                          <div>
-                            <label className="block text-sm font-medium mb-1">
-                              Farm name *
-                            </label>
-                            <Input
-                              placeholder="Main Farm"
-                              value={farm.name}
-                              onChange={(e) =>
-                                updateFarm(index, { name: e.target.value })
-                              }
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-1">
-                              Acreage
-                            </label>
-                            <Input
-                              type="number"
-                              step="0.1"
-                              min="0"
-                              placeholder="2.5"
-                              value={farm.acreage || ""}
-                              onChange={(e) => {
-                                const value = e.target.value;
-                                updateFarm(index, {
-                                  acreage: value ? Number(value) : null,
-                                });
-                              }}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-1">
-                              Crop type
-                            </label>
-                            <Input
-                              placeholder="Maize, Rice, Cassava"
-                              value={farm.cropType}
-                              onChange={(e) =>
-                                updateFarm(index, { cropType: e.target.value })
-                              }
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-1">
-                              Soil type
-                            </label>
-                            <Select
-                              value={farm.soilType}
-                              onValueChange={(value) =>
-                                updateFarm(index, { soilType: value })
-                              }
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select soil type" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {soilTypeOptions.map((option) => (
-                                  <SelectItem key={option.value} value={option.value}>
-                                    {option.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </div>
 
             {districtsError || organizationsError ? (
               <div className="space-y-2">
@@ -821,15 +687,14 @@ export const SingleFarmerStep = ({ onBack, onNext }: SingleFarmerStepProps) => {
                 size="lg"
                 type="submit"
               >
-                Create Farmer
+                Next: Add Farms
               </Button>
             </div>
           </form>
         </Form>
       </CardContent>
       <CardFooter className="text-muted-foreground text-xs">
-        The farmer profile can be updated later with additional information like
-        farm details and crop preferences.
+        In the next step, you'll be able to add farm details and crop information for this farmer.
       </CardFooter>
     </Card>
   );

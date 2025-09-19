@@ -2,14 +2,12 @@ import { ArrowLeft } from "lucide-react";
 import { PageTitle } from "@/components/ui/page-title";
 import { PlaceholderSection } from "@/features/admin/overview/components/placeholder-section";
 
-type AdminPaymentDetailPageProps = {
-  params: Promise<{ paymentId: string }>;
-};
-
 export default async function AdminPaymentDetailPage({
   params,
-}: AdminPaymentDetailPageProps) {
-  const { paymentId } = await params;
+}: {
+  params: { paymentId: string };
+}) {
+  const paymentId = decodeURIComponent(params.paymentId);
 
   return (
     <div className="space-y-8">

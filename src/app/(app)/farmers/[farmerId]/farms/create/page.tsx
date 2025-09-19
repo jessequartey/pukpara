@@ -1,16 +1,15 @@
 import { ArrowLeft } from "lucide-react";
 import { PageTitle } from "@/components/ui/page-title";
 
-type CreateFarmPageProps = {
-  params: Promise<{ orgId: string; farmerId: string }>;
-};
-
-export default async function CreateFarmPage({ params }: CreateFarmPageProps) {
-  const { orgId, farmerId } = await params;
-  const basePath = `/app/${orgId}`;
+export default async function CreateFarmPage({
+  params,
+}: {
+  params: { orgId: string; farmerId: string };
+}) {
+  const basePath = `/app/${params.orgId}`;
   const farmersPath = `${basePath}/farmers`;
-  const farmsPath = `${farmersPath}/${farmerId}/farms`;
-  const decodedFarmerId = decodeURIComponent(farmerId);
+  const farmsPath = `${farmersPath}/${params.farmerId}/farms`;
+  const farmerId = decodeURIComponent(params.farmerId);
 
   return (
     <div className="space-y-8">
@@ -23,7 +22,7 @@ export default async function CreateFarmPage({ params }: CreateFarmPageProps) {
         breadcrumbs={[
           { label: "Organization", href: basePath },
           { label: "Farmers", href: farmersPath },
-          { label: decodedFarmerId, href: `${farmersPath}/${farmerId}` },
+          { label: farmerId, href: `${farmersPath}/${params.farmerId}` },
           { label: "Farms", href: farmsPath },
           { label: "Create" },
         ]}

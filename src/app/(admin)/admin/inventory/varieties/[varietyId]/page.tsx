@@ -2,14 +2,12 @@ import { ArrowLeft } from "lucide-react";
 import { PageTitle } from "@/components/ui/page-title";
 import { PlaceholderSection } from "@/features/admin/overview/components/placeholder-section";
 
-type VarietyDetailPageProps = {
-  params: Promise<{ varietyId: string }>;
-};
-
 export default async function VarietyDetailPage({
   params,
-}: VarietyDetailPageProps) {
-  const { varietyId } = await params;
+}: {
+  params: { varietyId: string };
+}) {
+  const varietyId = decodeURIComponent(params.varietyId);
   const basePath = "/admin/inventory";
 
   return (

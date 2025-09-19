@@ -2,14 +2,12 @@ import { ArrowLeft } from "lucide-react";
 import { PageTitle } from "@/components/ui/page-title";
 import { PlaceholderSection } from "@/features/admin/overview/components/placeholder-section";
 
-type CommodityDetailPageProps = {
-  params: Promise<{ commodityId: string }>;
-};
-
 export default async function CommodityDetailPage({
   params,
-}: CommodityDetailPageProps) {
-  const { commodityId } = await params;
+}: {
+  params: { commodityId: string };
+}) {
+  const commodityId = decodeURIComponent(params.commodityId);
   const basePath = "/admin/inventory";
 
   return (

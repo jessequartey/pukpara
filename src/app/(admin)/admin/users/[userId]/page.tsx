@@ -5,9 +5,9 @@ import { PlaceholderSection } from "@/features/admin/overview/components/placeho
 export default async function AdminUserDetailPage({
   params,
 }: {
-  params: { userId: string };
+  params: Promise<{ userId: string }>;
 }) {
-  const userId = decodeURIComponent(params.userId);
+  const { userId } = await params;
 
   return (
     <div className="space-y-8">

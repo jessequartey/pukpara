@@ -2,14 +2,12 @@ import { ArrowLeft } from "lucide-react";
 import { PageTitle } from "@/components/ui/page-title";
 import { PlaceholderSection } from "@/features/admin/overview/components/placeholder-section";
 
-type AdminListingDetailPageProps = {
-  params: Promise<{ listingId: string }>;
-};
-
 export default async function AdminListingDetailPage({
   params,
-}: AdminListingDetailPageProps) {
-  const { listingId } = await params;
+}: {
+  params: { listingId: string };
+}) {
+  const listingId = decodeURIComponent(params.listingId);
   const basePath = "/admin/marketplace";
 
   return (

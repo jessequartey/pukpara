@@ -31,7 +31,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { PhoneInput } from "@/components/ui/phone-input";
-import { authClient } from "@/lib/auth-client";
 import { api } from "@/trpc/react";
 import { signUpSchema } from "../../schema";
 import { useSignUpStore } from "../../store/sign-up-store";
@@ -139,6 +138,8 @@ export default function SignUpStepTwoForm() {
     staleTime: Number.POSITIVE_INFINITY,
   });
 
+  const signUpMutation = api.auth.signUp.useMutation();
+
   const regions = useMemo(() => districtData?.regions ?? [], [districtData]);
 
   const districtIndex = useMemo(() => {
@@ -227,27 +228,25 @@ export default function SignUpStepTwoForm() {
     setFormError(null);
     setData(data);
 
-    const fullName = `${firstName} ${lastName}`.trim().replace(/\s+/g, " ");
+    try {
+      await signUpMutation.mutateAsync({
+        firstName,
+        lastName,
+        email,
+        password,
+        confirmPassword,
+        phoneNumber: data.phoneNumber,
+        districtId: data.districtId,
+        address: data.address,
+      });
 
-    const { error } = await authClient.signUp.email({
-      name: fullName,
-      email,
-      password,
-      phoneNumber: data.phoneNumber,
-      districtId: data.districtId,
-      address: data.address,
-      fetchOptions: { body: {} },
-    });
-
-    if (error) {
+      toast.success("Signup received. We'll review your account shortly.");
+      resetStore();
+      form.reset({ address: "", districtId: "", phoneNumber: "" });
+      router.replace("/sign-in?msg=pending");
+    } catch (error) {
       setFormError(getSignUpErrorMessage(error));
-      return;
     }
-
-    toast.success("Signup received. We'll review your account shortly.");
-    resetStore();
-    form.reset({ address: "", districtId: "", phoneNumber: "" });
-    router.replace("/sign-in?msg=pending");
   };
 
   const districtErrorMessage = districtsError
@@ -376,11 +375,11 @@ export default function SignUpStepTwoForm() {
 
             <Button
               className="w-full"
-              disabled={form.formState.isSubmitting}
+              disabled={signUpMutation.isPending}
               size="lg"
               type="submit"
             >
-              {form.formState.isSubmitting
+              {signUpMutation.isPending
                 ? "Creating account..."
                 : "Create Account"}
             </Button>

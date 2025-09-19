@@ -4,6 +4,7 @@ import {
   createTRPCRouter,
   publicProcedure,
 } from "@/server/api/trpc";
+import { authRouter } from "./routers/auth";
 import { districtsRouter } from "./routers/districts";
 import { organizationsRouter } from "./routers/organizations";
 
@@ -13,6 +14,7 @@ import { organizationsRouter } from "./routers/organizations";
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
+  auth: authRouter,
   districts: districtsRouter,
   organizations: organizationsRouter,
   hello: publicProcedure

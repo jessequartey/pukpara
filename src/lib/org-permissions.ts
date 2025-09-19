@@ -77,9 +77,17 @@ export const fieldAgent = ac.newRole({
   financial: ["savings.record", "savings.view"],
 });
 
+export const farmer = ac.newRole({
+  farmers: ["create", "update", "view"],
+  farms: ["create", "update", "view"],
+  groups: ["view"],
+  financial: ["savings.record", "savings.view"],
+});
+
 export const OrgRoles = {
   member,
   admin,
   owner,
+  farmer,
   fieldAgent,
 };

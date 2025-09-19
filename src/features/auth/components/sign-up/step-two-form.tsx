@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { PhoneInput } from "@/components/ui/phone-input";
+import { isUserAdmin } from "@/lib/auth-utils";
 import { api } from "@/trpc/react";
 import { signUpSchema } from "../../schema";
 import { useSignUpStore } from "../../store/sign-up-store";
@@ -115,7 +116,7 @@ const getSignUpErrorMessage = (rawError: unknown): string => {
 export default function SignUpStepTwoForm() {
   const router = useRouter();
   const [formError, setFormError] = useState<string | null>(null);
-  const resetStore = useSignUpStore((state) => state.reset);
+  const clearPersisted = useSignUpStore((state) => state.clearPersisted);
   const setData = useSignUpStore((state) => state.setData);
   const firstName = useSignUpStore((state) => state.firstName ?? "");
   const lastName = useSignUpStore((state) => state.lastName ?? "");
@@ -229,7 +230,7 @@ export default function SignUpStepTwoForm() {
     setData(data);
 
     try {
-      await signUpMutation.mutateAsync({
+      const result = await signUpMutation.mutateAsync({
         firstName,
         lastName,
         email,
@@ -241,9 +242,15 @@ export default function SignUpStepTwoForm() {
       });
 
       toast.success("Signup received. We'll review your account shortly.");
-      resetStore();
+      clearPersisted();
       form.reset({ address: "", districtId: "", phoneNumber: "" });
-      router.replace("/sign-in?msg=pending");
+
+      // Check if user is admin and redirect accordingly
+      if (result.user && isUserAdmin(result.user)) {
+        router.replace("/admin");
+      } else {
+        router.replace("/sign-in?msg=pending");
+      }
     } catch (error) {
       setFormError(getSignUpErrorMessage(error));
     }

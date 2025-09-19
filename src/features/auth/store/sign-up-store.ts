@@ -6,6 +6,7 @@ type SignUpState = Partial<SignUpSchema> & {
   hasHydrated: boolean;
   setHasHydrated: (value: boolean) => void;
   reset: () => void;
+  clearPersisted: () => void;
   setData: (data: Partial<SignUpSchema>) => void;
 };
 
@@ -22,6 +23,10 @@ export const useSignUpStore = create<SignUpState>()(
           ...initialState,
           hasHydrated: state.hasHydrated,
         })),
+      clearPersisted: () => {
+        localStorage.removeItem("sign-up-store");
+        set({ ...initialState, hasHydrated: false });
+      },
       setData: (data: Partial<SignUpSchema>) =>
         set((state) => ({ ...state, ...data })),
     }),
@@ -40,7 +45,7 @@ export const useSignUpStore = create<SignUpState>()(
           ...rest
         } = state;
 
-        return rest as any;
+        return rest;
       },
     }
   )

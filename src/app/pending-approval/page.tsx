@@ -1,8 +1,13 @@
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { PageTitle } from "@/components/ui/page-title";
+import { useUser } from "@/features/auth/hooks/use-user";
 
 export default function PendingApprovalPage() {
+  const { signOut } = useUser();
+
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-6 py-16">
       <PageTitle
@@ -21,6 +26,13 @@ export default function PendingApprovalPage() {
           </Button>
           <Button asChild>
             <Link href="mailto:support@pukpara.com">Contact support</Link>
+          </Button>
+          <Button
+            onClick={signOut}
+            type="button"
+            variant="outline"
+          >
+            Sign out
           </Button>
         </div>
       </div>

@@ -12,14 +12,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { ComplianceKycCard } from "./organization-details/compliance-kyc-card";
+// import { ComplianceKycCard } from "./organization-details/compliance-kyc-card";
 import { ContactAddressCard } from "./organization-details/contact-address-card";
-import { InventoryCard } from "./organization-details/inventory-card";
-import { KpisFinanceCard } from "./organization-details/kpis-finance-card";
-import { MarketplaceActivityCard } from "./organization-details/marketplace-activity-card";
+// import { InventoryCard } from "./organization-details/inventory-card";
+// import { KpisFinanceCard } from "./organization-details/kpis-finance-card";
+// import { MarketplaceActivityCard } from "./organization-details/marketplace-activity-card";
 import { OrganizationOverviewCard } from "./organization-details/organization-overview-card";
 import { PrimaryContactCard } from "./organization-details/primary-contact-card";
-import { RecentActivityCard } from "./organization-details/recent-activity-card";
+// import { RecentActivityCard } from "./organization-details/recent-activity-card";
 import { SubscriptionLicenseCard } from "./organization-details/subscription-license-card";
 
 type OrganizationDetailsContentProps = {
@@ -117,11 +117,11 @@ export function OrganizationDetailsContent({
 
         {/* Right column - spans 1 column on large screens */}
         <div className="space-y-6">
-          <KpisFinanceCard />
+          {/* <KpisFinanceCard />
           <InventoryCard />
           <MarketplaceActivityCard />
           <ComplianceKycCard />
-          <RecentActivityCard />
+          <RecentActivityCard /> */}
         </div>
       </div>
     </div>

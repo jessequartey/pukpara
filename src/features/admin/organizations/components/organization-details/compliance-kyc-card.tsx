@@ -71,8 +71,8 @@ export function ComplianceKycCard() {
         <div>
           <div className="mb-3 flex items-center justify-between">
             <div>
-              <h4 className="text-sm font-medium">Organization KYC</h4>
-              <p className="text-xs text-muted-foreground">
+              <h4 className="font-medium text-sm">Organization KYC</h4>
+              <p className="text-muted-foreground text-xs">
                 Last updated: {formatDate(compliance.orgKyc.lastUpdated)}
               </p>
             </div>
@@ -82,17 +82,17 @@ export function ComplianceKycCard() {
           {/* Required Documents Checklist */}
           <div className="space-y-2">
             {compliance.orgKyc.requiredDocs.map((doc) => (
-              <div key={doc.name} className="flex items-center gap-3">
+              <div className="flex items-center gap-3" key={doc.name}>
                 {getDocIcon(doc.status)}
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <span className="text-sm">{doc.name}</span>
                     {doc.required && (
-                      <span className="text-xs text-red-500">*</span>
+                      <span className="text-red-500 text-xs">*</span>
                     )}
                   </div>
                 </div>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-muted-foreground text-xs">
                   {doc.status}
                 </div>
               </div>
@@ -102,11 +102,13 @@ export function ComplianceKycCard() {
 
         {/* User KYC Summary */}
         <div className="border-t pt-4">
-          <h4 className="mb-2 text-sm font-medium">User Verification</h4>
+          <h4 className="mb-2 font-medium text-sm">User Verification</h4>
           <div className="rounded-lg border p-3">
             <div className="mb-2 flex items-center justify-between">
               <span className="text-sm">Verification Rate</span>
-              <span className="text-sm font-medium">{compliance.userKyc.verificationRate}%</span>
+              <span className="font-medium text-sm">
+                {compliance.userKyc.verificationRate}%
+              </span>
             </div>
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
@@ -114,19 +116,20 @@ export function ComplianceKycCard() {
                 style={{ width: `${compliance.userKyc.verificationRate}%` }}
               />
             </div>
-            <div className="text-xs text-muted-foreground">
-              {compliance.userKyc.unverifiedCount} of {compliance.userKyc.totalUsers} users need verification
+            <div className="text-muted-foreground text-xs">
+              {compliance.userKyc.unverifiedCount} of{" "}
+              {compliance.userKyc.totalUsers} users need verification
             </div>
           </div>
         </div>
 
         {/* Actions */}
         <div className="space-y-2">
-          <Button variant="outline" size="sm" className="w-full">
+          <Button className="w-full" size="sm" variant="outline">
             <Mail className="mr-2 size-4" />
             Request Documents
           </Button>
-          <Button size="sm" className="w-full">
+          <Button className="w-full" size="sm">
             <Shield className="mr-2 size-4" />
             Mark Verified
           </Button>

@@ -22,14 +22,14 @@ export function InventoryCard() {
         name: "Main Warehouse",
         location: "Tema",
         stockLots: 23,
-        totalValue: 15680.50,
+        totalValue: 15_680.5,
       },
       {
         id: "wh_2",
         name: "Secondary Storage",
         location: "Accra",
         stockLots: 8,
-        totalValue: 4320.00,
+        totalValue: 4320.0,
       },
     ],
     topStockLots: [
@@ -81,7 +81,7 @@ export function InventoryCard() {
             <Warehouse className="size-4" />
             Inventory
           </CardTitle>
-          <Button variant="outline" size="sm">
+          <Button size="sm" variant="outline">
             <Plus className="mr-2 size-4" />
             Create Warehouse
           </Button>
@@ -90,19 +90,25 @@ export function InventoryCard() {
       <CardContent className="space-y-4">
         {/* Warehouse Summary */}
         <div className="space-y-2">
-          <h4 className="text-sm font-medium">Warehouses ({inventory.warehouses.length})</h4>
+          <h4 className="font-medium text-sm">
+            Warehouses ({inventory.warehouses.length})
+          </h4>
           {inventory.warehouses.map((warehouse) => (
             <div
-              key={warehouse.id}
               className="flex items-center justify-between rounded-lg border p-2"
+              key={warehouse.id}
             >
               <div>
-                <div className="text-sm font-medium">{warehouse.name}</div>
-                <div className="text-xs text-muted-foreground">{warehouse.location}</div>
+                <div className="font-medium text-sm">{warehouse.name}</div>
+                <div className="text-muted-foreground text-xs">
+                  {warehouse.location}
+                </div>
               </div>
               <div className="text-right">
-                <div className="text-sm font-medium">{warehouse.stockLots} lots</div>
-                <div className="text-xs text-muted-foreground">
+                <div className="font-medium text-sm">
+                  {warehouse.stockLots} lots
+                </div>
+                <div className="text-muted-foreground text-xs">
                   GHS {warehouse.totalValue.toLocaleString()}
                 </div>
               </div>
@@ -112,7 +118,7 @@ export function InventoryCard() {
 
         {/* Top Stock Lots */}
         <div>
-          <h4 className="mb-2 text-sm font-medium">Top Stock Lots</h4>
+          <h4 className="mb-2 font-medium text-sm">Top Stock Lots</h4>
           <div className="rounded-md border">
             <Table>
               <TableHeader>
@@ -128,7 +134,9 @@ export function InventoryCard() {
                     <TableCell className="text-xs">
                       <div>
                         <div className="font-medium">{lot.commodity}</div>
-                        <div className="text-muted-foreground">{lot.warehouse}</div>
+                        <div className="text-muted-foreground">
+                          {lot.warehouse}
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell className="text-xs">
@@ -147,7 +155,7 @@ export function InventoryCard() {
         </div>
 
         {/* Action Button */}
-        <Button variant="outline" size="sm" className="w-full">
+        <Button className="w-full" size="sm" variant="outline">
           <Eye className="mr-2 size-4" />
           View Warehouses
         </Button>

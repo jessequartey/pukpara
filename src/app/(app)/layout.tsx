@@ -32,13 +32,13 @@ export default async function OrgLayout({
             {
               title: "Overview",
               href: basePath,
-              icon: "BarChart3",
+              icon: "TrendingUp",
               description: "Organization health and activity",
             },
             {
               title: "Groups",
               href: `${basePath}/groups`,
-              icon: "Layers3",
+              icon: "Layers",
               description: "Member teams and cohorts",
             },
             {

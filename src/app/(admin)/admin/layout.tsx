@@ -56,7 +56,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
             {
               title: "Overview",
               href: "/admin",
-              icon: "BarChart3",
+              icon: "TrendingUp",
               description: "System health and KPIs",
             },
             {

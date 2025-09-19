@@ -54,16 +54,18 @@ export function RecentActivityCard() {
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
     const now = new Date();
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    const diffInHours = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60 * 60)
+    );
 
     if (diffInHours < 1) {
       return "Just now";
-    } else if (diffInHours < 24) {
-      return `${diffInHours}h ago`;
-    } else {
-      const diffInDays = Math.floor(diffInHours / 24);
-      return `${diffInDays}d ago`;
     }
+    if (diffInHours < 24) {
+      return `${diffInHours}h ago`;
+    }
+    const diffInDays = Math.floor(diffInHours / 24);
+    return `${diffInDays}d ago`;
   };
 
   const getActionColor = (action: string) => {
@@ -108,11 +110,11 @@ export function RecentActivityCard() {
             Recent Activity
           </CardTitle>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
+            <Button size="sm" variant="outline">
               <Filter className="mr-2 size-4" />
               Filter
             </Button>
-            <Button variant="outline" size="sm">
+            <Button size="sm" variant="outline">
               <Eye className="mr-2 size-4" />
               See All
             </Button>
@@ -122,7 +124,10 @@ export function RecentActivityCard() {
       <CardContent>
         <div className="space-y-3">
           {activities.map((activity) => (
-            <div key={activity.id} className="flex items-start gap-3 pb-3 border-b last:border-b-0">
+            <div
+              className="flex items-start gap-3 border-b pb-3 last:border-b-0"
+              key={activity.id}
+            >
               <div className="mt-1 size-2 rounded-full bg-blue-500" />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 text-sm">
@@ -132,10 +137,10 @@ export function RecentActivityCard() {
                   </span>
                   {getEntityBadge(activity.entity)}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="mt-1 text-muted-foreground text-xs">
                   {activity.context}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="mt-1 text-muted-foreground text-xs">
                   {formatTime(activity.timestamp)}
                 </p>
               </div>

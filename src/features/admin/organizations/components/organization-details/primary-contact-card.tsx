@@ -47,7 +47,10 @@ export function PrimaryContactCard() {
         {/* Contact Info */}
         <div className="flex items-start gap-4">
           <Avatar className="size-12">
-            <AvatarImage src={primaryContact.image || ""} alt={primaryContact.name} />
+            <AvatarImage
+              alt={primaryContact.name}
+              src={primaryContact.image || ""}
+            />
             <AvatarFallback>{getInitials(primaryContact.name)}</AvatarFallback>
           </Avatar>
           <div className="flex-1 space-y-1">
@@ -55,15 +58,19 @@ export function PrimaryContactCard() {
               <h4 className="font-medium">{primaryContact.name}</h4>
               {getRoleBadge(primaryContact.role)}
             </div>
-            <p className="text-sm text-muted-foreground">{primaryContact.email}</p>
-            <p className="text-sm text-muted-foreground">{primaryContact.phone}</p>
+            <p className="text-muted-foreground text-sm">
+              {primaryContact.email}
+            </p>
+            <p className="text-muted-foreground text-sm">
+              {primaryContact.phone}
+            </p>
           </div>
         </div>
 
         {/* Actions */}
         <div className="space-y-2">
           <div className="grid grid-cols-2 gap-2">
-            <Button variant="outline" size="sm">
+            <Button size="sm" variant="outline">
               <Edit className="mr-2 size-4" />
               Edit User
             </Button>
@@ -73,11 +80,11 @@ export function PrimaryContactCard() {
             </Button>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <Button variant="outline" size="sm">
+            <Button size="sm" variant="outline">
               <Key className="mr-2 size-4" />
               Reset Password
             </Button>
-            <Button variant="outline" size="sm">
+            <Button size="sm" variant="outline">
               <Mail className="mr-2 size-4" />
               Resend Invite
             </Button>
@@ -91,7 +98,8 @@ export function PrimaryContactCard() {
             <div className="text-sm">
               <p className="font-medium text-blue-800">Impersonation</p>
               <p className="text-blue-700">
-                Click "Impersonate" to log in as this user. You'll be redirected to their dashboard with admin privileges maintained.
+                Click "Impersonate" to log in as this user. You'll be redirected
+                to their dashboard with admin privileges maintained.
               </p>
             </div>
           </div>

@@ -10,6 +10,8 @@ import { SidebarFooterComponent } from "./footer";
 import { SidebarHeaderComponent } from "./header";
 import { type SidebarNavGroup, SidebarNavigationComponent } from "./navigation";
 
+export type { SidebarNavGroup };
+
 type AppSidebarProps = {
   navGroups: SidebarNavGroup[];
   footerSlot?: ReactNode;

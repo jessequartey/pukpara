@@ -4,12 +4,13 @@ import { PageTitle } from "@/components/ui/page-title";
 export default async function CreateFarmPage({
   params,
 }: {
-  params: { orgId: string; farmerId: string };
+  params: Promise<{ orgId: string; farmerId: string }>;
 }) {
-  const basePath = `/app/${params.orgId}`;
+  const { orgId, farmerId } = await params;
+  const basePath = `/app/${orgId}`;
   const farmersPath = `${basePath}/farmers`;
-  const farmsPath = `${farmersPath}/${params.farmerId}/farms`;
-  const farmerId = decodeURIComponent(params.farmerId);
+  const farmsPath = `${farmersPath}/${farmerId}/farms`;
+  const decodedFarmerId = decodeURIComponent(farmerId);
 
   return (
     <div className="space-y-8">
@@ -22,7 +23,7 @@ export default async function CreateFarmPage({
         breadcrumbs={[
           { label: "Organization", href: basePath },
           { label: "Farmers", href: farmersPath },
-          { label: farmerId, href: `${farmersPath}/${params.farmerId}` },
+          { label: decodedFarmerId, href: `${farmersPath}/${farmerId}` },
           { label: "Farms", href: farmsPath },
           { label: "Create" },
         ]}

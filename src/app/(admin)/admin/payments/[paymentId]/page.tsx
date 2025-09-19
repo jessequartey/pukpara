@@ -5,9 +5,10 @@ import { PlaceholderSection } from "@/features/admin/overview/components/placeho
 export default async function AdminPaymentDetailPage({
   params,
 }: {
-  params: { paymentId: string };
+  params: Promise<{ paymentId: string }>;
 }) {
-  const paymentId = decodeURIComponent(params.paymentId);
+  const { paymentId } = await params;
+  const decodedPaymentId = decodeURIComponent(paymentId);
 
   return (
     <div className="space-y-8">
@@ -20,10 +21,10 @@ export default async function AdminPaymentDetailPage({
         breadcrumbs={[
           { label: "Admin", href: "/admin" },
           { label: "Payments", href: "/admin/payments" },
-          { label: paymentId },
+          { label: decodedPaymentId },
         ]}
         description="Payment details, reconciliation status, and activity timeline."
-        title={`Payment: ${paymentId}`}
+        title={`Payment: ${decodedPaymentId}`}
       />
 
       <div className="grid gap-6 lg:grid-cols-2">

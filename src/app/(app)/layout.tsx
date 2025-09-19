@@ -3,12 +3,13 @@ import type { ReactNode } from "react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { requireApprovedSession } from "@/lib/auth-server";
 
-type OrgLayoutProps = {
+export default async function OrgLayout({
+  children,
+  params,
+}: {
   children: ReactNode;
-  params: { orgId: string };
-};
-
-export default async function OrgLayout({ children, params }: OrgLayoutProps) {
+  params: Promise<{ orgId: string }>;
+}) {
   const guard = await requireApprovedSession();
 
   if (!guard.session) {
@@ -19,7 +20,8 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
     redirect("/sign-in");
   }
 
-  const basePath = `/app/${params.orgId}`;
+  const { orgId } = await params;
+  const basePath = `/app/${orgId}`;
 
   return (
     <DashboardLayout

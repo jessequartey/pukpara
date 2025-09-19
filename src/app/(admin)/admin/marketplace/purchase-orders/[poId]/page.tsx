@@ -5,9 +5,10 @@ import { PlaceholderSection } from "@/features/admin/overview/components/placeho
 export default async function AdminPurchaseOrderDetailPage({
   params,
 }: {
-  params: { poId: string };
+  params: Promise<{ poId: string }>;
 }) {
-  const poId = decodeURIComponent(params.poId);
+  const { poId } = await params;
+  const decodedPoId = decodeURIComponent(poId);
   const basePath = "/admin/marketplace";
 
   return (
@@ -22,10 +23,10 @@ export default async function AdminPurchaseOrderDetailPage({
           { label: "Admin", href: "/admin" },
           { label: "Marketplace", href: `${basePath}/listings` },
           { label: "Purchase orders", href: `${basePath}/purchase-orders` },
-          { label: poId },
+          { label: decodedPoId },
         ]}
         description="Purchase order fulfillment, logistics, and invoicing trail."
-        title={`Purchase order: ${poId}`}
+        title={`Purchase order: ${decodedPoId}`}
       />
 
       <div className="grid gap-6 lg:grid-cols-2">

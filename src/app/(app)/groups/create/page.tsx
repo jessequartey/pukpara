@@ -1,12 +1,13 @@
 import { ArrowLeft } from "lucide-react";
 import { PageTitle } from "@/components/ui/page-title";
 
-type CreateGroupPageProps = {
-  params: { orgId: string };
-};
-
-export default function CreateGroupPage({ params }: CreateGroupPageProps) {
-  const basePath = `/app/${params.orgId}`;
+export default async function CreateGroupPage({
+  params,
+}: {
+  params: Promise<{ orgId: string }>;
+}) {
+  const { orgId } = await params;
+  const basePath = `/app/${orgId}`;
   const listPath = `${basePath}/groups`;
 
   return (

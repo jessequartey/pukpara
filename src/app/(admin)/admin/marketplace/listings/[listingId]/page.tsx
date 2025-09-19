@@ -5,9 +5,10 @@ import { PlaceholderSection } from "@/features/admin/overview/components/placeho
 export default async function AdminListingDetailPage({
   params,
 }: {
-  params: { listingId: string };
+  params: Promise<{ listingId: string }>;
 }) {
-  const listingId = decodeURIComponent(params.listingId);
+  const { listingId } = await params;
+  const decodedListingId = decodeURIComponent(listingId);
   const basePath = "/admin/marketplace";
 
   return (
@@ -21,10 +22,10 @@ export default async function AdminListingDetailPage({
         breadcrumbs={[
           { label: "Admin", href: "/admin" },
           { label: "Marketplace", href: `${basePath}/listings` },
-          { label: listingId },
+          { label: decodedListingId },
         ]}
         description="Listing performance, buyer interest, and fulfillment timeline."
-        title={`Listing: ${listingId}`}
+        title={`Listing: ${decodedListingId}`}
       />
 
       <div className="grid gap-6 lg:grid-cols-2">

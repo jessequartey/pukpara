@@ -5,9 +5,10 @@ import { PlaceholderSection } from "@/features/admin/overview/components/placeho
 export default async function VarietyDetailPage({
   params,
 }: {
-  params: { varietyId: string };
+  params: Promise<{ varietyId: string }>;
 }) {
-  const varietyId = decodeURIComponent(params.varietyId);
+  const { varietyId } = await params;
+  const decodedVarietyId = decodeURIComponent(varietyId);
   const basePath = "/admin/inventory";
 
   return (
@@ -22,10 +23,10 @@ export default async function VarietyDetailPage({
           { label: "Admin", href: "/admin" },
           { label: "Inventory", href: `${basePath}/commodities` },
           { label: "Varieties", href: `${basePath}/varieties` },
-          { label: varietyId },
+          { label: decodedVarietyId },
         ]}
         description="Variety definitions, climate suitability, and best practices."
-        title={`Variety: ${varietyId}`}
+        title={`Variety: ${decodedVarietyId}`}
       />
 
       <div className="grid gap-6 lg:grid-cols-2">

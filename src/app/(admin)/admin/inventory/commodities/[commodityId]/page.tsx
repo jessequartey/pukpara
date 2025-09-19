@@ -5,9 +5,10 @@ import { PlaceholderSection } from "@/features/admin/overview/components/placeho
 export default async function CommodityDetailPage({
   params,
 }: {
-  params: { commodityId: string };
+  params: Promise<{ commodityId: string }>;
 }) {
-  const commodityId = decodeURIComponent(params.commodityId);
+  const { commodityId } = await params;
+  const decodedCommodityId = decodeURIComponent(commodityId);
   const basePath = "/admin/inventory";
 
   return (
@@ -21,10 +22,10 @@ export default async function CommodityDetailPage({
         breadcrumbs={[
           { label: "Admin", href: "/admin" },
           { label: "Inventory", href: `${basePath}/commodities` },
-          { label: commodityId },
+          { label: decodedCommodityId },
         ]}
         description="Commodity attributes, pricing templates, and compliance data."
-        title={`Commodity: ${commodityId}`}
+        title={`Commodity: ${decodedCommodityId}`}
       />
 
       <div className="grid gap-6 lg:grid-cols-2">

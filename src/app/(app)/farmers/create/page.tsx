@@ -1,12 +1,13 @@
 import { ArrowLeft } from "lucide-react";
 import { PageTitle } from "@/components/ui/page-title";
 
-type CreateFarmerPageProps = {
-  params: { orgId: string };
-};
-
-export default function CreateFarmerPage({ params }: CreateFarmerPageProps) {
-  const basePath = `/app/${params.orgId}`;
+export default async function CreateFarmerPage({
+  params,
+}: {
+  params: Promise<{ orgId: string }>;
+}) {
+  const { orgId } = await params;
+  const basePath = `/app/${orgId}`;
   const listPath = `${basePath}/farmers`;
 
   return (

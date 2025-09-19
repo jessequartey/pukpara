@@ -1,12 +1,13 @@
 import { PageTitle } from "@/components/ui/page-title";
 import { GroupsListPlaceholder } from "@/features/groups/components/groups-list-placeholder";
 
-type OrgGroupsPageProps = {
-  params: { orgId: string };
-};
-
-export default function OrgGroupsPage({ params }: OrgGroupsPageProps) {
-  const basePath = `/app/${params.orgId}`;
+export default async function OrgGroupsPage({
+  params,
+}: {
+  params: Promise<{ orgId: string }>;
+}) {
+  const { orgId } = await params;
+  const basePath = `/app/${orgId}`;
   const listPath = `${basePath}/groups`;
 
   return (

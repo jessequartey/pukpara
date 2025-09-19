@@ -143,6 +143,14 @@ async function upsertOrganization({
   address,
   districtId,
   regionCode,
+}: {
+  name: string;
+  slug: string;
+  contactEmail: string;
+  contactPhone: string;
+  address: string;
+  districtId: string;
+  regionCode: string;
 }) {
   const existing = await db.query.organization.findFirst({
     where: eq(organization.slug, slug),

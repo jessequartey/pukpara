@@ -105,25 +105,30 @@ export function OrganizationDetailsContent({
         </div>
       </div>
 
-      {/* Two-column grid */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Left column - spans 2 columns on large screens */}
+      {/* Full width layout */}
+      <div className="space-y-6">
+        <OrganizationOverviewCard />
+        <ContactAddressCard />
+        <SubscriptionLicenseCard />
+        <PrimaryContactCard />
+      </div>
+
+      {/* Hidden right column cards for future use */}
+      {/* <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <OrganizationOverviewCard />
           <ContactAddressCard />
           <SubscriptionLicenseCard />
           <PrimaryContactCard />
         </div>
-
-        {/* Right column - spans 1 column on large screens */}
         <div className="space-y-6">
-          {/* <KpisFinanceCard />
+          <KpisFinanceCard />
           <InventoryCard />
           <MarketplaceActivityCard />
           <ComplianceKycCard />
-          <RecentActivityCard /> */}
+          <RecentActivityCard />
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

@@ -19,7 +19,6 @@ export type FarmerTableProps = {
   onUnban: (row: FarmerTableRow) => void;
   onDelete: (row: FarmerTableRow) => void;
   onView: (row: FarmerTableRow) => void;
-  onImpersonate: (row: FarmerTableRow) => void;
   isLoading?: boolean;
   isFetching?: boolean;
   visibleColumnKeys?: Set<FarmerColumnKey>;
@@ -39,7 +38,6 @@ export function FarmerTable({
   onUnban,
   onDelete,
   onView,
-  onImpersonate,
   isLoading,
   isFetching,
   visibleColumnKeys,
@@ -63,7 +61,6 @@ export function FarmerTable({
       onApprove={onApprove}
       onBan={onBan}
       onDelete={onDelete}
-      onImpersonate={onImpersonate}
       onReject={onReject}
       onSortChange={onSortChange}
       onSuspend={onSuspend}

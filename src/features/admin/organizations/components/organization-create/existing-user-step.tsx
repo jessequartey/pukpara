@@ -20,10 +20,16 @@ type User = {
   id: string;
   email: string | null;
   name: string | null;
-  phoneNumber: string | null;
-  status: string | null;
-  districtId: string | null;
-  address: string | null;
+  phoneNumber?: string | null;
+  status?: string | null;
+  districtId?: string | null;
+  address?: string | null;
+  // Additional properties that may come from UserWithRole
+  role?: string | null;
+  emailVerified?: boolean;
+  image?: string | null;
+  createdAt?: Date | string | null;
+  banned?: boolean | null;
 };
 
 type ExistingUserStepProps = {

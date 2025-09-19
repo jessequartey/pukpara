@@ -12,96 +12,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import {
-  banUser,
-  impersonateUser,
-  removeUser,
-  unbanUser,
-} from "@/lib/auth-admin-client";
+import { api } from "@/trpc/react";
 
 import { FarmerTable } from "../farmer-table";
 import type { FarmerColumnKey, FarmerTableRow } from "../farmer-table/columns";
 import { farmerColumns } from "../farmer-table/columns";
 import type { FarmerTableSortState } from "../farmer-table/index";
-
-// Mock data for now - replace with actual API call
-const _mockFarmers: FarmerTableRow[] = [
-  {
-    id: "farmer_1",
-    name: "Kwame Asante",
-    email: "kwame@example.com",
-    emailVerified: true,
-    image: null,
-    createdAt: "2024-01-15T10:30:00Z",
-    phoneNumber: "+233201234567",
-    phoneNumberVerified: true,
-    role: "user",
-    banned: false,
-    banReason: null,
-    banExpires: null,
-    address: "123 Farm Road, Kumasi",
-    status: "approved",
-    approvedAt: "2024-01-16T09:00:00Z",
-    districtName: "Kumasi Metropolitan",
-    regionName: "Ashanti",
-    organizationCount: 1,
-    organizationNames: ["Ashanti Farmers Cooperative"],
-    farmSize: 5.5,
-    farmLocation: "Kumasi Outskirts",
-    cropTypes: ["Cocoa", "Plantain", "Cassava"],
-    certifications: ["Organic Certified"],
-  },
-  {
-    id: "farmer_2",
-    name: "Akosua Osei",
-    email: "akosua@example.com",
-    emailVerified: true,
-    image: null,
-    createdAt: "2024-01-10T08:15:00Z",
-    phoneNumber: "+233207654321",
-    phoneNumberVerified: false,
-    role: "user",
-    banned: false,
-    banReason: null,
-    banExpires: null,
-    address: "456 Village Road, Tamale",
-    status: "pending",
-    approvedAt: null,
-    districtName: "Tamale Metropolitan",
-    regionName: "Northern",
-    organizationCount: 2,
-    organizationNames: ["Northern Farmers Union", "Women in Agriculture"],
-    farmSize: 12.0,
-    farmLocation: "Tamale District",
-    cropTypes: ["Maize", "Millet", "Sorghum"],
-    certifications: [],
-  },
-  {
-    id: "farmer_3",
-    name: "Kofi Mensah",
-    email: "kofi@example.com",
-    emailVerified: false,
-    image: null,
-    createdAt: "2024-01-20T14:45:00Z",
-    phoneNumber: "+233245678901",
-    phoneNumberVerified: true,
-    role: "user",
-    banned: false,
-    banReason: null,
-    banExpires: null,
-    address: "789 Coastal Road, Cape Coast",
-    status: "approved",
-    approvedAt: "2024-01-21T11:00:00Z",
-    districtName: "Cape Coast Metropolitan",
-    regionName: "Central",
-    organizationCount: 1,
-    organizationNames: ["Coastal Fishermen & Farmers"],
-    farmSize: 3.2,
-    farmLocation: "Cape Coast Suburbs",
-    cropTypes: ["Coconut", "Cassava"],
-    certifications: ["Fair Trade"],
-  },
-];
 
 type FarmerDirectoryController = {
   farmers: FarmerTableRow[];
@@ -121,6 +37,14 @@ type FarmerDirectoryCardProps = {
 
 export function FarmerDirectoryCard({ controller }: FarmerDirectoryCardProps) {
   const [isActionLoading, setIsActionLoading] = useState(false);
+
+  const utils = api.useUtils();
+  const approveMutation = api.admin.farmers.approve.useMutation();
+  const rejectMutation = api.admin.farmers.reject.useMutation();
+  const suspendMutation = api.admin.farmers.suspend.useMutation();
+  const banMutation = api.admin.farmers.ban.useMutation();
+  const unbanMutation = api.admin.farmers.unban.useMutation();
+  const deleteMutation = api.admin.farmers.delete.useMutation();
 
   const allColumnKeys = useMemo(
     () => farmerColumns.map((column) => column.key as FarmerColumnKey),
@@ -167,28 +91,7 @@ export function FarmerDirectoryCard({ controller }: FarmerDirectoryCardProps) {
     });
   };
 
-  // Filter farmers based on search
-  const filteredFarmers = farmers.filter((farmer) => {
-    if (!search) {
-      return true;
-    }
-
-    const searchLower = search.toLowerCase();
-    return (
-      farmer.name.toLowerCase().includes(searchLower) ||
-      farmer.email.toLowerCase().includes(searchLower) ||
-      farmer.phoneNumber?.toLowerCase().includes(searchLower) ||
-      farmer.districtName?.toLowerCase().includes(searchLower) ||
-      farmer.regionName?.toLowerCase().includes(searchLower) ||
-      farmer.organizationNames.some((org) =>
-        org.toLowerCase().includes(searchLower)
-      ) ||
-      farmer.cropTypes.some((crop) =>
-        crop.toLowerCase().includes(searchLower)
-      ) ||
-      farmer.farmLocation?.toLowerCase().includes(searchLower)
-    );
-  });
+  // The filtering is now handled in the controller hook
 
   const handleSelectRow = (id: string, checked: boolean) => {
     const newSelected = new Set(selectedIds);
@@ -202,16 +105,17 @@ export function FarmerDirectoryCard({ controller }: FarmerDirectoryCardProps) {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedIds(new Set(filteredFarmers.map((farmer) => farmer.id)));
+      setSelectedIds(new Set(farmers.map((farmer) => farmer.id)));
     } else {
       setSelectedIds(new Set());
     }
   };
 
-  const handleApprove = (row: FarmerTableRow) => {
+  const handleApprove = async (row: FarmerTableRow) => {
     try {
       setIsActionLoading(true);
-      // TODO: Implement farmer approval API call
+      await approveMutation.mutateAsync({ userIds: [row.id] });
+      await utils.admin.farmers.all.invalidate();
       toast.success(`${row.name} has been approved successfully.`);
     } catch {
       toast.error("Failed to approve farmer. Please try again.");
@@ -220,10 +124,11 @@ export function FarmerDirectoryCard({ controller }: FarmerDirectoryCardProps) {
     }
   };
 
-  const handleReject = (row: FarmerTableRow) => {
+  const handleReject = async (row: FarmerTableRow) => {
     try {
       setIsActionLoading(true);
-      // TODO: Implement farmer rejection API call
+      await rejectMutation.mutateAsync({ userIds: [row.id] });
+      await utils.admin.farmers.all.invalidate();
       toast.success(`${row.name} has been rejected.`);
     } catch {
       toast.error("Failed to reject farmer. Please try again.");
@@ -232,10 +137,11 @@ export function FarmerDirectoryCard({ controller }: FarmerDirectoryCardProps) {
     }
   };
 
-  const handleSuspend = (row: FarmerTableRow) => {
+  const handleSuspend = async (row: FarmerTableRow) => {
     try {
       setIsActionLoading(true);
-      // TODO: Implement farmer suspension API call
+      await suspendMutation.mutateAsync({ userIds: [row.id] });
+      await utils.admin.farmers.all.invalidate();
       toast.success(`${row.name} has been suspended.`);
     } catch {
       toast.error("Failed to suspend farmer. Please try again.");
@@ -247,11 +153,11 @@ export function FarmerDirectoryCard({ controller }: FarmerDirectoryCardProps) {
   const handleBan = async (row: FarmerTableRow) => {
     try {
       setIsActionLoading(true);
-      await banUser({
-        userId: row.id,
-        banReason: "Administrative action",
-        // banExpiresIn: 30 * 24 * 60 * 60 * 1000, // 30 days in milliseconds
+      await banMutation.mutateAsync({
+        userIds: [row.id],
+        reason: "Administrative action",
       });
+      await utils.admin.farmers.all.invalidate();
       toast.success(`${row.name} has been banned from the platform.`);
     } catch {
       toast.error("Failed to ban farmer. Please try again.");
@@ -263,7 +169,8 @@ export function FarmerDirectoryCard({ controller }: FarmerDirectoryCardProps) {
   const handleUnban = async (row: FarmerTableRow) => {
     try {
       setIsActionLoading(true);
-      await unbanUser({ userId: row.id });
+      await unbanMutation.mutateAsync({ userIds: [row.id] });
+      await utils.admin.farmers.all.invalidate();
       toast.success(
         `${row.name} has been unbanned and can access the platform again.`
       );
@@ -277,7 +184,8 @@ export function FarmerDirectoryCard({ controller }: FarmerDirectoryCardProps) {
   const handleDelete = async (row: FarmerTableRow) => {
     try {
       setIsActionLoading(true);
-      await removeUser({ userId: row.id });
+      await deleteMutation.mutateAsync({ userIds: [row.id] });
+      await utils.admin.farmers.all.invalidate();
       toast.success(`${row.name} has been permanently deleted.`);
     } catch {
       toast.error("Failed to delete farmer. Please try again.");
@@ -289,22 +197,6 @@ export function FarmerDirectoryCard({ controller }: FarmerDirectoryCardProps) {
   const handleView = (row: FarmerTableRow) => {
     // Navigate to farmer details page
     window.open(`/admin/farmers/${row.id}`, "_blank");
-  };
-
-  const handleImpersonate = async (row: FarmerTableRow) => {
-    try {
-      setIsActionLoading(true);
-      await impersonateUser({ userId: row.id });
-      toast.success(
-        `You are now impersonating ${row.name}. Click "Stop Impersonating" to return to your admin account.`
-      );
-      // Refresh the page to show the impersonated session
-      window.location.reload();
-    } catch {
-      toast.error("Failed to impersonate farmer. Please try again.");
-    } finally {
-      setIsActionLoading(false);
-    }
   };
 
   return (
@@ -346,13 +238,12 @@ export function FarmerDirectoryCard({ controller }: FarmerDirectoryCardProps) {
       </CardHeader>
       <CardContent className="space-y-4 pt-6">
         <FarmerTable
-          data={filteredFarmers}
+          data={farmers}
           isFetching={isFetching}
           isLoading={isLoading || isActionLoading}
           onApprove={handleApprove}
           onBan={handleBan}
           onDelete={handleDelete}
-          onImpersonate={handleImpersonate}
           onReject={handleReject}
           onSelectAll={handleSelectAll}
           onSelectRow={handleSelectRow}

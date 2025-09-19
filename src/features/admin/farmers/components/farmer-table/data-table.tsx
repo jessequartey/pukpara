@@ -58,7 +58,6 @@ type DataTableProps = {
   onUnban: (row: FarmerTableRow) => void;
   onDelete: (row: FarmerTableRow) => void;
   onView: (row: FarmerTableRow) => void;
-  onImpersonate: (row: FarmerTableRow) => void;
   isLoading?: boolean;
   isFetching?: boolean;
 };
@@ -141,7 +140,6 @@ const ActionsCell = ({
   onUnban,
   onDelete,
   onView,
-  onImpersonate,
   pendingAction,
   setPendingAction,
 }: {
@@ -153,7 +151,6 @@ const ActionsCell = ({
   onUnban: (row: FarmerTableRow) => void;
   onDelete: (row: FarmerTableRow) => void;
   onView: (row: FarmerTableRow) => void;
-  onImpersonate: (row: FarmerTableRow) => void;
   pendingAction: PendingAction;
   setPendingAction: (action: PendingAction) => void;
 }) => {
@@ -179,11 +176,6 @@ const ActionsCell = ({
             <DropdownMenuItem onSelect={() => onView(row)}>
               View details
             </DropdownMenuItem>
-            {isActive && (
-              <DropdownMenuItem onSelect={() => onImpersonate(row)}>
-                Impersonate farmer
-              </DropdownMenuItem>
-            )}
             <DropdownMenuSeparator />
             {(isPending || isSuspended) && (
               <DropdownMenuItem onSelect={() => handleAction("approve")}>
@@ -344,7 +336,6 @@ export const DataTable = ({
   onUnban,
   onDelete,
   onView,
-  onImpersonate,
   isLoading = false,
   isFetching = false,
 }: DataTableProps) => {
@@ -463,7 +454,6 @@ export const DataTable = ({
                     onApprove={onApprove}
                     onBan={onBan}
                     onDelete={onDelete}
-                    onImpersonate={onImpersonate}
                     onReject={onReject}
                     onSuspend={onSuspend}
                     onUnban={onUnban}

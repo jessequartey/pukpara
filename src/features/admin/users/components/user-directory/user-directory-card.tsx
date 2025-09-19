@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -19,20 +20,33 @@ import {
   unbanUser,
 } from "@/lib/auth-admin-client";
 
+import { ROW_OPTIONS } from "../../hooks/use-user-list-controller";
 import { UserTable } from "../user-table";
 import type { UserColumnKey, UserTableRow } from "../user-table/columns";
 import { userColumns } from "../user-table/columns";
 import type { UserTableSortState } from "../user-table/index";
 
+import { PaginationControls } from "./pagination-controls";
+
 
 type UserDirectoryController = {
-  users: UserTableRow[];
   search: string;
   setSearch: (search: string) => void;
+  page: number;
+  setPage: (page: number) => void;
+  pageSize: (typeof ROW_OPTIONS)[number];
+  setPageSize: (pageSize: (typeof ROW_OPTIONS)[number]) => void;
   sort: UserTableSortState;
   setSort: (sort: UserTableSortState) => void;
   selectedIds: Set<string>;
   setSelectedIds: (ids: Set<string>) => void;
+  data: UserTableRow[];
+  total: number;
+  totalPages: number;
+  startRow: number;
+  endRow: number;
+  handleSelectRow: (id: string, checked: boolean) => void;
+  handleSelectAll: (checked: boolean) => void;
   isLoading: boolean;
   isFetching: boolean;
 };
@@ -60,13 +74,23 @@ export function UserDirectoryCard({ controller }: UserDirectoryCardProps) {
   }, [allColumnKeys, visibleColumnKeys]);
 
   const {
-    users,
     search,
     setSearch,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
     sort,
     setSort,
     selectedIds,
     setSelectedIds,
+    data,
+    total,
+    totalPages,
+    startRow,
+    endRow,
+    handleSelectRow,
+    handleSelectAll,
     isLoading,
     isFetching,
   } = controller;
@@ -89,42 +113,6 @@ export function UserDirectoryCard({ controller }: UserDirectoryCardProps) {
     });
   };
 
-  // Filter users based on search
-  const filteredUsers = users.filter((user) => {
-    if (!search) {
-      return true;
-    }
-
-    const searchLower = search.toLowerCase();
-    return (
-      user.name.toLowerCase().includes(searchLower) ||
-      user.email.toLowerCase().includes(searchLower) ||
-      user.phoneNumber?.toLowerCase().includes(searchLower) ||
-      user.districtName?.toLowerCase().includes(searchLower) ||
-      user.regionName?.toLowerCase().includes(searchLower) ||
-      user.organizationNames.some((org) =>
-        org.toLowerCase().includes(searchLower)
-      )
-    );
-  });
-
-  const handleSelectRow = (id: string, checked: boolean) => {
-    const newSelected = new Set(selectedIds);
-    if (checked) {
-      newSelected.add(id);
-    } else {
-      newSelected.delete(id);
-    }
-    setSelectedIds(newSelected);
-  };
-
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedIds(new Set(filteredUsers.map((user) => user.id)));
-    } else {
-      setSelectedIds(new Set());
-    }
-  };
 
   const handleApprove = (row: UserTableRow) => {
     try {
@@ -264,7 +252,7 @@ export function UserDirectoryCard({ controller }: UserDirectoryCardProps) {
       </CardHeader>
       <CardContent className="space-y-4 pt-6">
         <UserTable
-          data={filteredUsers}
+          data={data}
           isFetching={isFetching}
           isLoading={isLoading || isActionLoading}
           onApprove={handleApprove}
@@ -283,6 +271,44 @@ export function UserDirectoryCard({ controller }: UserDirectoryCardProps) {
           visibleColumnKeys={visibleColumnKeys}
         />
       </CardContent>
+
+      <CardFooter className="flex flex-col gap-4 border-t pt-6 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-wrap items-center gap-3 text-muted-foreground text-sm">
+          <span>
+            Showing {startRow}–{endRow} of {total}
+          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs uppercase tracking-wide">Rows</span>
+            <div className="flex items-center gap-1">
+              {ROW_OPTIONS.map((option) => (
+                <Button
+                  key={option}
+                  onClick={() => {
+                    setPageSize(option);
+                    setPage(1);
+                  }}
+                  size="sm"
+                  type="button"
+                  variant={option === pageSize ? "secondary" : "ghost"}
+                >
+                  {option}
+                </Button>
+              ))}
+            </div>
+          </div>
+          {isFetching ? (
+            <Badge variant="outline">Refreshing…</Badge>
+          ) : null}
+        </div>
+        <PaginationControls
+          isLoading={isFetching}
+          onPageChange={(nextPage) =>
+            setPage(Math.max(1, Math.min(totalPages, nextPage)))
+          }
+          page={page}
+          totalPages={totalPages}
+        />
+      </CardFooter>
     </Card>
   );
 }

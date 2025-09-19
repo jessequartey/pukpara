@@ -1,138 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+
+import { api } from "@/trpc/react";
 
 import type { FarmerTableRow } from "../components/farmer-table/columns";
 import type { FarmerTableSortState } from "../components/farmer-table/index";
-
-// Mock data - replace with actual API call
-const mockFarmers: FarmerTableRow[] = [
-  {
-    id: "farmer_1",
-    name: "Kwame Asante",
-    email: "kwame@example.com",
-    emailVerified: true,
-    image: null,
-    createdAt: "2024-01-15T10:30:00Z",
-    phoneNumber: "+233201234567",
-    phoneNumberVerified: true,
-    role: "user",
-    banned: false,
-    banReason: null,
-    banExpires: null,
-    address: "123 Farm Road, Kumasi",
-    status: "approved",
-    approvedAt: "2024-01-16T09:00:00Z",
-    districtName: "Kumasi Metropolitan",
-    regionName: "Ashanti",
-    organizationCount: 1,
-    organizationNames: ["Ashanti Farmers Cooperative"],
-    farmSize: 5.5,
-    farmLocation: "Kumasi Outskirts",
-    cropTypes: ["Cocoa", "Plantain", "Cassava"],
-    certifications: ["Organic Certified"],
-  },
-  {
-    id: "farmer_2",
-    name: "Akosua Osei",
-    email: "akosua@example.com",
-    emailVerified: true,
-    image: null,
-    createdAt: "2024-01-10T08:15:00Z",
-    phoneNumber: "+233207654321",
-    phoneNumberVerified: false,
-    role: "user",
-    banned: false,
-    banReason: null,
-    banExpires: null,
-    address: "456 Village Road, Tamale",
-    status: "pending",
-    approvedAt: null,
-    districtName: "Tamale Metropolitan",
-    regionName: "Northern",
-    organizationCount: 2,
-    organizationNames: ["Northern Farmers Union", "Women in Agriculture"],
-    farmSize: 12.0,
-    farmLocation: "Tamale District",
-    cropTypes: ["Maize", "Millet", "Sorghum"],
-    certifications: [],
-  },
-  {
-    id: "farmer_3",
-    name: "Kofi Mensah",
-    email: "kofi@example.com",
-    emailVerified: false,
-    image: null,
-    createdAt: "2024-01-20T14:45:00Z",
-    phoneNumber: "+233245678901",
-    phoneNumberVerified: true,
-    role: "user",
-    banned: false,
-    banReason: null,
-    banExpires: null,
-    address: "789 Coastal Road, Cape Coast",
-    status: "approved",
-    approvedAt: "2024-01-21T11:00:00Z",
-    districtName: "Cape Coast Metropolitan",
-    regionName: "Central",
-    organizationCount: 1,
-    organizationNames: ["Coastal Fishermen & Farmers"],
-    farmSize: 3.2,
-    farmLocation: "Cape Coast Suburbs",
-    cropTypes: ["Coconut", "Cassava"],
-    certifications: ["Fair Trade"],
-  },
-  {
-    id: "farmer_4",
-    name: "Abena Frimpong",
-    email: "abena@example.com",
-    emailVerified: true,
-    image: null,
-    createdAt: "2024-01-12T14:45:00Z",
-    phoneNumber: "+233254567890",
-    phoneNumberVerified: true,
-    role: "user",
-    banned: false,
-    banReason: null,
-    banExpires: null,
-    address: "321 Rural Lane, Ho",
-    status: "pending",
-    approvedAt: null,
-    districtName: "Ho Municipal",
-    regionName: "Volta",
-    organizationCount: 1,
-    organizationNames: ["Volta Women Farmers"],
-    farmSize: 8.7,
-    farmLocation: "Ho Surroundings",
-    cropTypes: ["Yam", "Rice", "Vegetables"],
-    certifications: ["Sustainable Farming"],
-  },
-  {
-    id: "farmer_5",
-    name: "Emmanuel Tetteh",
-    email: "emmanuel@example.com",
-    emailVerified: false,
-    image: null,
-    createdAt: "2024-01-18T12:00:00Z",
-    phoneNumber: "+233203456789",
-    phoneNumberVerified: true,
-    role: "user",
-    banned: true,
-    banReason: "Fraudulent activity",
-    banExpires: "2024-02-18T12:00:00Z",
-    address: "789 Farm Street, Wa",
-    status: "suspended",
-    approvedAt: null,
-    districtName: "Wa Municipal",
-    regionName: "Upper West",
-    organizationCount: 0,
-    organizationNames: [],
-    farmSize: 2.1,
-    farmLocation: "Wa District",
-    cropTypes: ["Millet"],
-    certifications: [],
-  },
-];
 
 export function useFarmerListController() {
   const [search, setSearch] = useState("");
@@ -142,18 +15,75 @@ export function useFarmerListController() {
   });
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  // In a real implementation, you would use a query hook here
-  // const { data: farmers, isLoading, isFetching } = useFarmersQuery({ search, sort });
+  const {
+    data: farmersData,
+    isLoading,
+    isFetching,
+  } = api.admin.farmers.all.useQuery();
+
+  // Client-side filtering and sorting
+  const farmers = useMemo(() => {
+    if (!farmersData) return [];
+
+    let filtered = farmersData;
+
+    // Apply search filter
+    if (search.trim()) {
+      const searchLower = search.toLowerCase();
+      filtered = filtered.filter(
+        (farmer) =>
+          farmer.name.toLowerCase().includes(searchLower) ||
+          farmer.email.toLowerCase().includes(searchLower) ||
+          farmer.phoneNumber?.toLowerCase().includes(searchLower) ||
+          farmer.address.toLowerCase().includes(searchLower) ||
+          farmer.districtName?.toLowerCase().includes(searchLower) ||
+          farmer.regionName?.toLowerCase().includes(searchLower) ||
+          farmer.organizationNames.some((name) =>
+            name.toLowerCase().includes(searchLower)
+          )
+      );
+    }
+
+    // Apply sorting
+    filtered = [...filtered].sort((a, b) => {
+      let aValue: unknown;
+      let bValue: unknown;
+
+      switch (sort.field) {
+        case "name":
+          aValue = a.name;
+          bValue = b.name;
+          break;
+        case "createdAt":
+          aValue = new Date(a.createdAt || 0);
+          bValue = new Date(b.createdAt || 0);
+          break;
+        default:
+          return 0;
+      }
+
+      if (aValue === null || aValue === undefined) return 1;
+      if (bValue === null || bValue === undefined) return -1;
+
+      let comparison = 0;
+      if (aValue < bValue) comparison = -1;
+      if (aValue > bValue) comparison = 1;
+
+      return sort.direction === "desc" ? -comparison : comparison;
+    });
+
+    return filtered;
+  }, [farmersData, search, sort]);
 
   return {
-    farmers: mockFarmers,
+    farmers: farmers as FarmerTableRow[],
     search,
     setSearch,
     sort,
     setSort,
     selectedIds,
     setSelectedIds,
-    isLoading: false,
-    isFetching: false,
+    isLoading,
+    isFetching,
   };
 }

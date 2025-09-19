@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
+import { isUserAdmin } from "@/lib/auth-utils";
 
 const PASSWORD_LENGTH = 4;
 
@@ -92,6 +93,12 @@ export default function SignInForm() {
 
     if (data?.redirect && data.url) {
       router.replace(data.url);
+      return;
+    }
+
+    // Check if user is admin and redirect accordingly
+    if (data?.user && isUserAdmin(data.user)) {
+      router.replace("/admin");
       return;
     }
 

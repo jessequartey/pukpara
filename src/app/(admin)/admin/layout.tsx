@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { requireApprovedSession } from "@/lib/auth-server";
+import { isUserAdmin } from "@/lib/auth-utils";
 
 type AdminLayoutProps = {
   children: ReactNode;
@@ -18,32 +19,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
     redirect("/sign-in");
   }
 
-  const userRecord = guard.session.user as
-    | {
-        role?: unknown;
-        roles?: unknown;
-        admin?: { roles?: unknown };
-      }
-    | undefined;
-  const roleField = userRecord?.role;
-  const directRole = typeof roleField === "string" ? roleField : null;
-  const rolesField = userRecord?.roles;
-  const arrayRoles = Array.isArray(rolesField)
-    ? rolesField.filter((role): role is string => typeof role === "string")
-    : [];
-  const adminField = userRecord?.admin;
-  const pluginRolesRaw = adminField?.roles;
-  const pluginRoles = Array.isArray(pluginRolesRaw)
-    ? pluginRolesRaw.filter((role): role is string => typeof role === "string")
-    : [];
-
-  const rolesToCheck = [directRole, ...arrayRoles, ...pluginRoles].filter(
-    (role): role is string => typeof role === "string" && role.length > 0
-  );
-  const adminRoles = new Set(["admin", "supportAdmin", "userAc"]);
-  const isAdmin = rolesToCheck.some((role) => adminRoles.has(role));
-
-  if (!isAdmin) {
+  if (!isUserAdmin(guard.session.user)) {
     redirect("/");
   }
 

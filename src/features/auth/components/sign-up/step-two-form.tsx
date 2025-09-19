@@ -174,7 +174,7 @@ export default function SignUpStepTwoForm() {
         return districtOptionsList;
       }
 
-      const normalized = query.trim().toLowerCase();
+      const normalized = await query.trim().toLowerCase();
       return districtOptionsList.filter((option) =>
         `${option.name} ${option.regionName}`.toLowerCase().includes(normalized)
       );
@@ -236,6 +236,7 @@ export default function SignUpStepTwoForm() {
       phoneNumber: data.phoneNumber,
       districtId: data.districtId,
       address: data.address,
+      fetchOptions: { body: {} },
     });
 
     if (error) {

@@ -12,41 +12,41 @@ import { PrimaryContactCard } from "./organization-details/primary-contact-card"
 import { SubscriptionLicenseCard } from "./organization-details/subscription-license-card";
 
 type OrganizationDetailsContentProps = {
-  orgId: string;
+	orgId: string;
 };
 
 export function OrganizationDetailsContent({
-  orgId,
+	orgId,
 }: OrganizationDetailsContentProps) {
-  // Mock organization data - replace with actual API call
-  const organization = {
-    id: orgId,
-    name: "Green Valley Cooperative",
-    slug: "green-valley-coop",
-    status: "active" as const,
-    organizationType: "cooperative" as const,
-    subscriptionType: "premium" as const,
-    licenseStatus: "issued" as const,
-  };
+	// Mock organization data - replace with actual API call
+	const organization = {
+		id: orgId,
+		name: "Green Valley Cooperative",
+		slug: "green-valley-coop",
+		status: "active" as const,
+		organizationType: "cooperative" as const,
+		subscriptionType: "premium" as const,
+		licenseStatus: "issued" as const,
+	};
 
-  const handleDelete = () => {
-    // TODO: Implement actual delete logic
-    // This would typically call an API to delete the organization
-  };
+	const handleDelete = () => {
+		// TODO: Implement actual delete logic
+		// This would typically call an API to delete the organization
+	};
 
-  return (
-    <div className="space-y-6">
-      <OrganizationOverviewCard />
-      <ContactAddressCard />
-      <SubscriptionLicenseCard />
-      <PrimaryContactCard />
-      <DeleteOrganizationCard
-        onDelete={handleDelete}
-        organizationName={organization.name}
-      />
+	return (
+		<div className="space-y-6">
+			<OrganizationOverviewCard />
+			<ContactAddressCard />
+			<SubscriptionLicenseCard />
+			<PrimaryContactCard />
+			<DeleteOrganizationCard
+				onDelete={handleDelete}
+				organizationName={organization.name}
+			/>
 
-      {/* Hidden right column cards for future use */}
-      {/* <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+			{/* Hidden right column cards for future use */}
+			{/* <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <OrganizationOverviewCard />
           <ContactAddressCard />
@@ -61,6 +61,6 @@ export function OrganizationDetailsContent({
           <RecentActivityCard />
         </div>
       </div> */}
-    </div>
-  );
+		</div>
+	);
 }

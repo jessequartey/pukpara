@@ -6,48 +6,48 @@ type Session = typeof auth.$Infer.Session;
 type GuardReason = "NO_SESSION" | "PENDING_APPROVAL";
 
 type GuardResult =
-  | {
-      session: Session;
-      reason: null;
-    }
-  | {
-      session: null;
-      reason: GuardReason;
-    };
+	| {
+			session: Session;
+			reason: null;
+	  }
+	| {
+			session: null;
+			reason: GuardReason;
+	  };
 
 export async function getServerSession(): Promise<Session | null> {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	});
 
-  if (!session || typeof session !== "object" || !("user" in session)) {
-    return null;
-  }
+	if (!session || typeof session !== "object" || !("user" in session)) {
+		return null;
+	}
 
-  return session as Session;
+	return session as Session;
 }
 
 export async function requireApprovedSession(): Promise<GuardResult> {
-  const session = await getServerSession();
+	const session = await getServerSession();
 
-  if (!session) {
-    return {
-      session: null,
-      reason: "NO_SESSION",
-    };
-  }
+	if (!session) {
+		return {
+			session: null,
+			reason: "NO_SESSION",
+		};
+	}
 
-  const status = session.user?.status;
+	const status = session.user?.status;
 
-  if (status && status !== "approved") {
-    return {
-      session: null,
-      reason: "PENDING_APPROVAL",
-    };
-  }
+	if (status && status !== "approved") {
+		return {
+			session: null,
+			reason: "PENDING_APPROVAL",
+		};
+	}
 
-  return {
-    session,
-    reason: null,
-  };
+	return {
+		session,
+		reason: null,
+	};
 }

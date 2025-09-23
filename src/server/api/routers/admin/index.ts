@@ -3,6 +3,6 @@ import { adminFarmersRouter } from "./farmers";
 import { adminOrganizationsRouter } from "./organizations";
 
 export const adminRouter = createTRPCRouter({
-  organizations: adminOrganizationsRouter,
-  farmers: adminFarmersRouter,
+	organizations: adminOrganizationsRouter,
+	farmers: adminFarmersRouter,
 });

@@ -3,42 +3,42 @@ import { PageTitle } from "@/components/ui/page-title";
 import { PlaceholderSection } from "@/features/admin/overview/components/placeholder-section";
 
 export default async function VarietyDetailPage({
-  params,
+	params,
 }: {
-  params: Promise<{ varietyId: string }>;
+	params: Promise<{ varietyId: string }>;
 }) {
-  const { varietyId } = await params;
-  const decodedVarietyId = decodeURIComponent(varietyId);
-  const basePath = "/admin/inventory";
+	const { varietyId } = await params;
+	const decodedVarietyId = decodeURIComponent(varietyId);
+	const basePath = "/admin/inventory";
 
-  return (
-    <div className="space-y-8">
-      <PageTitle
-        action={{
-          href: `${basePath}/varieties`,
-          icon: ArrowLeft,
-          label: "Back to varieties",
-        }}
-        breadcrumbs={[
-          { label: "Admin", href: "/admin" },
-          { label: "Inventory", href: `${basePath}/commodities` },
-          { label: "Varieties", href: `${basePath}/varieties` },
-          { label: decodedVarietyId },
-        ]}
-        description="Variety definitions, climate suitability, and best practices."
-        title={`Variety: ${decodedVarietyId}`}
-      />
+	return (
+		<div className="space-y-8">
+			<PageTitle
+				action={{
+					href: `${basePath}/varieties`,
+					icon: ArrowLeft,
+					label: "Back to varieties",
+				}}
+				breadcrumbs={[
+					{ label: "Admin", href: "/admin" },
+					{ label: "Inventory", href: `${basePath}/commodities` },
+					{ label: "Varieties", href: `${basePath}/varieties` },
+					{ label: decodedVarietyId },
+				]}
+				description="Variety definitions, climate suitability, and best practices."
+				title={`Variety: ${decodedVarietyId}`}
+			/>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <PlaceholderSection
-          description="Recommended conditions, maturation period, and yield potential will render here."
-          title="Agronomy"
-        />
-        <PlaceholderSection
-          description="Input schedules, cost curves, and support materials will populate this panel."
-          title="Guidance"
-        />
-      </div>
-    </div>
-  );
+			<div className="grid gap-6 lg:grid-cols-2">
+				<PlaceholderSection
+					description="Recommended conditions, maturation period, and yield potential will render here."
+					title="Agronomy"
+				/>
+				<PlaceholderSection
+					description="Input schedules, cost curves, and support materials will populate this panel."
+					title="Guidance"
+				/>
+			</div>
+		</div>
+	);
 }

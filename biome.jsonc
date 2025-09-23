@@ -1,54 +1,54 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.2.2/schema.json",
-  // "extends": ["ultracite"],
-  "files": {
-    "ignoreUnknown": false,
-    "includes": [
-      "**",
-      "!**/dist",
-      "!**/dev-dist",
-      "!**/.zed",
-      "!**/.claude",
-      "!**/.mcp.json",
-      "!**/src/components/ui",
-      "!**/.vscode",
-      "!**/routeTree.gen.ts",
-      "!pukpara-frontend.jsonc",
-      "!**/.wrangler",
-      "!**/wrangler.jsonc",
-      "!**/.source",
-      "!**/worker-configuration.d.ts",
-      "!**/cloudflare-env.d.ts"
-    ]
-  },
-  "json": {
-    "parser": {
-      "allowComments": true
-    }
-  },
-  "css": {
-    "linter": {
-      "enabled": false
-    }
-  },
-  "linter": {
-    "rules": {
-      "performance": {
-        "noImgElement": "off"
-      },
-      "nursery": {
-        "useImageSize": "off"
-      },
-      "style": {
-        "noMagicNumbers": "off",
-        "noNestedTernary": "off"
-      },
-      "complexity": {
-        "noExcessiveCognitiveComplexity": "off"
-      },
-      "suspicious": {
-        "noExplicitAny": "warn"
-      }
-    }
-  }
+	"$schema": "https://biomejs.dev/schemas/2.2.2/schema.json",
+	// "extends": ["ultracite"],
+	"files": {
+		"ignoreUnknown": false,
+		"includes": [
+			"**",
+			"!**/dist",
+			"!**/dev-dist",
+			"!**/.zed",
+			"!**/.claude",
+			"!**/.mcp.json",
+			"!**/src/components/ui",
+			"!**/.vscode",
+			"!**/routeTree.gen.ts",
+			"!pukpara-frontend.jsonc",
+			"!**/.wrangler",
+			"!**/wrangler.jsonc",
+			"!**/.source",
+			"!**/worker-configuration.d.ts",
+			"!**/cloudflare-env.d.ts"
+		]
+	},
+	"json": {
+		"parser": {
+			"allowComments": true
+		}
+	},
+	"css": {
+		"linter": {
+			"enabled": false
+		}
+	},
+	"linter": {
+		"rules": {
+			"performance": {
+				"noImgElement": "off"
+			},
+			"nursery": {
+				"useImageSize": "off"
+			},
+			"style": {
+				"noMagicNumbers": "off",
+				"noNestedTernary": "off"
+			},
+			"complexity": {
+				"noExcessiveCognitiveComplexity": "off"
+			},
+			"suspicious": {
+				"noExplicitAny": "warn"
+			}
+		}
+	}
 }

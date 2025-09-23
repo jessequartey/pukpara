@@ -1,8 +1,8 @@
 import { z } from "zod";
 import {
-  createCallerFactory,
-  createTRPCRouter,
-  publicProcedure,
+	createCallerFactory,
+	createTRPCRouter,
+	publicProcedure,
 } from "@/server/api/trpc";
 import { adminRouter } from "./routers/admin";
 import { authRouter } from "./routers/auth";
@@ -15,17 +15,17 @@ import { organizationsRouter } from "./routers/organizations";
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
-  auth: authRouter,
-  districts: districtsRouter,
-  organizations: organizationsRouter,
-  admin: adminRouter,
-  hello: publicProcedure
-    .input(z.object({ text: z.string().optional() }))
-    .query(({ input }) => {
-      return {
-        greeting: `Hello ${input?.text ?? "world"}`,
-      };
-    }),
+	auth: authRouter,
+	districts: districtsRouter,
+	organizations: organizationsRouter,
+	admin: adminRouter,
+	hello: publicProcedure
+		.input(z.object({ text: z.string().optional() }))
+		.query(({ input }) => {
+			return {
+				greeting: `Hello ${input?.text ?? "world"}`,
+			};
+		}),
 });
 
 // export type definition of API

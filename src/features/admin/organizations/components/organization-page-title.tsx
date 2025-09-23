@@ -4,42 +4,42 @@ import type { BreadcrumbItemType } from "@/components/ui/page-title";
 import { PageTitle } from "@/components/ui/page-title";
 
 type OrganizationPageTitleProps = {
-  title: string;
-  titleContent?: ReactNode;
-  description?: ReactNode;
-  action?: {
-    label: string;
-    href?: string;
-    onClick?: () => void;
-    icon?: React.ComponentType<{ className?: string }>;
-  };
-  breadcrumbs?: BreadcrumbItemType[];
-  children?: ReactNode;
+	title: string;
+	titleContent?: ReactNode;
+	description?: ReactNode;
+	action?: {
+		label: string;
+		href?: string;
+		onClick?: () => void;
+		icon?: React.ComponentType<{ className?: string }>;
+	};
+	breadcrumbs?: BreadcrumbItemType[];
+	children?: ReactNode;
 };
 
 const baseBreadcrumbs: BreadcrumbItemType[] = [
-  { label: "Admin", href: "/admin" },
-  { label: "Organizations", href: "/admin/organizations" },
+	{ label: "Admin", href: "/admin" },
+	{ label: "Organizations", href: "/admin/organizations" },
 ];
 
 export function OrganizationPageTitle({
-  title,
-  titleContent,
-  description,
-  action,
-  breadcrumbs,
-  children,
+	title,
+	titleContent,
+	description,
+	action,
+	breadcrumbs,
+	children,
 }: OrganizationPageTitleProps) {
-  return (
-    <div className="space-y-6">
-      <PageTitle
-        action={action}
-        breadcrumbs={[...baseBreadcrumbs, ...(breadcrumbs ?? [])]}
-        description={description}
-        title={title}
-        titleContent={titleContent}
-      />
-      {children}
-    </div>
-  );
+	return (
+		<div className="space-y-6">
+			<PageTitle
+				action={action}
+				breadcrumbs={[...baseBreadcrumbs, ...(breadcrumbs ?? [])]}
+				description={description}
+				title={title}
+				titleContent={titleContent}
+			/>
+			{children}
+		</div>
+	);
 }

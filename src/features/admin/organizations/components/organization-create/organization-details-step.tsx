@@ -297,26 +297,25 @@ export const OrganizationDetailsStep = ({
 							/>
 						</div>
 
-						<FormField
-							control={form.control}
-							name="address"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Address (optional)</FormLabel>
-									<FormControl>
-										<Input placeholder="Market Street, Kumasi" {...field} />
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-
-						<div className="flex justify-center">
+						<div className="grid gap-4 md:grid-cols-2">
+							<FormField
+								control={form.control}
+								name="address"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Address (optional)</FormLabel>
+										<FormControl>
+											<Input placeholder="Market Street, Kumasi" {...field} />
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
 							<FormField
 								control={form.control}
 								name="districtId"
 								render={({ field }) => (
-									<FormItem className="w-full max-w-md">
+									<FormItem>
 										<FormLabel>District</FormLabel>
 										<FormControl>
 											<AsyncSelect<DistrictIndexEntry>
@@ -334,7 +333,9 @@ export const OrganizationDetailsStep = ({
 													const option = nextValue
 														? districtIndex.get(nextValue)
 														: undefined;
+													const currentFormValues = form.getValues();
 													setOrganizationData({
+														...currentFormValues,
 														districtId: nextValue,
 														districtName:
 															option?.name ?? organizationData.districtName,

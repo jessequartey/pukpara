@@ -1,5 +1,3 @@
-/** biome-ignore-all lint/style/noMagicNumbers: <necessary> */
-/** biome-ignore-all lint/style/useNumericSeparators: <neccessary> */
 import { relations, sql } from "drizzle-orm";
 import {
 	boolean,

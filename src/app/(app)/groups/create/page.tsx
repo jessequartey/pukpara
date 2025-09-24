@@ -1,26 +1,18 @@
 import { ArrowLeft } from "lucide-react";
 import { PageTitle } from "@/components/ui/page-title";
 
-export default async function CreateGroupPage({
-	params,
-}: {
-	params: Promise<{ orgId: string }>;
-}) {
-	const { orgId } = await params;
-	const basePath = `/app/${orgId}`;
-	const listPath = `${basePath}/groups`;
-
+export default async function CreateGroupPage() {
 	return (
 		<div className="space-y-8">
 			<PageTitle
 				action={{
-					href: listPath,
+					href: "/groups",
 					icon: ArrowLeft,
 					label: "Back to groups",
 				}}
 				breadcrumbs={[
-					{ label: "Organization", href: basePath },
-					{ label: "Groups", href: listPath },
+					{ label: "Organization", href: "/" },
+					{ label: "Groups", href: "/groups" },
 					{ label: "Create" },
 				]}
 				description="Set up a new farmer or savings group, assign leads, and manage enrollment."

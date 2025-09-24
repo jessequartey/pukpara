@@ -1,28 +1,20 @@
 import { PageTitle } from "@/components/ui/page-title";
-import { GroupsListPlaceholder } from "@/features/groups/components/groups-list-placeholder";
+import { GroupsDirectoryCard } from "@/features/organization/groups/components/groups-directory-card";
 
-export default async function OrgGroupsPage({
-	params,
-}: {
-	params: Promise<{ orgId: string }>;
-}) {
-	const { orgId } = await params;
-	const basePath = `/app/${orgId}`;
-	const listPath = `${basePath}/groups`;
-
+export default async function OrgGroupsPage() {
 	return (
 		<div className="space-y-8">
 			<PageTitle
-				action={{ href: `${listPath}/create`, label: "Create group" }}
+				action={{ href: "/groups/create", label: "Create group" }}
 				breadcrumbs={[
-					{ label: "Organization", href: basePath },
+					{ label: "Organization", href: "/" },
 					{ label: "Groups" },
 				]}
 				description="Manage cohorts, teams, and collective farmer groupings."
 				title="Groups"
 			/>
 
-			<GroupsListPlaceholder />
+			<GroupsDirectoryCard />
 		</div>
 	);
 }

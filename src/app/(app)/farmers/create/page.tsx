@@ -1,26 +1,18 @@
 import { ArrowLeft } from "lucide-react";
 import { PageTitle } from "@/components/ui/page-title";
 
-export default async function CreateFarmerPage({
-	params,
-}: {
-	params: Promise<{ orgId: string }>;
-}) {
-	const { orgId } = await params;
-	const basePath = `/app/${orgId}`;
-	const listPath = `${basePath}/farmers`;
-
+export default async function CreateFarmerPage() {
 	return (
 		<div className="space-y-8">
 			<PageTitle
 				action={{
-					href: listPath,
+					href: "/farmers",
 					icon: ArrowLeft,
 					label: "Back to farmers",
 				}}
 				breadcrumbs={[
-					{ label: "Organization", href: basePath },
-					{ label: "Farmers", href: listPath },
+					{ label: "Organization", href: "/" },
+					{ label: "Farmers", href: "/farmers" },
 					{ label: "Create" },
 				]}
 				description="Capture farmer profile details, contact information, and onboarding docs."

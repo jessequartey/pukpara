@@ -1,21 +1,12 @@
 import { PageTitle } from "@/components/ui/page-title";
 
-type OrgSettingsPageProps = {
-	params: Promise<{ orgId: string }>;
-};
-
-export default async function OrgSettingsPage({
-	params,
-}: OrgSettingsPageProps) {
-	const { orgId } = await params;
-	const basePath = `/app/${orgId}`;
-
+export default async function OrgSettingsPage() {
 	return (
 		<div className="space-y-8">
 			<PageTitle
-				action={{ href: `${basePath}/groups/create`, label: "Invite member" }}
+				action={{ href: "/members/invite", label: "Invite member" }}
 				breadcrumbs={[
-					{ label: "Organization", href: basePath },
+					{ label: "Organization", href: "/" },
 					{ label: "Settings" },
 				]}
 				description="Control organization preferences, approvals, and notifications."

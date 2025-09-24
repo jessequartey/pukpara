@@ -3,13 +3,7 @@ import type { ReactNode } from "react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { requireApprovedSession } from "@/lib/auth-server";
 
-export default async function OrgLayout({
-	children,
-	params,
-}: {
-	children: ReactNode;
-	params: Promise<{ orgId: string }>;
-}) {
+export default async function OrgLayout({ children }: { children: ReactNode }) {
 	const guard = await requireApprovedSession();
 
 	if (!guard.session) {
@@ -20,9 +14,6 @@ export default async function OrgLayout({
 		redirect("/sign-in");
 	}
 
-	const { orgId } = await params;
-	const basePath = `/app/${orgId}`;
-
 	return (
 		<DashboardLayout
 			navGroups={[
@@ -31,25 +22,31 @@ export default async function OrgLayout({
 					items: [
 						{
 							title: "Overview",
-							href: basePath,
+							href: "/",
 							icon: "TrendingUp",
 							description: "Organization health and activity",
 						},
 						{
+							title: "Members",
+							href: "/members",
+							icon: "Users",
+							description: "Organization members and roles",
+						},
+						{
 							title: "Groups",
-							href: `${basePath}/groups`,
+							href: "/groups",
 							icon: "Layers",
 							description: "Member teams and cohorts",
 						},
 						{
 							title: "Farmers",
-							href: `${basePath}/farmers`,
+							href: "/farmers",
 							icon: "Tractor",
 							description: "Farmers and farms overview",
 						},
 						{
 							title: "Settings",
-							href: `${basePath}/settings`,
+							href: "/settings",
 							icon: "Settings",
 							description: "Organization preferences",
 						},

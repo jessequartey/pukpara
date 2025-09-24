@@ -1,25 +1,16 @@
 import { PageTitle } from "@/components/ui/page-title";
 import { OrganizationOverviewCards } from "@/features/organizations/components/organization-overview-cards";
 
-type OrgOverviewPageProps = {
-	params: Promise<{ orgId: string }>;
-};
-
-export default async function OrgOverviewPage({
-	params,
-}: OrgOverviewPageProps) {
-	const { orgId } = await params;
-	const basePath = `/app/${orgId}`;
-
+export default async function OrgOverviewPage() {
 	return (
 		<div className="space-y-8">
 			<PageTitle
 				action={{
-					href: `${basePath}/farmers/create`,
+					href: "/farmers/create",
 					label: "Add farmer",
 				}}
 				breadcrumbs={[
-					{ label: "Organization", href: basePath },
+					{ label: "Organization", href: "/" },
 					{ label: "Overview" },
 				]}
 				description="Track membership, production, and financial activity for this organization."

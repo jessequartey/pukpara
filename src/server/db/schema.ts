@@ -121,6 +121,19 @@ export const verification = pgTable("verification", {
 		.notNull(),
 });
 
+export const organizationRole = pgTable("organization_role", {
+	id: text("id").primaryKey(),
+	organizationId: text("organization_id")
+		.notNull()
+		.references(() => organization.id, { onDelete: "cascade" }),
+	role: text("role").notNull(),
+	permission: text("permission").notNull(),
+	createdAt: timestamp("created_at").defaultNow().notNull(),
+	updatedAt: timestamp("updated_at").$onUpdate(
+		() => /* @__PURE__ */ new Date(),
+	),
+});
+
 export const team = pgTable("team", {
 	id: text("id").primaryKey(),
 	name: text("name").notNull(),
@@ -259,6 +272,9 @@ export const farmer = pgTable(
 		organizationId: text("organization_id")
 			.notNull()
 			.references(() => organization.id, { onDelete: "cascade" }), // tenant
+		userId: text("user_id").references(() => user.id, {
+			onDelete: "set null",
+		}), // optional user credentials
 		pukparaId: text("pukpara_id").unique(), // business code
 		firstName: text("first_name").notNull(),
 		lastName: text("last_name").notNull(),
@@ -871,6 +887,7 @@ export const userRelations = relations(user, ({ many }) => ({
 	memberships: many(member),
 	teamMemberships: many(teamMember),
 	invitations: many(invitation),
+	farmers: many(farmer),
 	savingsEntries: many(savingsEntry),
 	loanApprovals: many(loan, { relationName: "loanApprover" }),
 	loanRepayments: many(loanRepayment),
@@ -978,6 +995,10 @@ export const farmerRelations = relations(farmer, ({ one, many }) => ({
 	organization: one(organization, {
 		fields: [farmer.organizationId],
 		references: [organization.id],
+	}),
+	user: one(user, {
+		fields: [farmer.userId],
+		references: [user.id],
 	}),
 	district: one(district, {
 		fields: [farmer.districtId],

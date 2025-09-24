@@ -1,28 +1,20 @@
 import { PageTitle } from "@/components/ui/page-title";
-import { FarmersDirectoryPlaceholder } from "@/features/farmers/components/farmers-directory-placeholder";
+import { FarmersDirectoryCard } from "@/features/organization/farmers/components/farmers-directory-card";
 
-type OrgFarmersPageProps = {
-	params: Promise<{ orgId: string }>;
-};
-
-export default async function OrgFarmersPage({ params }: OrgFarmersPageProps) {
-	const { orgId } = await params;
-	const basePath = `/app/${orgId}`;
-	const listPath = `${basePath}/farmers`;
-
+export default async function OrgFarmersPage() {
 	return (
 		<div className="space-y-8">
 			<PageTitle
-				action={{ href: `${listPath}/create`, label: "Add farmer" }}
+				action={{ href: "/farmers/create", label: "Add farmer" }}
 				breadcrumbs={[
-					{ label: "Organization", href: basePath },
+					{ label: "Organization", href: "/" },
 					{ label: "Farmers" },
 				]}
 				description="View and manage farmer enrollment, documents, and farm assets."
 				title="Farmers"
 			/>
 
-			<FarmersDirectoryPlaceholder />
+			<FarmersDirectoryCard />
 		</div>
 	);
 }

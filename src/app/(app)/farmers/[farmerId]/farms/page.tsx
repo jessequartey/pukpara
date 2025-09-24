@@ -4,22 +4,22 @@ import { FarmsListPlaceholder } from "@/features/farms/components/farms-list-pla
 export default async function FarmerFarmsPage({
 	params,
 }: {
-	params: Promise<{ orgId: string; farmerId: string }>;
+	params: Promise<{ farmerId: string }>;
 }) {
-	const { orgId, farmerId } = await params;
-	const basePath = `/app/${orgId}`;
-	const farmersPath = `${basePath}/farmers`;
+	const { farmerId } = await params;
 	const decodedFarmerId = decodeURIComponent(farmerId);
-	const farmsPath = `${farmersPath}/${farmerId}/farms`;
 
 	return (
 		<div className="space-y-8">
 			<PageTitle
-				action={{ href: `${farmsPath}/create`, label: "Register farm" }}
+				action={{
+					href: `/farmers/${farmerId}/farms/create`,
+					label: "Register farm",
+				}}
 				breadcrumbs={[
-					{ label: "Organization", href: basePath },
-					{ label: "Farmers", href: farmersPath },
-					{ label: decodedFarmerId, href: `${farmersPath}/${farmerId}` },
+					{ label: "Organization", href: "/" },
+					{ label: "Farmers", href: "/farmers" },
+					{ label: decodedFarmerId, href: `/farmers/${farmerId}` },
 					{ label: "Farms" },
 				]}
 				description="Manage the farmer's farm records, production history, and geo data."

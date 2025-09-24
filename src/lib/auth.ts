@@ -9,6 +9,7 @@ import {
 	organization,
 	phoneNumber,
 } from "better-auth/plugins";
+import { eq } from "drizzle-orm";
 import {
 	ORGANIZATION_KYC_STATUS,
 	ORGANIZATION_LICENSE_STATUS,
@@ -89,11 +90,7 @@ export const auth = betterAuth({
 		 */
 		phoneNumber({
 			requireVerification: false,
-			// biome-ignore lint/suspicious/useAwait: <testing>
-			// biome-ignore lint/nursery/noShadow: <testing>
 			async sendOTP({ phoneNumber, code }) {
-				// integrate your SMS sender here
-				// biome-ignore lint/suspicious/noConsole: <testing>
 				console.log(`Sending OTP ${code} to ${phoneNumber}`);
 			},
 		}),
@@ -114,8 +111,41 @@ export const auth = betterAuth({
 			ac: orgAC,
 			roles: { ...OrgRoles },
 			teams: { enabled: true },
+			dynamicAccessControl: {
+				enabled: true,
+			},
+			autoCreateOrganizationOnSignUp: true,
 			// If you want stricter invites:
 			// requireEmailVerificationOnInvitation: true,
+
+			organizationHooks: {
+				// After a user creates an organization, make it their active organization
+				afterCreateOrganization: async ({ organization, user }) => {
+					// Update the user's session to set this as their active organization
+					await db
+						.update(schema.session)
+						.set({ activeOrganizationId: organization.id })
+						.where(eq(schema.session.userId, user.id));
+				},
+
+				// After a member is added to an organization, make it their active organization
+				afterAddMember: async ({ user, organization }) => {
+					// Set the organization as the user's active organization in their session
+					await db
+						.update(schema.session)
+						.set({ activeOrganizationId: organization.id })
+						.where(eq(schema.session.userId, user.id));
+				},
+
+				// After accepting an invitation, set the organization as active
+				afterAcceptInvitation: async ({ user, organization }) => {
+					// Set the organization as the user's active organization
+					await db
+						.update(schema.session)
+						.set({ activeOrganizationId: organization.id })
+						.where(eq(schema.session.userId, user.id));
+				},
+			},
 
 			/**
 			 * ORGANIZATION MODEL EXTRAS

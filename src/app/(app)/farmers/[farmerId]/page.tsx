@@ -4,24 +4,22 @@ import { PageTitle } from "@/components/ui/page-title";
 export default async function FarmerProfilePage({
 	params,
 }: {
-	params: Promise<{ orgId: string; farmerId: string }>;
+	params: Promise<{ farmerId: string }>;
 }) {
-	const { orgId, farmerId } = await params;
-	const basePath = `/app/${orgId}`;
-	const farmersPath = `${basePath}/farmers`;
+	const { farmerId } = await params;
 	const decodedFarmerId = decodeURIComponent(farmerId);
 
 	return (
 		<div className="space-y-8">
 			<PageTitle
 				action={{
-					href: farmersPath,
+					href: "/farmers",
 					icon: ArrowLeft,
 					label: "Back to farmers",
 				}}
 				breadcrumbs={[
-					{ label: "Organization", href: basePath },
-					{ label: "Farmers", href: farmersPath },
+					{ label: "Organization", href: "/" },
+					{ label: "Farmers", href: "/farmers" },
 					{ label: decodedFarmerId },
 				]}
 				description="Overview of farmer identity, compliance, and performance."

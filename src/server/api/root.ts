@@ -7,6 +7,7 @@ import {
 import { adminRouter } from "./routers/admin";
 import { authRouter } from "./routers/auth";
 import { districtsRouter } from "./routers/districts";
+import { organizationRouter } from "./routers/organization";
 import { organizationsRouter } from "./routers/organizations";
 
 /**
@@ -18,9 +19,20 @@ export const appRouter = createTRPCRouter({
 	auth: authRouter,
 	districts: districtsRouter,
 	organizations: organizationsRouter,
+	organization: organizationRouter,
 	admin: adminRouter,
 	hello: publicProcedure
+		.meta({
+			openapi: {
+				method: "GET",
+				path: "/hello",
+				tags: ["general"],
+				summary: "Simple hello endpoint",
+				description: "Returns a greeting message",
+			},
+		})
 		.input(z.object({ text: z.string().optional() }))
+		.output(z.object({ greeting: z.string() }))
 		.query(({ input }) => {
 			return {
 				greeting: `Hello ${input?.text ?? "world"}`,

@@ -4,10 +4,10 @@ import { PageTitle } from "@/components/ui/page-title";
 export default async function CreateFarmPage({
 	params,
 }: {
-	params: Promise<{ orgId: string; farmerId: string }>;
+	params: Promise<{ farmerId: string }>;
 }) {
-	const { orgId, farmerId } = await params;
-	const basePath = `/app/${orgId}`;
+	const { farmerId } = await params;
+	const basePath = /;
 	const farmersPath = `${basePath}/farmers`;
 	const farmsPath = `${farmersPath}/${farmerId}/farms`;
 	const decodedFarmerId = decodeURIComponent(farmerId);

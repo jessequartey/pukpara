@@ -91,7 +91,7 @@ const SelectionHeaderCell = ({
 	}
 
 	return (
-		<TableHead className="w-[48px]">
+		<TableHead className="w-[48px] px-3 py-2">
 			<Checkbox
 				aria-label="Select all users on this page"
 				checked={checkboxState}
@@ -115,7 +115,7 @@ const SelectionCell = ({
 	};
 
 	return (
-		<TableCell className="w-[48px]">
+		<TableCell className="w-[48px] px-3 py-2">
 			<Checkbox
 				aria-label={`Select user ${rowId}`}
 				checked={checked}
@@ -168,7 +168,7 @@ const ActionsCell = ({
 
 	return (
 		<>
-			<TableCell className="w-[56px] text-right">
+			<TableCell className="w-[56px] text-right px-3 py-2">
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
 						<Button aria-label="Open row actions" size="icon" variant="ghost">
@@ -417,14 +417,18 @@ export const DataTable = ({
 									className={cn(
 										column.align === "right" && "text-right",
 										column.widthClassName,
-										"whitespace-nowrap",
+										"truncate",
+										"px-3 py-2",
 									)}
 									key={column.key}
 								>
 									{renderHeaderContent(column)}
 								</TableHead>
 							))}
-							<TableHead aria-label="Row actions" className="w-[56px]" />
+							<TableHead
+								aria-label="Row actions"
+								className="w-[56px] px-3 py-2"
+							/>
 						</TableRow>
 					</TableHeader>
 					<TableBody>
@@ -457,7 +461,8 @@ export const DataTable = ({
 											<TableCell
 												className={cn(
 													column.align === "right" && "text-right",
-													"whitespace-nowrap",
+													"truncate",
+													"px-3 py-2",
 												)}
 												key={column.key}
 											>

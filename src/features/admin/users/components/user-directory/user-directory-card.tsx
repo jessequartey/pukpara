@@ -254,25 +254,27 @@ export function UserDirectoryCard({ controller }: UserDirectoryCardProps) {
 				</div>
 			</CardHeader>
 			<CardContent className="space-y-4 pt-6">
-				<UserTable
-					data={data}
-					isFetching={isFetching}
-					isLoading={isLoading || isActionLoading}
-					onApprove={handleApprove}
-					onBan={handleBan}
-					onDelete={handleDelete}
-					onImpersonate={handleImpersonate}
-					onReject={handleReject}
-					onSelectAll={handleSelectAll}
-					onSelectRow={handleSelectRow}
-					onSortChange={setSort}
-					onSuspend={handleSuspend}
-					onUnban={handleUnban}
-					onView={handleView}
-					selectedIds={selectedIds}
-					sort={sort}
-					visibleColumnKeys={visibleColumnKeys}
-				/>
+				<div className="max-h-[60vh] overflow-y-auto">
+					<UserTable
+						data={data}
+						isFetching={isFetching}
+						isLoading={isLoading || isActionLoading}
+						onApprove={handleApprove}
+						onBan={handleBan}
+						onDelete={handleDelete}
+						onImpersonate={handleImpersonate}
+						onReject={handleReject}
+						onSelectAll={handleSelectAll}
+						onSelectRow={handleSelectRow}
+						onSortChange={setSort}
+						onSuspend={handleSuspend}
+						onUnban={handleUnban}
+						onView={handleView}
+						selectedIds={selectedIds}
+						sort={sort}
+						visibleColumnKeys={visibleColumnKeys}
+					/>
+				</div>
 			</CardContent>
 
 			<CardFooter className="flex flex-col gap-4 border-t pt-6 md:flex-row md:items-center md:justify-between">

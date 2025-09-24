@@ -195,21 +195,23 @@ export function FarmerDirectoryCard({ controller }: FarmerDirectoryCardProps) {
 				</div>
 			</CardHeader>
 			<CardContent className="space-y-4 pt-6">
-				<FarmerTable
-					data={farmers}
-					isFetching={isFetching}
-					isLoading={isLoading || isActionLoading}
-					onApprove={handleApprove}
-					onDelete={handleDelete}
-					onReject={handleReject}
-					onSelectAll={handleSelectAll}
-					onSelectRow={handleSelectRow}
-					onSortChange={setSort}
-					onView={handleView}
-					selectedIds={selectedIds}
-					sort={sort}
-					visibleColumnKeys={visibleColumnKeys}
-				/>
+				<div className="max-h-[60vh] overflow-y-auto">
+					<FarmerTable
+						data={farmers}
+						isFetching={isFetching}
+						isLoading={isLoading || isActionLoading}
+						onApprove={handleApprove}
+						onDelete={handleDelete}
+						onReject={handleReject}
+						onSelectAll={handleSelectAll}
+						onSelectRow={handleSelectRow}
+						onSortChange={setSort}
+						onView={handleView}
+						selectedIds={selectedIds}
+						sort={sort}
+						visibleColumnKeys={visibleColumnKeys}
+					/>
+				</div>
 			</CardContent>
 			<CardFooter className="flex flex-col gap-4 border-t pt-6 md:flex-row md:items-center md:justify-between">
 				<div className="flex flex-wrap items-center gap-3 text-muted-foreground text-sm">

@@ -171,29 +171,31 @@ export function OrganizationDirectoryCard({
 						onDelete={() => setConfirmAction("delete")}
 					/>
 				) : null}
-				{showTableSkeleton ? (
-					<OrganizationTableSkeleton
-						columnKeys={skeletonColumnKeys}
-						rowCount={skeletonRowCount}
-					/>
-				) : (
-					<OrganizationTable
-						data={data}
-						isFetching={listQuery.isFetching}
-						isLoading={listQuery.isLoading}
-						onApprove={handleApproveSingle}
-						onDelete={handleDeleteSingle}
-						onReject={handleRejectSingle}
-						onSelectAll={handleSelectAll}
-						onSelectRow={handleSelectRow}
-						onSortChange={handleSortChange}
-						onSuspend={handleSuspendSingle}
-						onView={handleView}
-						selectedIds={selectedIds}
-						sort={sort}
-						visibleColumnKeys={visibleColumnKeys}
-					/>
-				)}
+				<div className="max-h-[60vh] overflow-y-auto">
+					{showTableSkeleton ? (
+						<OrganizationTableSkeleton
+							columnKeys={skeletonColumnKeys}
+							rowCount={skeletonRowCount}
+						/>
+					) : (
+						<OrganizationTable
+							data={data}
+							isFetching={listQuery.isFetching}
+							isLoading={listQuery.isLoading}
+							onApprove={handleApproveSingle}
+							onDelete={handleDeleteSingle}
+							onReject={handleRejectSingle}
+							onSelectAll={handleSelectAll}
+							onSelectRow={handleSelectRow}
+							onSortChange={handleSortChange}
+							onSuspend={handleSuspendSingle}
+							onView={handleView}
+							selectedIds={selectedIds}
+							sort={sort}
+							visibleColumnKeys={visibleColumnKeys}
+						/>
+					)}
+				</div>
 			</CardContent>
 
 			<CardFooter className="flex flex-col gap-4 border-t pt-6 md:flex-row md:items-center md:justify-between">

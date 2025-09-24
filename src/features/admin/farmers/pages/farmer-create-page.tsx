@@ -436,6 +436,10 @@ export function FarmerCreatePage() {
 		if (step === STEP_FARMS) {
 			return renderFarmsStep();
 		}
+		// Handle case where step 2 is accessed in single mode - redirect to step 3
+		if (step === STEP_ORGANIZATION && mode === "single") {
+			return renderDetailsStep();
+		}
 		return <Card className="p-6">Unexpected step.</Card>;
 	};
 
